@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
@@ -13,6 +12,8 @@ import {
 
 import { useThemeToggleItem } from "@/components/ThemeToggle";
 import { SideBarItem } from "@/components/SideBarItem";
+import { UserItem } from "@/components/UserItem";
+import { useSidebarCollapsed } from "@/hooks/useSidebarCollapsed";
 
 const navItems = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -23,8 +24,11 @@ const navItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
-  const [collapsed, setCollapsed] = useState(false);
+  const { collapsed, isReady, toggle } = useSidebarCollapsed();
   const themeToggleItem = useThemeToggleItem();
+  const mockUserName = "John Doe";
+
+  if (!isReady) return null;
 
   return (
     <aside
@@ -40,7 +44,7 @@ export function Sidebar() {
         >
           {!collapsed && <span className="text-lg font-bold">Nestery</span>}
           <button
-            onClick={() => setCollapsed((prev) => !prev)}
+            onClick={toggle}
             className="text-muted-foreground text-sm"
             aria-label="Toggle sidebar"
           >
@@ -65,7 +69,7 @@ export function Sidebar() {
         </nav>
       </div>
 
-      <div className="px-2 pb-6">
+      <div className="px-2 pb-6 space-y-3">
         {themeToggleItem && (
           <SideBarItem
             icon={themeToggleItem.icon}
@@ -74,6 +78,12 @@ export function Sidebar() {
             onClick={themeToggleItem.onClick}
           />
         )}
+
+        <UserItem
+          name={mockUserName}
+          collapsed={collapsed}
+          onLogout={() => alert("Logged out")}
+        />
       </div>
     </aside>
   );
