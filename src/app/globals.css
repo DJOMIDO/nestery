@@ -120,3 +120,25 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  .landing-bg {
+    background-image: url('/images/neat-0.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+  .login-bg {
+    background-image: url('/images/neat-1.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+  .signup-bg {
+    background-image: url('/images/neat-2.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+}
+

@@ -1,4 +1,5 @@
 // src/hooks/useSidebarCollapsed.ts
+
 import { useEffect, useState } from "react";
 
 export function useSidebarCollapsed() {
