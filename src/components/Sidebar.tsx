@@ -1,6 +1,9 @@
+// app/components/Sidebar.tsx
+
 "use client";
 
-import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   FolderKanban,
@@ -14,6 +17,7 @@ import { useThemeToggleItem } from "@/components/ThemeToggle";
 import { SideBarItem } from "@/components/SideBarItem";
 import { UserItem } from "@/components/UserItem";
 import { useSidebarCollapsed } from "@/hooks/useSidebarCollapsed";
+import { supabase } from "@/lib/supabaseClient";
 
 const navItems = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -23,10 +27,25 @@ const navItems = [
 ];
 
 export function Sidebar() {
+  const router = useRouter();
   const pathname = usePathname();
   const { collapsed, isReady, toggle } = useSidebarCollapsed();
   const themeToggleItem = useThemeToggleItem();
-  const mockUserName = "John Doe";
+
+  const [username, setUsername] = useState<string>("");
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const { data } = await supabase.auth.getUser();
+      if (data?.user?.user_metadata?.username) {
+        setUsername(data.user.user_metadata.username);
+      } else if (data?.user?.email) {
+        setUsername(data.user.email);
+      }
+    };
+
+    fetchUser();
+  }, []);
 
   if (!isReady) return null;
 
@@ -80,9 +99,13 @@ export function Sidebar() {
         )}
 
         <UserItem
-          name={mockUserName}
+          name={username || "User"}
           collapsed={collapsed}
-          onLogout={() => alert("Logged out")}
+          onLogout={async () => {
+            await supabase.auth.signOut();
+            setUsername("");
+            router.push("/");
+          }}
         />
       </div>
     </aside>

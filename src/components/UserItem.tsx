@@ -1,3 +1,5 @@
+// app/components/UserItem.tsx
+
 "use client";
 
 import { LogOut } from "lucide-react";
@@ -11,11 +13,13 @@ interface UserItemProps {
 
 export function UserItem({ collapsed, name, onLogout }: UserItemProps) {
   const getInitials = (fullName: string) => {
-    const parts = fullName.trim().split(" ");
-    return parts
-      .map((p) => p[0]?.toUpperCase())
-      .join("")
-      .slice(0, 2);
+    const parts = fullName.trim().split(" ").filter(Boolean);
+
+    if (parts.length === 0) return "";
+
+    if (parts.length === 1) return parts[0][0].toUpperCase();
+
+    return parts[0][0].toUpperCase() + parts[1][0].toUpperCase();
   };
 
   const initials = getInitials(name);
@@ -27,7 +31,7 @@ export function UserItem({ collapsed, name, onLogout }: UserItemProps) {
         collapsed ? "justify-center px-0" : "justify-start px-3"
       )}
     >
-      <div className="w-8 h-8 rounded-full bg-blue-500 text-foreground font-bold flex items-center justify-center text-sm shrink-0">
+      <div className="w-8 h-8 rounded-full bg-indigo-300 text-white font-bold flex items-center justify-center text-sm shrink-0">
         {initials}
       </div>
 
