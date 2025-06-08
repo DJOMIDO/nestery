@@ -10,6 +10,9 @@ import { useRouter } from "next/navigation";
 import { signUpSchema } from "@/lib/authSchema";
 import { signUpWithEmail } from "@/lib/auth";
 
+import { GithubLoginButton } from "@/components/GithubLoginButton";
+import { signInWithGitHub } from "@/lib/auth";
+
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,7 +41,6 @@ export default function SignupPage() {
       await signUpWithEmail(data.email, data.password, data.username);
       setSuccess("Sign up successful. Please check your email to verify.");
 
-      // ✅ 注册成功 2 秒后跳转到登录页
       setTimeout(() => {
         router.push("/login");
       }, 2000);
@@ -65,21 +67,26 @@ export default function SignupPage() {
       <div className="flex items-center justify-center relative z-10 px-6 py-12">
         <div className="w-full max-w-md bg-background/80 backdrop-blur-md p-8 rounded-2xl shadow-lg space-y-6">
           <div className="space-y-1">
-            <h2 className="text-3xl font-bold">Sign up</h2>
+            <h2 className="text-3xl font-bold">Get started</h2>
+            <p className="text-muted-foreground">
+              Create your account to continue
+            </p>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="username">Username</Label>
-              <Input id="username" {...register("username")} />
+              <Input id="username" {...register("username")} placeholder="Your Name" />
               {errors.username && (
-                <p className="text-red-500 text-sm">{errors.username.message}</p>
+                <p className="text-red-500 text-sm">
+                  {errors.username.message}
+                </p>
               )}
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" {...register("email")} />
+              <Input id="email" type="email" {...register("email")} placeholder="you@example.com" />
               {errors.email && (
                 <p className="text-red-500 text-sm">{errors.email.message}</p>
               )}
@@ -87,9 +94,11 @@ export default function SignupPage() {
 
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" {...register("password")} />
+              <Input id="password" type="password" {...register("password")} placeholder="••••••••" />
               {errors.password && (
-                <p className="text-red-500 text-sm">{errors.password.message}</p>
+                <p className="text-red-500 text-sm">
+                  {errors.password.message}
+                </p>
               )}
             </div>
 
@@ -99,6 +108,7 @@ export default function SignupPage() {
                 id="confirmPassword"
                 type="password"
                 {...register("confirmPassword")}
+                placeholder="••••••••"
               />
               {errors.confirmPassword && (
                 <p className="text-red-500 text-sm">
@@ -117,15 +127,13 @@ export default function SignupPage() {
 
           <div className="pt-4 border-t text-center space-y-3">
             <p className="text-sm text-muted-foreground">Or continue with</p>
-            <Button variant="outline" className="w-full">
-              Continue with GitHub
-            </Button>
+            <GithubLoginButton onClick={signInWithGitHub} />
           </div>
 
           <div className="text-center text-sm">
             Already have an account?{" "}
             <Link href="/login" className="underline hover:text-primary">
-              Sign in
+              Sign In Now
             </Link>
           </div>
         </div>
