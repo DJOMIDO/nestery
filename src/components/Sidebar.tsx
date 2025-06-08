@@ -37,11 +37,15 @@ export function Sidebar() {
   useEffect(() => {
     const fetchUser = async () => {
       const { data } = await supabase.auth.getUser();
-      if (data?.user?.user_metadata?.username) {
-        setUsername(data.user.user_metadata.username);
-      } else if (data?.user?.email) {
-        setUsername(data.user.email);
-      }
+      const user = data?.user;
+
+      const name =
+        user?.user_metadata?.full_name ||
+        user?.user_metadata?.username ||
+        user?.email ||
+        "User";
+
+      setUsername(name);
     };
 
     fetchUser();
