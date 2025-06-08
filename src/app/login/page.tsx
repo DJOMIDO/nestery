@@ -10,20 +10,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
-import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 import { signInSchema } from "@/lib/authSchema";
-import { signInWithEmail } from "@/lib/auth";
-
+import { signInWithEmail, signInWithGitHub } from "@/lib/auth";
 import { GithubLoginButton } from "@/components/GithubLoginButton";
-import { signInWithGitHub } from "@/lib/auth";
 
 type LoginFormData = z.infer<typeof signInSchema>;
 
 export default function LoginPage() {
   const router = useRouter();
-  const [formError, setFormError] = useState<string>("");
 
   const {
     register,
@@ -34,15 +31,15 @@ export default function LoginPage() {
   });
 
   const onSubmit = async (data: LoginFormData) => {
-    setFormError("");
     try {
       await signInWithEmail(data.email, data.password);
+      toast.success("Logged in successfully");
       router.push("/dashboard");
     } catch (error: unknown) {
       if (error instanceof Error) {
-        setFormError(error.message);
+        toast.error(error.message);
       } else {
-        setFormError("An unexpected error occurred.");
+        toast.error("An unexpected error occurred.");
       }
     }
   };
@@ -83,8 +80,6 @@ export default function LoginPage() {
                 <p className="text-red-500 text-sm">{errors.password.message}</p>
               )}
             </div>
-
-            {formError && <p className="text-red-500 text-sm">{formError}</p>}
 
             <Button type="submit" className="w-full" disabled={isSubmitting}>
               {isSubmitting ? "Signing in..." : "Sign in"}
