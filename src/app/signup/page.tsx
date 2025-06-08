@@ -4,14 +4,13 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { signUpSchema } from "@/lib/authSchema";
-import { signUpWithEmail } from "@/lib/auth";
+import { signUpWithEmail, signInWithGitHub } from "@/lib/auth";
 
 import { GithubLoginButton } from "@/components/GithubLoginButton";
-import { signInWithGitHub } from "@/lib/auth";
+import { toast } from "sonner";
 
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -22,9 +21,7 @@ import Link from "next/link";
 type FormData = z.infer<typeof signUpSchema>;
 
 export default function SignupPage() {
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
-  const router = useRouter(); // ✅ 用于跳转登录页
+  const router = useRouter();
 
   const {
     register,
@@ -35,20 +32,15 @@ export default function SignupPage() {
   });
 
   const onSubmit = async (data: FormData) => {
-    setError(null);
-    setSuccess(null);
     try {
       await signUpWithEmail(data.email, data.password, data.username);
-      setSuccess("Sign up successful. Please check your email to verify.");
-
-      setTimeout(() => {
-        router.push("/login");
-      }, 2000);
+      toast.success("Sign up successful. Please check your email.");
+      setTimeout(() => router.push("/login"), 2000);
     } catch (err: unknown) {
       if (err instanceof Error) {
-        setError(err.message);
+        toast.error(err.message);
       } else {
-        setError("Something went wrong");
+        toast.error("Something went wrong.");
       }
     }
   };
@@ -116,9 +108,6 @@ export default function SignupPage() {
                 </p>
               )}
             </div>
-
-            {error && <p className="text-red-600 text-sm">{error}</p>}
-            {success && <p className="text-green-600 text-sm">{success}</p>}
 
             <Button type="submit" className="w-full" disabled={isSubmitting}>
               {isSubmitting ? "Signing up..." : "Sign up"}
