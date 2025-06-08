@@ -16,6 +16,9 @@ import { useRouter } from "next/navigation";
 import { signInSchema } from "@/lib/authSchema";
 import { signInWithEmail } from "@/lib/auth";
 
+import { GithubLoginButton } from "@/components/GithubLoginButton";
+import { signInWithGitHub } from "@/lib/auth";
+
 type LoginFormData = z.infer<typeof signInSchema>;
 
 export default function LoginPage() {
@@ -58,13 +61,16 @@ export default function LoginPage() {
       <div className="flex items-center justify-center relative z-10 px-6 py-12">
         <div className="w-full max-w-md bg-background/80 backdrop-blur-md p-8 rounded-2xl shadow-lg space-y-6">
           <div className="space-y-1">
-            <h2 className="text-3xl font-bold">Sign in</h2>
+            <h2 className="text-3xl font-bold">Welcome back</h2>
+            <p className="text-sm text-muted-foreground">
+              Sign in to your account
+            </p>
           </div>
 
           <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" {...register("email")} />
+              <Input id="email" type="email" {...register("email")} placeholder="you@example.com" />
               {errors.email && (
                 <p className="text-red-500 text-sm">{errors.email.message}</p>
               )}
@@ -72,7 +78,7 @@ export default function LoginPage() {
 
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" {...register("password")} />
+              <Input id="password" type="password" {...register("password")} placeholder="••••••••" />
               {errors.password && (
                 <p className="text-red-500 text-sm">{errors.password.message}</p>
               )}
@@ -87,15 +93,13 @@ export default function LoginPage() {
 
           <div className="pt-4 border-t text-center space-y-3">
             <p className="text-sm text-muted-foreground">Or continue with</p>
-            <Button variant="outline" className="w-full">
-              Continue with GitHub
-            </Button>
+            <GithubLoginButton onClick={signInWithGitHub} />
           </div>
 
           <div className="text-center text-sm">
             Don&apos;t have an account?{" "}
             <Link href="/signup" className="underline hover:text-primary">
-              Sign up
+              Sign Up Now
             </Link>
           </div>
         </div>
