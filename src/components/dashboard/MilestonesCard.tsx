@@ -3,7 +3,7 @@
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
-// import { Progress } from "@/components/ui/progress";
+import { Milestone } from 'lucide-react';
 
 interface Milestone {
   title: string;
@@ -23,6 +23,7 @@ export function MilestonesCard() {
       <CardContent className="p-4">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold">Milestones</h3>
+          <Milestone className="w-6 h-6 text-muted-foreground" />
         </div>
 
         <div className="space-y-4">

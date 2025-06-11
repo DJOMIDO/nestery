@@ -14,6 +14,7 @@ type SideBarItemProps =
       href: string;
       collapsed: boolean;
       isActive?: boolean;
+      onClick?: () => void;
     }
   | {
       icon: LucideIcon;
@@ -38,9 +39,12 @@ export function SideBarItem(props: SideBarItemProps) {
     "href" in props ? (
       <Link
         href={props.href}
+        onClick={props.onClick}
         className={cn(
-          "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition hover:bg-muted",
-          props.isActive ? "bg-muted" : "text-muted-foreground",
+          "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-muted",
+          props.isActive
+            ? "bg-primary/10 text-primary dark:bg-primary/20"
+            : "text-muted-foreground",
           collapsed ? "justify-center" : "justify-start"
         )}
       >
@@ -50,7 +54,7 @@ export function SideBarItem(props: SideBarItemProps) {
       <button
         onClick={props.onClick}
         className={cn(
-          "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition hover:bg-muted w-full text-muted-foreground",
+          "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-muted w-full text-muted-foreground",
           collapsed ? "justify-center" : "justify-start"
         )}
       >
