@@ -2,7 +2,6 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
@@ -18,6 +17,7 @@ import { SideBarItem } from "@/components/SideBarItem";
 import { UserItem } from "@/components/UserItem";
 import { useSidebarCollapsed } from "@/hooks/useSidebarCollapsed";
 import { supabase } from "@/lib/supabaseClient";
+import { useCurrentUserName } from "@/lib/useCurrentUserName";
 
 const navItems = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -32,31 +32,14 @@ export function Sidebar() {
   const { collapsed, isReady, toggle } = useSidebarCollapsed();
   const themeToggleItem = useThemeToggleItem();
 
-  const [username, setUsername] = useState<string>("");
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      const { data } = await supabase.auth.getUser();
-      const user = data?.user;
-
-      const name =
-        user?.user_metadata?.full_name ||
-        user?.user_metadata?.username ||
-        user?.email ||
-        "User";
-
-      setUsername(name);
-    };
-
-    fetchUser();
-  }, []);
+  const username = useCurrentUserName();
 
   if (!isReady) return null;
 
   return (
     <aside
       className={`h-screen bg-sidebar text-sidebar-foreground border-r border-sidebar-border flex flex-col justify-between transition-all duration-300 ${
-        collapsed ? "w-16" : "w-64"
+        collapsed ? "w-16" : "w-48"
       }`}
     >
       <div>
@@ -107,7 +90,6 @@ export function Sidebar() {
           collapsed={collapsed}
           onLogout={async () => {
             await supabase.auth.signOut();
-            setUsername("");
             router.push("/");
           }}
         />
