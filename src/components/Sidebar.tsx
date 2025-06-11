@@ -8,8 +8,8 @@ import {
   FolderKanban,
   Users2,
   Settings,
-  ChevronLeft,
-  ChevronRight,
+  SquareChevronLeft,
+  SquareChevronRight,
 } from "lucide-react";
 
 import { useThemeToggleItem } from "@/components/ThemeToggle";
@@ -26,21 +26,20 @@ const navItems = [
   { label: "Settings", href: "/settings", icon: Settings },
 ];
 
-export function Sidebar() {
+export function Sidebar({ className = "" }: { className?: string }) {
   const router = useRouter();
   const pathname = usePathname();
   const { collapsed, isReady, toggle } = useSidebarCollapsed();
   const themeToggleItem = useThemeToggleItem();
-
   const username = useCurrentUserName();
 
   if (!isReady) return null;
 
   return (
     <aside
-      className={`h-screen bg-sidebar text-sidebar-foreground border-r border-sidebar-border flex flex-col justify-between transition-all duration-300 ${
-        collapsed ? "w-16" : "w-48"
-      }`}
+      className={`hidden md:flex h-screen bg-sidebar text-sidebar-foreground border-r border-sidebar-border 
+        flex-col justify-between transition-all duration-300
+        ${collapsed ? "w-16" : "w-48"} ${className}`}
     >
       <div>
         <div
@@ -54,7 +53,7 @@ export function Sidebar() {
             className="text-muted-foreground text-sm"
             aria-label="Toggle sidebar"
           >
-            {collapsed ? <ChevronRight /> : <ChevronLeft />}
+            {collapsed ? <SquareChevronRight /> : <SquareChevronLeft />}
           </button>
         </div>
 
@@ -84,7 +83,6 @@ export function Sidebar() {
             onClick={themeToggleItem.onClick}
           />
         )}
-
         <UserItem
           name={username || "User"}
           collapsed={collapsed}
