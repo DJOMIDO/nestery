@@ -49,9 +49,9 @@ export function DeadlinesCard() {
     <Card className="w-full shadow-sm bg-white dark:bg-gray-800 hover:shadow-md">
       <CardContent className="p-4">
 
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold">Deadlines</h3>
-          <Clock className="w-5 h-5 text-muted-foreground" />
+        <div className="flex items-center justify-between group">
+          <h3 className="text-lg font-semibold group-hover:text-muted-foreground transition-colors duration-200">Deadlines</h3>
+          <Clock className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors duration-200" />
         </div>
 
         <div className="space-y-0.5">
