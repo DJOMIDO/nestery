@@ -35,15 +35,13 @@ export function MobileSidebar({
 
   return (
     <>
-      {/* 遮罩层 */}
       <div
         className="fixed inset-0 bg-black/50 z-40"
         onClick={() => setOpen(false)}
       />
 
-      {/* 抽屉面板 */}
       <aside className="fixed inset-y-0 left-0 z-50 w-full max-w-xs bg-sidebar text-sidebar-foreground flex flex-col">
-        {/* 头部 */}
+
         <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
           <span className="text-xl font-bold">Nestery</span>
           <button
@@ -55,8 +53,7 @@ export function MobileSidebar({
           </button>
         </div>
 
-        {/* 导航列表 */}
-        <nav className="flex-1 overflow-auto space-y-1 px-2 py-4">
+        <nav className="flex-1 overflow-auto space-y-1 p-2">
           {navItems.map(({ href, label, icon: Icon }) => {
             const isActive = pathname.startsWith(href);
             return (
@@ -73,8 +70,7 @@ export function MobileSidebar({
           })}
         </nav>
 
-        {/* 底部操作 */}
-        <div className="px-2 pb-6 space-y-3 border-t border-sidebar-border">
+        <div className="p-2 border-t space-y-1 border-sidebar-border">
           {themeToggleItem && (
             <SideBarItem
               icon={themeToggleItem.icon}

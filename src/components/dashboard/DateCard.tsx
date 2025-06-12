@@ -26,17 +26,24 @@ export function DateCard() {
         bg-white dark:bg-gray-800
       `}
     >
-      <CardContent className="p-4 flex flex-col md:flex-row md:space-x-4 space-y-4 md:space-y-0">
-        <div className="flex flex-col items-center flex-shrink-0 min-w-0">
+      <CardContent
+        className="
+          p-4
+          flex flex-col items-center justify-center space-y-4 
+          md:flex-row md:items-start md:justify-start md:space-x-4 md:space-y-0
+        "
+      >
+
+        <div className="flex flex-col items-center flex-shrink-0">
           <p className="text-xl font-bold text-rose-500">{weekday}</p>
           <p className="text-5xl font-extrabold">{dayNum}</p>
         </div>
 
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 flex flex-col items-center md:items-start">
           {upcoming.length > 0 ? (
             upcoming.map((h: Holiday) => (
-              <div key={h.date} className="mb-3">
-                <p className="text-xs uppercase text-muted-foreground">
+              <div key={h.date} className="mb-3 text-center md:text-left">
+                <p className="text-xs uppercase text-muted-foreground mb-1">
                   {new Date(h.date)
                     .toLocaleDateString("en-US", {
                       weekday: "long",
@@ -51,7 +58,7 @@ export function DateCard() {
               </div>
             ))
           ) : (
-            <div className="absolute inset-0 flex items-center justify-center">
+            <div className="flex items-center justify-center h-full">
               <p className="text-base font-medium text-muted-foreground">
                 No upcoming events
               </p>

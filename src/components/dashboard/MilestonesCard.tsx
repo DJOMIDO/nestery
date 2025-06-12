@@ -21,9 +21,9 @@ export function MilestonesCard() {
   return (
     <Card className="w-full shadow-sm bg-white dark:bg-gray-800 hover:shadow-md">
       <CardContent className="p-4">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold">Milestones</h3>
-          <Milestone className="w-6 h-6 text-muted-foreground" />
+        <div className="flex items-center justify-between mb-4 group">
+          <h3 className="text-lg font-semibold group-hover:text-muted-foreground transition-colors duration-200">Milestones</h3>
+          <Milestone className="w-6 h-6 text-muted-foreground group-hover:text-foreground transition-colors duration-200" />
         </div>
 
         <div className="space-y-4">

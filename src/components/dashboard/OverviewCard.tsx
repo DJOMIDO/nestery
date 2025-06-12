@@ -43,6 +43,11 @@ export function OverviewCard() {
     "Ivy Garcia",
     "Jack Martinez",
     "Kathy Rodriguez",
+    "Leo Hernandez",
+    "Mia Lopez",
+    "Nina Gonzalez",
+    "Oscar Perez",
+    "Paul Taylor",
   ];
 
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
@@ -109,10 +114,10 @@ export function OverviewCard() {
       renderItems: () => {
         const visible = expanded["Team Members"]
           ? members
-          : members.slice(0, 5);
+          : members.slice(0, 8);
         return (
           <div className="space-y-2">
-            <div className="grid grid-cols-3 lg:grid-cols-5 gap-y-2 gap-x-0.5">
+            <div className="flex flex-wrap gap-2">
               {visible.map((name) => (
                 <div
                   key={name}
@@ -127,14 +132,14 @@ export function OverviewCard() {
               ))}
             </div>
 
-            {members.length > 5 && (
+            {members.length > 8 && (
               <button
                 onClick={() => toggle("Team Members")}
                 className="text-xs text-primary hover:underline"
               >
                 {expanded["Team Members"]
                   ? "Show less"
-                  : `+ ${members.length - 5} more`}
+                  : `+ ${members.length - 8} more`}
               </button>
             )}
           </div>
@@ -153,14 +158,7 @@ export function OverviewCard() {
     >
       <CardContent className="p-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold">Overview</h3>
-          {/* <button
-            className="p-1 hover:bg-muted rounded"
-            aria-label="More overview options"
-            title="More"
-          >
-            <MoreHorizontal className="w-5 h-5 text-muted-foreground" />
-          </button> */}
+          <h3 className="text-lg font-semibold hover:text-muted-foreground transition-colors duration-200">Overview</h3>
         </div>
 
         <div className="divide-y divide-muted-foreground">

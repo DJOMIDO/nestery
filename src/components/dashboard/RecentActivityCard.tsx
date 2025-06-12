@@ -48,9 +48,9 @@ export function RecentActivityCard() {
   return (
     <Card className="w-full shadow-sm bg-white dark:bg-gray-800 hover:shadow-md">
       <CardContent className="p-4">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-lg font-semibold">Recent Activity</h3>
-          <Activity className="w-5 h-5 text-muted-foreground" />
+        <div className="flex items-center justify-between mb-3 group">
+          <h3 className="text-lg font-semibold group-hover:text-muted-foreground transition-colors duration-200">Recent Activity</h3>
+          <Activity className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors duration-200" />
         </div>
         <ul className="space-y-0.5">
           {activities.map(({ id, text, time }) => {

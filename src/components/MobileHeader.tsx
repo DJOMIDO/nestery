@@ -13,7 +13,7 @@ export function MobileHeader() {
     <>
 
       <header className="flex items-center justify-between md:hidden bg-sidebar text-sidebar-foreground px-4 py-2 border-b border-sidebar-border">
-        <span className="text-lg font-bold">Nestery</span>
+        <span className="text-xl font-bold">Nestery</span>
         <button
           onClick={() => setOpen(true)}
           className="p-2 text-muted-foreground"
