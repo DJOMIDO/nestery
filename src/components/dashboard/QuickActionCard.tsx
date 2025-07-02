@@ -4,20 +4,36 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, ClipboardList, UserPlus, Calendar, CalendarClock, BellPlus } from "lucide-react";
+import {
+  Plus,
+  ClipboardList,
+  UserPlus,
+  Calendar,
+  CalendarClock,
+  BellPlus,
+} from "lucide-react";
 
-export function QuickActionCard() {
+interface QuickActionCardProps {
+  onNewProject: () => void;
+}
+
+export function QuickActionCard({ onNewProject }: QuickActionCardProps) {
   return (
     <Card className="w-full shadow-sm bg-white dark:bg-gray-800 hover:shadow-md">
       <CardContent className="p-4 flex flex-col">
-
         <div className="flex items-center justify-between mb-4 group">
-          <h3 className="text-lg font-semibold group-hover:text-muted-foreground transition-colors duration-200">Quick Actions</h3>
+          <h3 className="text-lg font-semibold group-hover:text-muted-foreground transition-colors duration-200">
+            Quick Actions
+          </h3>
           <Calendar className="w-6 h-6 text-muted-foreground group-hover:text-foreground transition-colors duration-200" />
         </div>
-
         <div className="flex flex-col items-center justify-center space-y-3">
-          <Button size="sm" variant="outline" className="w-3/4">
+          <Button
+            size="sm"
+            variant="outline"
+            className="w-3/4"
+            onClick={onNewProject}
+          >
             <Plus className="w-4 h-4 mr-1" /> New Project
           </Button>
           <Button size="sm" variant="outline" className="w-3/4">
