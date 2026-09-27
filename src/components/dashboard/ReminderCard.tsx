@@ -4,9 +4,20 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { ListChecks } from "lucide-react";
+import { dueReminders, type Task } from "@/lib/tasks";
 
-export function ReminderCard() {
-  const completedCount = 0;
+const formatTime = (iso: string) =>
+  new Date(iso).toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+
+// Open tasks whose reminder is due today (or already past)
+export function ReminderCard({ tasks }: { tasks: Task[] }) {
+  const reminders = dueReminders(tasks);
+  const next = reminders[0];
 
   return (
     <Card
@@ -22,15 +33,31 @@ export function ReminderCard() {
             <ListChecks className="w-5 h-5 text-white" />
           </div>
           <div className="text-center">
-            <p className="text-2xl font-bold">{completedCount}</p>
+            <p className="text-2xl font-bold">{reminders.length}</p>
             <p className="text-xs font-medium text-indigo-500">Reminders</p>
           </div>
         </div>
 
-        <div className="flex-1 min-w-0 flex items-center justify-center">
-          <p className="text-base font-medium text-muted-foreground truncate whitespace-nowrap overflow-hidden">
-            All reminders completed
-          </p>
+        <div className="flex-1 min-w-0 flex flex-col items-center md:items-start justify-center">
+          {next ? (
+            <>
+              <p className="text-xs uppercase text-muted-foreground mb-1">
+                {formatTime(next.remindAt!)}
+              </p>
+              <p className="text-base font-medium truncate max-w-full">
+                {next.title}
+              </p>
+              {reminders.length > 1 && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  +{reminders.length - 1} more today
+                </p>
+              )}
+            </>
+          ) : (
+            <p className="text-base font-medium text-muted-foreground truncate whitespace-nowrap overflow-hidden">
+              All reminders completed
+            </p>
+          )}
         </div>
       </CardContent>
     </Card>
