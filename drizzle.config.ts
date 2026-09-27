@@ -10,6 +10,8 @@ export default defineConfig({
   dialect: "postgresql",
   casing: "snake_case",
   dbCredentials: {
-    url: process.env.DATABASE_URL!,
+    // Prefer a direct (non-pooled) connection for migrations when available,
+    // e.g. DATABASE_URL_UNPOOLED set by the Neon Vercel integration.
+    url: process.env.DATABASE_URL_UNPOOLED || process.env.DATABASE_URL!,
   },
 });

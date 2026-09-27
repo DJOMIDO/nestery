@@ -35,6 +35,18 @@ A workspace for personal and team collaboration, built with Next.js.
    npm run dev
    ```
 
+## Deploying to Vercel
+
+1. On [vercel.com](https://vercel.com), choose **Add New → Project** and import this repository.
+2. In **Settings → Environment Variables**, add:
+   - `DATABASE_URL`: Neon's pooled connection string
+   - `BETTER_AUTH_SECRET`: a random string (`openssl rand -base64 32`)
+   - `BETTER_AUTH_URL` (optional): only needed with a custom domain. Otherwise the app uses the Vercel deployment URL, so production and preview deployments both work.
+   - `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` (optional): the OAuth App callback URL must be `https://<your-domain>/api/auth/callback/github`
+3. Deploy. Vercel runs the `vercel-build` script, which applies pending migrations (`drizzle-kit migrate`) before `next build`, so the tables are created automatically. It uses `DATABASE_URL_UNPOOLED` for migrations when set (the Neon integration sets it), otherwise `DATABASE_URL`.
+
+Every deployment runs migrations against the database it is configured with. Point preview deployments at a separate Neon branch if you don't want them to change production data.
+
 ## Database workflow
 
 The schema lives in `src/db/schema.ts`; migrations are committed under `drizzle/`.
