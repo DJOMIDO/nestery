@@ -153,3 +153,46 @@ export function weekStats(tasks: Task[], today = toDateKey(new Date())) {
     ).length,
   };
 }
+
+export interface TaskActivity {
+  id: string;
+  kind: "created" | "completed";
+  title: string;
+  at: string; // ISO timestamp
+}
+
+// Recent task events, newest first. Derived from createdAt / completedAt,
+// so deleted tasks do not appear.
+export function taskActivity(tasks: Task[], limit = 10): TaskActivity[] {
+  const events: TaskActivity[] = [];
+  for (const task of tasks) {
+    events.push({
+      id: `${task.id}-created`,
+      kind: "created",
+      title: task.title,
+      at: task.createdAt,
+    });
+    if (task.completedAt) {
+      events.push({
+        id: `${task.id}-completed`,
+        kind: "completed",
+        title: task.title,
+        at: task.completedAt,
+      });
+    }
+  }
+  return events.sort((a, b) => (a.at < b.at ? 1 : -1)).slice(0, limit);
+}
+
+const relativeFormat = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
+
+// "just now", "5 minutes ago", "yesterday", "3 days ago", or a date
+export function formatRelative(iso: string, now = new Date()) {
+  const seconds = Math.round((new Date(iso).getTime() - now.getTime()) / 1000);
+  const abs = Math.abs(seconds);
+  if (abs < 60) return "just now";
+  if (abs < 3600) return relativeFormat.format(Math.round(seconds / 60), "minute");
+  if (abs < 86400) return relativeFormat.format(Math.round(seconds / 3600), "hour");
+  if (abs < 7 * 86400) return relativeFormat.format(Math.round(seconds / 86400), "day");
+  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}

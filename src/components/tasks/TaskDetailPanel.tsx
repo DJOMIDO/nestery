@@ -25,7 +25,7 @@ interface TaskDetailPanelProps {
 
 export function TaskDetailPanel({ task, onSave, onDelete, onClose }: TaskDetailPanelProps) {
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col h-full gap-4">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">Task details</h2>
         <button
@@ -43,6 +43,7 @@ export function TaskDetailPanel({ task, onSave, onDelete, onClose }: TaskDetailP
         task={task}
         idPrefix="task-panel"
         onSubmit={onSave}
+        fill
         extraActions={
           <Button type="button" variant="outline" onClick={onDelete}>
             <Trash2 className="w-4 h-4 mr-1" /> Delete

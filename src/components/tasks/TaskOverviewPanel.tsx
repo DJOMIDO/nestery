@@ -31,7 +31,7 @@ export function TaskOverviewPanel({
   const tags = useMemo(() => tagCounts(openTasks), [openTasks]);
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col h-full gap-6">
       <section aria-label="Calendar">
         <MiniCalendar
           markedDates={markedDates}
@@ -70,7 +70,8 @@ export function TaskOverviewPanel({
         )}
       </section>
 
-      <section aria-label="This week">
+      {/* Pinned to the bottom of the panel */}
+      <section aria-label="This week" className="mt-auto">
         <h3 className="text-sm font-semibold text-muted-foreground mb-2">This week</h3>
         <WeekStats tasks={tasks} />
       </section>

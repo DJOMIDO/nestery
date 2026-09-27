@@ -8,8 +8,8 @@ import type { Task } from "@/lib/tasks";
 
 export function WeekCard({ tasks }: { tasks: Task[] }) {
   return (
-    <Card className="w-full shadow-sm bg-white dark:bg-gray-800 hover:shadow-md">
-      <CardContent className="p-4">
+    <Card className="w-full h-full shadow-sm bg-white dark:bg-gray-800 hover:shadow-md">
+      <CardContent className="p-4 flex-1 min-h-0 overflow-y-auto">
         <div className="flex items-center justify-between mb-4 group">
           <h3 className="text-lg font-semibold group-hover:text-muted-foreground transition-colors duration-200">
             This Week

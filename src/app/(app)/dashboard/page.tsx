@@ -18,20 +18,21 @@ export default function DashboardPage() {
   const [isNewTaskOpen, setIsNewTaskOpen] = useState(false);
 
   return (
-    <div className="space-y-6 p-2">
+    // On large screens the dashboard fits the viewport; cards scroll inside
+    <div className="space-y-6 p-2 lg:h-full lg:flex lg:flex-col lg:space-y-0 lg:gap-6">
       {/* Top row */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:shrink-0">
         <WelcomeCard />
         <DateCard />
         <ReminderCard tasks={tasks} />
       </div>
 
       {/* Bottom row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:flex-1 lg:min-h-0 lg:grid-rows-1">
         <OverviewCard tasks={tasks} />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6 auto-rows-min lg:col-span-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:col-span-2 lg:grid-rows-2 lg:min-h-0">
           <QuickActionCard onAddTask={() => setIsNewTaskOpen(true)} />
-          <RecentActivityCard />
+          <RecentActivityCard tasks={tasks} />
           <DeadlinesCard tasks={tasks} />
           <WeekCard tasks={tasks} />
         </div>
