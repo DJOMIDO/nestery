@@ -3,28 +3,15 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import {
-  LayoutDashboard,
-  FolderKanban,
-  Users2,
-  Settings,
-  SquareChevronLeft,
-  SquareChevronRight,
-} from "lucide-react";
+import { SquareChevronLeft, SquareChevronRight } from "lucide-react";
 
 import { useThemeToggleItem } from "@/components/ThemeToggle";
 import { SideBarItem } from "@/components/SideBarItem";
 import { UserItem } from "@/components/UserItem";
+import { navItems } from "@/components/nav";
 import { useSidebarCollapsed } from "@/hooks/useSidebarCollapsed";
 import { signOut } from "@/lib/auth-client";
 import { useCurrentUserName } from "@/lib/useCurrentUserName";
-
-const navItems = [
-  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { label: "Projects", href: "/projects", icon: FolderKanban },
-  { label: "Team", href: "/team", icon: Users2 },
-  { label: "Settings", href: "/settings", icon: Settings },
-];
 
 export function Sidebar({ className = "" }: { className?: string }) {
   const router = useRouter();
