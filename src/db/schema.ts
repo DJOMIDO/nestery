@@ -11,6 +11,7 @@ import {
   timestamp,
   uuid,
 } from "drizzle-orm/pg-core";
+import { TASK_PRIORITIES, TASK_STATUSES } from "@/lib/tasks";
 
 // ---------------------------------------------------------------------------
 // Better Auth tables (user / session / account / verification).
@@ -130,4 +131,34 @@ export const projects = pgTable(
       .$onUpdate(() => new Date()),
   },
   (t) => [index("projects_owner_id_idx").on(t.ownerId)]
+);
+
+export const taskStatus = pgEnum("task_status", TASK_STATUSES);
+export const taskPriority = pgEnum("task_priority", TASK_PRIORITIES);
+
+export const tasks = pgTable(
+  "tasks",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    userId: text()
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    projectId: uuid().references(() => projects.id, { onDelete: "set null" }),
+    title: text().notNull(),
+    description: text(),
+    status: taskStatus().notNull().default("todo"),
+    priority: taskPriority().notNull().default("medium"),
+    dueDate: date(),
+    remindAt: timestamp({ withTimezone: true }),
+    completedAt: timestamp({ withTimezone: true }),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp({ withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    index("tasks_user_id_idx").on(t.userId),
+    index("tasks_project_id_idx").on(t.projectId),
+  ]
 );

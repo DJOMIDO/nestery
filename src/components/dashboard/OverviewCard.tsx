@@ -3,13 +3,18 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
+import Link from 'next/link';
 import { Menu, MoreHorizontal } from 'lucide-react';
+import { compareTasks, type Task } from '@/lib/tasks';
 
 export interface OverviewCardProps {
   projects?: { id: string; name: string }[];
+  tasks?: Task[];
 }
 
-export function OverviewCard({ projects = [] }: OverviewCardProps) {
+export function OverviewCard({ projects = [], tasks = [] }: OverviewCardProps) {
+  const openTasks = tasks.filter((t) => t.status !== 'done').sort(compareTasks);
+
   // Manage simple expanded state for projects section
   const [expanded, setExpanded] = useState(false);
 
@@ -70,24 +75,27 @@ export function OverviewCard({ projects = [] }: OverviewCardProps) {
             )}
           </div>
 
-          {/* Tasks Section (static placeholder) */}
+          {/* Tasks Section: next open tasks */}
           <div className="py-3">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium text-muted-foreground">
-                Tasks (0)
+                Tasks ({openTasks.length})
               </span>
+              <Link href="/tasks" className="text-xs text-primary hover:underline">
+                View all
+              </Link>
             </div>
-            <p className="text-sm text-muted-foreground">No tasks yet.</p>
-          </div>
-
-          {/* Team Members Section (static placeholder) */}
-          <div className="py-3">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-muted-foreground">
-                Team Members (0)
-              </span>
-            </div>
-            <p className="text-sm text-muted-foreground">No members yet.</p>
+            {openTasks.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No open tasks.</p>
+            ) : (
+              openTasks.slice(0, 3).map((task) => (
+                <div key={task.id} className="py-1">
+                  <span className="inline-block max-w-full truncate bg-indigo-100 dark:bg-indigo-200 text-indigo-600 px-2 py-1 rounded text-sm">
+                    {task.title}
+                  </span>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </CardContent>
