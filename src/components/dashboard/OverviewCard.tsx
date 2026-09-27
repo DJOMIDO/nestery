@@ -18,8 +18,8 @@ export function OverviewCard({ tasks = [] }: OverviewCardProps) {
   const tags = tagCounts(openTasks);
 
   return (
-    <Card className="w-full hover:shadow-md bg-white dark:bg-gray-800">
-      <CardContent className="p-4">
+    <Card className="w-full h-full hover:shadow-md bg-white dark:bg-gray-800">
+      <CardContent className="p-4 flex-1 min-h-0 overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold">Overview</h3>

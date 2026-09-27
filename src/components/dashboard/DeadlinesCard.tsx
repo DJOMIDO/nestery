@@ -23,8 +23,8 @@ export function DeadlinesCard({ tasks }: { tasks: Task[] }) {
   const deadlines = upcomingDeadlines(tasks, 7, today).slice(0, MAX_ITEMS);
 
   return (
-    <Card className="w-full shadow-sm bg-white dark:bg-gray-800 hover:shadow-md">
-      <CardContent className="p-4">
+    <Card className="w-full h-full shadow-sm bg-white dark:bg-gray-800 hover:shadow-md">
+      <CardContent className="p-4 flex-1 min-h-0 overflow-y-auto">
 
         <div className="flex items-center justify-between group">
           <h3 className="text-lg font-semibold group-hover:text-muted-foreground transition-colors duration-200">Deadlines</h3>

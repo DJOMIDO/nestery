@@ -128,9 +128,10 @@ export default function TasksPage() {
   const hasFilter = tagFilter || dateFilter;
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    // On large screens both columns fill the viewport; the list scrolls on its own
+    <div className="grid grid-cols-1 lg:grid-cols-2 lg:grid-rows-1 gap-6 lg:h-full">
       {/* Left: task list */}
-      <div className="space-y-6 min-w-0">
+      <div className="space-y-6 min-w-0 lg:min-h-0 lg:overflow-y-auto lg:pr-2">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold">Tasks</h1>
@@ -223,9 +224,9 @@ export default function TasksPage() {
       {/* Right: details of the selected task, or an overview (wide screens only) */}
       <aside
         aria-label={selected ? "Task details" : "Task overview"}
-        className="hidden lg:block min-w-0"
+        className="hidden lg:block min-w-0 min-h-0"
       >
-        <div className="sticky top-0 rounded-lg border bg-card p-5">
+        <div className="h-full overflow-y-auto rounded-lg border bg-card p-5">
           {selected ? (
             <TaskDetailPanel
               task={selected}

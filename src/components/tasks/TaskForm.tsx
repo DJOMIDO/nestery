@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { TaskInput } from "@/hooks/useTasks";
+import { cn } from "@/lib/utils";
 import { parseTags, type Task, type TaskPriority, type TaskStatus } from "@/lib/tasks";
 
 // ISO timestamp -> value for <input type="datetime-local"> in local time
@@ -37,6 +38,8 @@ interface TaskFormProps {
   // Rendered at the start of the button row, e.g. a delete button
   extraActions?: React.ReactNode;
   idPrefix?: string;
+  // Fill the parent's height: the description grows, the buttons sit at the bottom
+  fill?: boolean;
 }
 
 export function TaskForm({
@@ -45,6 +48,7 @@ export function TaskForm({
   onCancel,
   extraActions,
   idPrefix = "task",
+  fill = false,
 }: TaskFormProps) {
   const [title, setTitle] = useState(task?.title ?? "");
   const [description, setDescription] = useState(task?.description ?? "");
@@ -79,7 +83,10 @@ export function TaskForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
+    <form
+      onSubmit={handleSubmit}
+      className={cn("space-y-5", fill && "flex flex-col flex-1 min-h-0")}
+    >
       <div>
         <Label htmlFor={id("title")}>Title</Label>
         <Input
@@ -90,11 +97,11 @@ export function TaskForm({
           autoFocus={!task}
         />
       </div>
-      <div>
+      <div className={cn(fill && "flex flex-col flex-1 min-h-32")}>
         <Label htmlFor={id("desc")}>Description</Label>
         <Textarea
           id={id("desc")}
-          className="mt-2"
+          className={cn("mt-2", fill && "flex-1 resize-none")}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
         />
@@ -160,7 +167,7 @@ export function TaskForm({
         </div>
       </div>
       {error && <p className="text-red-500 text-sm">{error}</p>}
-      <div className="flex items-center gap-3">
+      <div className={cn("flex items-center gap-3", fill && "mt-auto")}>
         {extraActions}
         <div className="flex-1" />
         {onCancel && (
