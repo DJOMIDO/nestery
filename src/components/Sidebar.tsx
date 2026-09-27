@@ -16,7 +16,7 @@ import { useThemeToggleItem } from "@/components/ThemeToggle";
 import { SideBarItem } from "@/components/SideBarItem";
 import { UserItem } from "@/components/UserItem";
 import { useSidebarCollapsed } from "@/hooks/useSidebarCollapsed";
-import { supabase } from "@/lib/supabaseClient";
+import { signOut } from "@/lib/auth-client";
 import { useCurrentUserName } from "@/lib/useCurrentUserName";
 
 const navItems = [
@@ -87,7 +87,7 @@ export function Sidebar({ className = "" }: { className?: string }) {
           name={username || "User"}
           collapsed={collapsed}
           onLogout={async () => {
-            await supabase.auth.signOut();
+            await signOut();
             router.push("/");
           }}
         />

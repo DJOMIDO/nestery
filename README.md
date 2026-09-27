@@ -1,36 +1,58 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Nestery
 
-## Getting Started
+A workspace for personal and team collaboration, built with Next.js.
 
-First, run the development server:
+## Tech stack
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- **Next.js 15** (App Router), React 19, TypeScript
+- **Tailwind CSS v4** + **shadcn/ui**
+- **Postgres on [Neon](https://neon.tech)** with **[Drizzle ORM](https://orm.drizzle.team)**
+- **[Better Auth](https://www.better-auth.com)** for email/password and GitHub login
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Getting started
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Install dependencies:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+   ```bash
+   npm install
+   ```
 
-## Learn More
+2. Create a Neon project, then copy `.env.example` to `.env.local` and fill it in:
+   - `DATABASE_URL`: Neon's **pooled** connection string (a local Postgres URL also works)
+   - `BETTER_AUTH_SECRET`: generate with `openssl rand -base64 32`
+   - `BETTER_AUTH_URL`: `http://localhost:3000` for local development
+   - `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` (optional): create a GitHub OAuth App with the callback URL `http://localhost:3000/api/auth/callback/github`
 
-To learn more about Next.js, take a look at the following resources:
+3. Create the database tables:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+   ```bash
+   npm run db:migrate
+   ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+4. Start the dev server and open [http://localhost:3000](http://localhost:3000):
 
-## Deploy on Vercel
+   ```bash
+   npm run dev
+   ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Deploying to Vercel
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. On [vercel.com](https://vercel.com), choose **Add New → Project** and import this repository.
+2. In **Settings → Environment Variables**, add:
+   - `DATABASE_URL`: Neon's pooled connection string
+   - `BETTER_AUTH_SECRET`: a random string (`openssl rand -base64 32`)
+   - `BETTER_AUTH_URL` (optional): only needed with a custom domain. Otherwise the app uses the Vercel deployment URL, so production and preview deployments both work.
+   - `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` (optional): the OAuth App callback URL must be `https://<your-domain>/api/auth/callback/github`
+3. Deploy. Vercel runs the `vercel-build` script, which applies pending migrations (`drizzle-kit migrate`) before `next build`, so the tables are created automatically. It uses `DATABASE_URL_UNPOOLED` for migrations when set (the Neon integration sets it), otherwise `DATABASE_URL`.
+
+Every deployment runs migrations against the database it is configured with. Point preview deployments at a separate Neon branch if you don't want them to change production data.
+
+## Database workflow
+
+The schema lives in `src/db/schema.ts`; migrations are committed under `drizzle/`.
+
+| Command               | What it does                                     |
+| --------------------- | ------------------------------------------------ |
+| `npm run db:generate` | Generate a new migration after editing the schema |
+| `npm run db:migrate`  | Apply pending migrations to `DATABASE_URL`       |
+| `npm run db:studio`   | Browse the database in Drizzle Studio            |

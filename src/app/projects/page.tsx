@@ -62,9 +62,9 @@ export default function ProjectsPage() {
           {projects.map((proj) => (
             <TableRow key={proj.id} className="hover:bg-muted">
               <TableCell>{proj.name}</TableCell>
-              <TableCell>{proj.owner_id}</TableCell>
+              <TableCell>{proj.ownerId}</TableCell>
               <TableCell>{proj.status}</TableCell>
-              <TableCell>{proj.due_date ?? "-"}</TableCell>
+              <TableCell>{proj.dueDate ?? "-"}</TableCell>
             </TableRow>
           ))}
         </TableBody>
