@@ -1,7 +1,7 @@
-// src/app/dashboard/page.tsx
+// src/app/(app)/dashboard/page.tsx
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { WelcomeCard } from "@/components/dashboard/WelcomeCard";
 import { DateCard } from "@/components/dashboard/DateCard";
 import { ReminderCard } from "@/components/dashboard/ReminderCard";
@@ -10,35 +10,21 @@ import { QuickActionCard } from "@/components/dashboard/QuickActionCard";
 import { RecentActivityCard } from "@/components/dashboard/RecentActivityCard";
 import { DeadlinesCard } from "@/components/dashboard/DeadlinesCard";
 import { MilestonesCard } from "@/components/dashboard/MilestonesCard";
-import NewProjectModal, {
-  Project,
-} from "@/components/projects/NewProjectModal";
+import NewProjectModal from "@/components/projects/NewProjectModal";
+import { TaskDialog } from "@/components/tasks/TaskDialog";
+import { useProjects } from "@/hooks/useProjects";
+import { useTasks } from "@/hooks/useTasks";
 
 export default function DashboardPage() {
-  const [projects, setProjects] = useState<Project[]>([]);
+  const { projects, reload: reloadProjects } = useProjects();
+  const { tasks, createTask } = useTasks();
   const [isNewProjOpen, setIsNewProjOpen] = useState(false);
-
-  // Fetch the latest projects for both Overview and Dashboard
-  const loadProjects = async () => {
-    try {
-      const res = await fetch("/api/projects");
-      if (!res.ok) throw new Error("Failed to fetch projects");
-      const data: Project[] = await res.json();
-      setProjects(data);
-    } catch (err) {
-      console.error("Error loading projects:", err);
-    }
-  };
-
-  // Initial load
-  useEffect(() => {
-    loadProjects();
-  }, []);
+  const [isNewTaskOpen, setIsNewTaskOpen] = useState(false);
 
   // Re-fetch after creating a new project
   const handleNewProjectCreated = async () => {
     setIsNewProjOpen(false);
-    await loadProjects();
+    await reloadProjects();
   };
 
   return (
@@ -47,17 +33,20 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <WelcomeCard />
         <DateCard />
-        <ReminderCard />
+        <ReminderCard tasks={tasks} />
       </div>
 
       {/* Bottom row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <OverviewCard projects={projects} />
+        <OverviewCard projects={projects} tasks={tasks} />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6 auto-rows-min lg:col-span-2">
-          <QuickActionCard onNewProject={() => setIsNewProjOpen(true)} />
+          <QuickActionCard
+            onNewProject={() => setIsNewProjOpen(true)}
+            onAddTask={() => setIsNewTaskOpen(true)}
+          />
           <RecentActivityCard />
-          <DeadlinesCard />
-          <MilestonesCard />
+          <DeadlinesCard tasks={tasks} />
+          <MilestonesCard projects={projects} tasks={tasks} />
         </div>
       </div>
 
@@ -66,6 +55,13 @@ export default function DashboardPage() {
         isOpen={isNewProjOpen}
         onClose={() => setIsNewProjOpen(false)}
         onCreated={handleNewProjectCreated}
+      />
+
+      <TaskDialog
+        open={isNewTaskOpen}
+        onOpenChange={setIsNewTaskOpen}
+        projects={projects}
+        onSubmit={createTask}
       />
     </div>
   );
