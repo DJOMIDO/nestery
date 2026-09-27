@@ -5,23 +5,17 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
-  Plus,
   ClipboardList,
-  UserPlus,
   Calendar,
   CalendarClock,
   BellPlus,
 } from "lucide-react";
 
 interface QuickActionCardProps {
-  onNewProject: () => void;
   onAddTask: () => void;
 }
 
-export function QuickActionCard({
-  onNewProject,
-  onAddTask,
-}: QuickActionCardProps) {
+export function QuickActionCard({ onAddTask }: QuickActionCardProps) {
   return (
     <Card className="w-full shadow-sm bg-white dark:bg-gray-800 hover:shadow-md">
       <CardContent className="p-4 flex flex-col">
@@ -36,20 +30,9 @@ export function QuickActionCard({
             size="sm"
             variant="outline"
             className="w-3/4"
-            onClick={onNewProject}
-          >
-            <Plus className="w-4 h-4 mr-1" /> New Project
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            className="w-3/4"
             onClick={onAddTask}
           >
             <ClipboardList className="w-4 h-4 mr-1" /> Add Task
-          </Button>
-          <Button size="sm" variant="outline" className="w-3/4">
-            <UserPlus className="w-4 h-4 mr-1" /> Invite Member
           </Button>
           <Button size="sm" variant="outline" className="w-3/4">
             <Calendar className="w-4 h-4 mr-1" /> Create Meeting
