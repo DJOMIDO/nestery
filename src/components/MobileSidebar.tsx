@@ -9,7 +9,7 @@ import { SideBarItem } from "@/components/SideBarItem";
 import { UserItem } from "@/components/UserItem";
 import { useThemeToggleItem } from "@/components/ThemeToggle";
 import { useCurrentUserName } from "@/lib/useCurrentUserName";
-import { supabase } from "@/lib/supabaseClient";
+import { signOut } from "@/lib/auth-client";
 import { LayoutDashboard, FolderKanban, Users2, Settings } from "lucide-react";
 
 const navItems = [
@@ -86,7 +86,7 @@ export function MobileSidebar({
             name={username || "User"}
             collapsed={false}
             onLogout={async () => {
-              await supabase.auth.signOut();
+              await signOut();
               setOpen(false);
               router.push("/");
             }}

@@ -14,7 +14,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { signInSchema } from "@/lib/authSchema";
-import { signInWithEmail, signInWithGitHub } from "@/lib/auth";
+import { signInWithEmail, signInWithGitHub } from "@/lib/auth-client";
 import { GithubLoginButton } from "@/components/GithubLoginButton";
 
 type LoginFormData = z.infer<typeof signInSchema>;
