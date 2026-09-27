@@ -1,8 +1,7 @@
 // src/components/projects/NewProjectModal.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -16,22 +15,22 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 
-// Define project data type matching Supabase projects table
+// Project as returned by /api/projects (see src/db/schema.ts)
 export interface Project {
   id: string;
   name: string;
   description: string | null;
-  owner_id: string;
-  start_date: string | null;
-  due_date: string | null;
+  ownerId: string;
+  startDate: string | null;
+  dueDate: string | null;
   visibility: 'public' | 'private';
   tags: string[];
   status: 'planned' | 'in_progress' | 'completed' | 'archived';
   progress: number;
-  is_archived: boolean;
-  archived_at: string | null;
-  created_at: string;
-  updated_at: string;
+  isArchived: boolean;
+  archivedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface NewProjectModalProps {
@@ -53,28 +52,9 @@ export default function NewProjectModal({
   const [tags, setTags] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [ownerId, setOwnerId] = useState<string | null>(null);
-
-  // Fetch current user ID
-  useEffect(() => {
-    async function fetchUser() {
-      const { data, error } = await supabase.auth.getUser();
-      if (error) {
-        console.error('Failed to fetch user', error);
-      }
-      if (data.user) {
-        setOwnerId(data.user.id);
-      }
-    }
-    fetchUser();
-  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!ownerId) {
-      setError('Unable to fetch user, please retry');
-      return;
-    }
     if (!name.trim()) {
       setError('Name is required');
       return;
@@ -86,9 +66,8 @@ export default function NewProjectModal({
       const payload = {
         name,
         description: description || null,
-        owner_id: ownerId,
-        start_date: startDate || null,
-        due_date: dueDate || null,
+        startDate: startDate || null,
+        dueDate: dueDate || null,
         visibility,
         tags: tags.split(',').map((t) => t.trim()).filter(Boolean),
       };

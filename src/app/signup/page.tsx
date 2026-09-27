@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 
 import { signUpSchema } from "@/lib/authSchema";
-import { signUpWithEmail, signInWithGitHub } from "@/lib/auth";
+import { signUpWithEmail, signInWithGitHub } from "@/lib/auth-client";
 
 import { GithubLoginButton } from "@/components/GithubLoginButton";
 import { toast } from "sonner";
@@ -34,8 +34,8 @@ export default function SignupPage() {
   const onSubmit = async (data: FormData) => {
     try {
       await signUpWithEmail(data.email, data.password, data.username);
-      toast.success("Sign up successful. Please check your email.");
-      setTimeout(() => router.push("/login"), 2000);
+      toast.success("Account created successfully");
+      router.push("/dashboard");
     } catch (err: unknown) {
       if (err instanceof Error) {
         toast.error(err.message);
