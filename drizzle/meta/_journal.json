@@ -15,6 +15,20 @@
       "when": 1790538551529,
       "tag": "0001_tasks",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790540619068,
+      "tag": "0002_remove_projects",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1790540669536,
+      "tag": "0003_task_tags",
+      "breakpoints": true
     }
   ]
 }

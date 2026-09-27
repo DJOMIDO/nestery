@@ -5,7 +5,6 @@ import { z } from "zod";
 import {
   deleteTask,
   getTask,
-  TaskInputError,
   updateTask,
   updateTaskInput,
 } from "@/server/tasks";
@@ -42,15 +41,8 @@ export async function PATCH(request: Request, { params }: Context) {
   );
   if ("response" in input) return input.response;
 
-  try {
-    const task = await updateTask(userId, id, input.data);
-    return task ? NextResponse.json(task) : notFound();
-  } catch (err) {
-    if (err instanceof TaskInputError) {
-      return NextResponse.json({ error: err.message }, { status: 400 });
-    }
-    throw err;
-  }
+  const task = await updateTask(userId, id, input.data);
+  return task ? NextResponse.json(task) : notFound();
 }
 
 export async function DELETE(_request: Request, { params }: Context) {

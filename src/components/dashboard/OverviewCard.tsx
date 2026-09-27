@@ -1,25 +1,21 @@
 // src/components/dashboard/OverviewCard.tsx
 'use client';
 
-import React, { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
 import Link from 'next/link';
-import { Menu, MoreHorizontal } from 'lucide-react';
-import { compareTasks, type Task } from '@/lib/tasks';
+import { Card, CardContent } from '@/components/ui/card';
+import { Menu } from 'lucide-react';
+import { compareTasks, tagCounts, type Task } from '@/lib/tasks';
+
+const MAX_TASKS = 5;
 
 export interface OverviewCardProps {
-  projects?: { id: string; name: string }[];
   tasks?: Task[];
 }
 
-export function OverviewCard({ projects = [], tasks = [] }: OverviewCardProps) {
+// Next open tasks and the most used tags
+export function OverviewCard({ tasks = [] }: OverviewCardProps) {
   const openTasks = tasks.filter((t) => t.status !== 'done').sort(compareTasks);
-
-  // Manage simple expanded state for projects section
-  const [expanded, setExpanded] = useState(false);
-
-  // Determine which projects to display
-  const visibleProjects = expanded ? projects : projects.slice(0, 3);
+  const tags = tagCounts(openTasks);
 
   return (
     <Card className="w-full hover:shadow-md bg-white dark:bg-gray-800">
@@ -30,51 +26,7 @@ export function OverviewCard({ projects = [], tasks = [] }: OverviewCardProps) {
           <Menu className="w-5 h-5 text-muted-foreground" />
         </div>
 
-        {/* Projects Section */}
         <div className="divide-y divide-muted-foreground">
-          <div className="py-3">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-muted-foreground">
-                Projects ({projects.length})
-              </span>
-              {projects.length > 3 && (
-                <button
-                  className="p-1 hover:bg-muted rounded"
-                  onClick={() => setExpanded(!expanded)}
-                  aria-label={expanded ? 'Show less' : 'Show more'}
-                >
-                  <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
-                </button>
-              )}
-            </div>
-
-            {/* List items */}
-            {visibleProjects.map((proj) => (
-  <div key={proj.id} className="flex items-center justify-between py-1">
-    <span className="inline-block bg-lime-100 dark:bg-lime-200 text-lime-600 px-2 py-1 rounded text-sm">
-      {proj.name}
-    </span>
-    <button
-      className="p-1 hover:bg-muted rounded"
-      aria-label={`More options for ${proj.name}`}
-      title="More"
-    >
-      <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
-    </button>
-  </div>
-))}
-
-            {/* Expand/Collapse label */}
-            {projects.length > 3 && (
-              <button
-                className="mt-1 text-xs text-primary hover:underline"
-                onClick={() => setExpanded(!expanded)}
-              >
-                {expanded ? 'Show less' : `+ ${projects.length - 3} more`}
-              </button>
-            )}
-          </div>
-
           {/* Tasks Section: next open tasks */}
           <div className="py-3">
             <div className="flex items-center justify-between mb-2">
@@ -88,13 +40,34 @@ export function OverviewCard({ projects = [], tasks = [] }: OverviewCardProps) {
             {openTasks.length === 0 ? (
               <p className="text-sm text-muted-foreground">No open tasks.</p>
             ) : (
-              openTasks.slice(0, 3).map((task) => (
+              openTasks.slice(0, MAX_TASKS).map((task) => (
                 <div key={task.id} className="py-1">
                   <span className="inline-block max-w-full truncate bg-indigo-100 dark:bg-indigo-200 text-indigo-600 px-2 py-1 rounded text-sm">
                     {task.title}
                   </span>
                 </div>
               ))
+            )}
+          </div>
+
+          {/* Tags Section */}
+          <div className="py-3">
+            <span className="block text-sm font-medium text-muted-foreground mb-2">
+              Tags ({tags.length})
+            </span>
+            {tags.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No tags yet.</p>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {tags.map(({ tag, count }) => (
+                  <span
+                    key={tag}
+                    className="inline-block bg-lime-100 dark:bg-lime-200 text-lime-600 px-2 py-1 rounded text-sm"
+                  >
+                    #{tag} <span className="opacity-70">{count}</span>
+                  </span>
+                ))}
+              </div>
             )}
           </div>
         </div>

@@ -4,7 +4,6 @@ import {
   boolean,
   date,
   index,
-  integer,
   pgEnum,
   pgTable,
   text,
@@ -95,44 +94,6 @@ export const verification = pgTable(
 // App tables
 // ---------------------------------------------------------------------------
 
-export const projectVisibility = pgEnum("project_visibility", [
-  "public",
-  "private",
-]);
-
-export const projectStatus = pgEnum("project_status", [
-  "planned",
-  "in_progress",
-  "completed",
-  "archived",
-]);
-
-export const projects = pgTable(
-  "projects",
-  {
-    id: uuid().primaryKey().defaultRandom(),
-    name: text().notNull(),
-    description: text(),
-    ownerId: text()
-      .notNull()
-      .references(() => user.id, { onDelete: "cascade" }),
-    startDate: date(),
-    dueDate: date(),
-    visibility: projectVisibility().notNull().default("private"),
-    tags: text().array().notNull().default([]),
-    status: projectStatus().notNull().default("planned"),
-    progress: integer().notNull().default(0),
-    isArchived: boolean().notNull().default(false),
-    archivedAt: timestamp({ withTimezone: true }),
-    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp({ withTimezone: true })
-      .notNull()
-      .defaultNow()
-      .$onUpdate(() => new Date()),
-  },
-  (t) => [index("projects_owner_id_idx").on(t.ownerId)]
-);
-
 export const taskStatus = pgEnum("task_status", TASK_STATUSES);
 export const taskPriority = pgEnum("task_priority", TASK_PRIORITIES);
 
@@ -143,9 +104,9 @@ export const tasks = pgTable(
     userId: text()
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
-    projectId: uuid().references(() => projects.id, { onDelete: "set null" }),
     title: text().notNull(),
     description: text(),
+    tags: text().array().notNull().default([]),
     status: taskStatus().notNull().default("todo"),
     priority: taskPriority().notNull().default("medium"),
     dueDate: date(),
@@ -157,8 +118,5 @@ export const tasks = pgTable(
       .defaultNow()
       .$onUpdate(() => new Date()),
   },
-  (t) => [
-    index("tasks_user_id_idx").on(t.userId),
-    index("tasks_project_id_idx").on(t.projectId),
-  ]
+  (t) => [index("tasks_user_id_idx").on(t.userId)]
 );

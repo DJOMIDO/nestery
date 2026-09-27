@@ -12,10 +12,9 @@ export type TaskPriority = (typeof TASK_PRIORITIES)[number];
 export interface Task {
   id: string;
   userId: string;
-  projectId: string | null;
-  projectName: string | null;
   title: string;
   description: string | null;
+  tags: string[];
   status: TaskStatus;
   priority: TaskPriority;
   dueDate: string | null; // YYYY-MM-DD
@@ -31,6 +30,15 @@ export function toDateKey(date: Date) {
   const m = String(date.getMonth() + 1).padStart(2, "0");
   const d = String(date.getDate()).padStart(2, "0");
   return `${y}-${m}-${d}`;
+}
+
+// Splits "work, #study urgent" into ["work", "study", "urgent"] (deduplicated)
+export function parseTags(input: string) {
+  const tags = input
+    .split(/[\s,]+/)
+    .map((t) => t.replace(/^#+/, "").trim())
+    .filter(Boolean);
+  return [...new Set(tags)];
 }
 
 export function addDays(dateKey: string, days: number) {
@@ -106,4 +114,42 @@ export function dueReminders(tasks: Task[], now = new Date()) {
         new Date(t.remindAt) <= endOfToday
     )
     .sort((a, b) => (a.remindAt! < b.remindAt! ? -1 : 1));
+}
+
+// Number of tasks per tag, most used first
+export function tagCounts(tasks: Task[]) {
+  const counts = new Map<string, number>();
+  for (const task of tasks) {
+    for (const tag of task.tags) counts.set(tag, (counts.get(tag) ?? 0) + 1);
+  }
+  return [...counts.entries()]
+    .map(([tag, count]) => ({ tag, count }))
+    .sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag));
+}
+
+// Monday of the week containing `dateKey`
+export function startOfWeek(dateKey: string) {
+  const [y, m, d] = dateKey.split("-").map(Number);
+  const day = new Date(y, m - 1, d).getDay(); // 0 = Sunday
+  return addDays(dateKey, -((day + 6) % 7));
+}
+
+// Summary for the current week (Monday to Sunday)
+export function weekStats(tasks: Task[], today = toDateKey(new Date())) {
+  const weekStart = startOfWeek(today);
+  const weekEnd = addDays(weekStart, 6);
+  const open = tasks.filter((t) => t.status !== "done");
+  return {
+    completed: tasks.filter(
+      (t) =>
+        t.status === "done" &&
+        t.completedAt &&
+        toDateKey(new Date(t.completedAt)) >= weekStart
+    ).length,
+    open: open.length,
+    overdue: open.filter((t) => t.dueDate && t.dueDate < today).length,
+    dueThisWeek: open.filter(
+      (t) => t.dueDate && t.dueDate >= today && t.dueDate <= weekEnd
+    ).length,
+  };
 }

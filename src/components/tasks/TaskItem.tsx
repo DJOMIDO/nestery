@@ -1,7 +1,7 @@
 // src/components/tasks/TaskItem.tsx
 "use client";
 
-import { Bell, CalendarDays, FolderKanban, Pencil, Trash2 } from "lucide-react";
+import { Bell, CalendarDays, Pencil, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { toDateKey, type Task } from "@/lib/tasks";
@@ -30,17 +30,33 @@ const formatRemind = (iso: string) =>
 
 interface TaskItemProps {
   task: Task;
+  selected?: boolean;
+  onSelect?: (task: Task) => void;
   onToggle: (task: Task) => void;
   onEdit: (task: Task) => void;
   onDelete: (task: Task) => void;
+  onTagClick?: (tag: string) => void;
 }
 
-export function TaskItem({ task, onToggle, onEdit, onDelete }: TaskItemProps) {
+export function TaskItem({
+  task,
+  selected = false,
+  onSelect,
+  onToggle,
+  onEdit,
+  onDelete,
+  onTagClick,
+}: TaskItemProps) {
   const done = task.status === "done";
   const overdue = !done && !!task.dueDate && task.dueDate < toDateKey(new Date());
 
   return (
-    <li className="group flex items-start gap-3 rounded-md px-3 py-2 hover:bg-muted/60">
+    <li
+      className={cn(
+        "group flex items-start gap-3 rounded-md px-3 py-2 hover:bg-muted/60",
+        selected && "bg-primary/10 hover:bg-primary/10 dark:bg-primary/20"
+      )}
+    >
       <input
         type="checkbox"
         checked={done}
@@ -49,7 +65,10 @@ export function TaskItem({ task, onToggle, onEdit, onDelete }: TaskItemProps) {
         className="mt-1 h-4 w-4 shrink-0 cursor-pointer accent-primary"
       />
 
-      <div className="flex-1 min-w-0">
+      <div
+        className={cn("flex-1 min-w-0", onSelect && "cursor-pointer")}
+        onClick={() => onSelect?.(task)}
+      >
         <p
           className={cn(
             "text-sm font-medium break-words",
@@ -80,12 +99,18 @@ export function TaskItem({ task, onToggle, onEdit, onDelete }: TaskItemProps) {
               {formatRemind(task.remindAt)}
             </span>
           )}
-          {task.projectName && (
-            <span className="flex items-center gap-1">
-              <FolderKanban className="w-3.5 h-3.5" />
-              {task.projectName}
-            </span>
-          )}
+          {task.tags.map((tag) => (
+            <button
+              key={tag}
+              onClick={(e) => {
+                e.stopPropagation();
+                onTagClick?.(tag);
+              }}
+              className="text-indigo-600 dark:text-indigo-400 hover:underline"
+            >
+              #{tag}
+            </button>
+          ))}
         </div>
       </div>
 

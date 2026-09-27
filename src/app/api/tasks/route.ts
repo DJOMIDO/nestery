@@ -6,11 +6,10 @@ import {
   createTaskInput,
   listTasks,
   listTasksInput,
-  TaskInputError,
 } from "@/server/tasks";
 import { getUserId, parseInput, unauthorized } from "@/server/session";
 
-// GET /api/tasks?status=&projectId=&dueFrom=&dueTo=
+// GET /api/tasks?status=&tag=&dueFrom=&dueTo=
 export async function GET(request: Request) {
   const userId = await getUserId();
   if (!userId) return unauthorized();
@@ -32,14 +31,7 @@ export async function POST(request: Request) {
   );
   if ("response" in input) return input.response;
 
-  try {
-    return NextResponse.json(await createTask(userId, input.data), {
-      status: 201,
-    });
-  } catch (err) {
-    if (err instanceof TaskInputError) {
-      return NextResponse.json({ error: err.message }, { status: 400 });
-    }
-    throw err;
-  }
+  return NextResponse.json(await createTask(userId, input.data), {
+    status: 201,
+  });
 }
