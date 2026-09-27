@@ -10,14 +10,7 @@ import { UserItem } from "@/components/UserItem";
 import { useThemeToggleItem } from "@/components/ThemeToggle";
 import { useCurrentUserName } from "@/lib/useCurrentUserName";
 import { signOut } from "@/lib/auth-client";
-import { LayoutDashboard, FolderKanban, Users2, Settings } from "lucide-react";
-
-const navItems = [
-  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { label: "Projects", href: "/projects", icon: FolderKanban },
-  { label: "Team", href: "/team", icon: Users2 },
-  { label: "Settings", href: "/settings", icon: Settings },
-];
+import { navItems } from "@/components/nav";
 
 export function MobileSidebar({
   open,

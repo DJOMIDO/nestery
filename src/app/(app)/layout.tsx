@@ -1,12 +1,12 @@
-// app/projects/layout.tsx
+// src/app/(app)/layout.tsx
+// Shared shell (sidebar + mobile header) for all signed-in pages.
 
 "use client";
 
 import { MobileHeader } from "@/components/MobileHeader";
 import { Sidebar } from "@/components/Sidebar";
-import React from "react";
 
-export default function ProjectsLayout({
+export default function AppLayout({
   children,
 }: {
   children: React.ReactNode;

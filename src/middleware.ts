@@ -3,9 +3,16 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getSessionCookie } from "better-auth/cookies";
 
-// Optimistic check on the session cookie only; API routes and pages
-// that read data still validate the session on the server.
+// Pages reachable without signing in. Every other page requires a session,
+// so new tool pages are protected by default.
+const PUBLIC_PATHS = ["/", "/home", "/login", "/signup"];
+
+// Optimistic check on the session cookie only; API routes validate the
+// session on the server themselves.
 export function middleware(request: NextRequest) {
+  if (PUBLIC_PATHS.includes(request.nextUrl.pathname)) {
+    return NextResponse.next();
+  }
   if (!getSessionCookie(request)) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
@@ -13,10 +20,6 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    "/dashboard/:path*",
-    "/projects/:path*",
-    "/team/:path*",
-    "/settings/:path*",
-  ],
+  // Skip API routes, Next.js internals and static files.
+  matcher: ["/((?!api|_next/static|_next/image|images|favicon.ico).*)"],
 };
