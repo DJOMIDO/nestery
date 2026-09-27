@@ -8,7 +8,7 @@ import type { Task } from "@/lib/tasks";
 export interface TaskInput {
   title?: string;
   description?: string | null;
-  projectId?: string | null;
+  tags?: string[];
   status?: Task["status"];
   priority?: Task["priority"];
   dueDate?: string | null;

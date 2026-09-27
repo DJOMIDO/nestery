@@ -43,9 +43,9 @@ A workspace for personal and team collaboration, built with Next.js.
    - `BETTER_AUTH_SECRET`: a random string (`openssl rand -base64 32`)
    - `BETTER_AUTH_URL` (optional): only needed with a custom domain. Otherwise the app uses the Vercel deployment URL, so production and preview deployments both work.
    - `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` (optional): the OAuth App callback URL must be `https://<your-domain>/api/auth/callback/github`
-3. Deploy. Vercel runs the `vercel-build` script, which applies pending migrations (`drizzle-kit migrate`) before `next build`, so the tables are created automatically. It uses `DATABASE_URL_UNPOOLED` for migrations when set (the Neon integration sets it), otherwise `DATABASE_URL`.
+3. Deploy. Vercel runs the `vercel-build` script (`scripts/vercel-build.sh`): it applies pending migrations (`drizzle-kit migrate`) and then runs `next build`. Migrations use `DATABASE_URL_UNPOOLED` when set (the Neon integration sets it), otherwise `DATABASE_URL`.
 
-Every deployment runs migrations against the database it is configured with. Point preview deployments at a separate Neon branch if you don't want them to change production data.
+Migrations run automatically **only for production deployments**. Preview deployments share the production database by default, and migrating it from an unmerged branch would break the live site. To run migrations on previews too, give the Preview environment its own `DATABASE_URL` (for example a Neon branch) and set `MIGRATE_PREVIEW=1` for Preview.
 
 ## Database workflow
 
