@@ -39,16 +39,18 @@ tracks what is done, what is planned next, and ideas that were considered.
 - Date & time settings: date format (English US/UK, French, Chinese), 12/24-hour
   time, week start (Monday/Sunday) and holiday countries (up to 3), applied
   across the whole app
-
-**In progress**
 - Phase 2a: week view with a time grid (overlapping events side by side, a
   now line, click an empty slot to add an event); drag events and tasks to
   another day, drag events to another time (15-minute steps), and drag an
   event's bottom edge to change when it ends
 
+**In progress**
+- Phase 2b: repeating events (daily, weekly on chosen days, monthly, yearly;
+  every N; until a date or a number of times), stored as RRULEs; edit or
+  delete one occurrence or the whole series; dragging an occurrence moves
+  just that one. Not yet: "this and following occurrences".
+
 **Planned**
-- **Phase 2b**: recurring events (daily, weekly on chosen days, monthly,
-  yearly; until a date or a number of times), editing one occurrence or all.
 - **Phase 3**: import `.ics` files and subscribe to calendar feeds (e.g. a
   university timetable exported from ADE), shown read-only alongside events.
 

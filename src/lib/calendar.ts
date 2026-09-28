@@ -3,6 +3,7 @@
 // the dashboard. Keep this file free of server-only imports.
 
 import { addDays, startOfWeek, toDateKey, type Task } from "@/lib/tasks";
+import { occurrenceDates, parseRRule } from "@/lib/recurrence";
 
 // An event as returned by /api/events. Timed events have startsAt/endsAt;
 // all-day events have startDate/endDate (YYYY-MM-DD, end inclusive).
@@ -16,8 +17,46 @@ export interface CalendarEvent {
   endsAt: string | null;
   startDate: string | null;
   endDate: string | null;
+  // Repeating series: RRULE and the local dates of removed occurrences
+  rrule: string | null;
+  exdates: string[];
+  // Set on an occurrence that was edited on its own
+  seriesId: string | null;
   createdAt: string;
   updatedAt: string;
+  // Client-only: on an expanded occurrence of a series, its original start date
+  occurrenceDate?: string;
+}
+
+// Unique per occurrence, since every occurrence shares its series' id
+export const eventKey = (event: CalendarEvent) =>
+  event.occurrenceDate ? `${event.id}@${event.occurrenceDate}` : event.id;
+
+// Repeating events turned into their occurrences between the days from..to
+// (including ones that started earlier and are still running); other events
+// pass through unchanged. Occurrences keep the wall-clock time of the series.
+export function expandEvents(events: CalendarEvent[], from: string, to: string) {
+  const expanded: CalendarEvent[] = [];
+  for (const event of events) {
+    const rule = event.rrule ? parseRRule(event.rrule) : null;
+    if (!rule) {
+      expanded.push(event);
+      continue;
+    }
+    const { first, last } = eventDays(event);
+    const span = dayDiff(first, last);
+    for (const date of occurrenceDates(first, rule, addDays(from, -span), to, event.exdates)) {
+      const timing = movedTiming(event, dayDiff(first, date));
+      expanded.push({
+        ...event,
+        occurrenceDate: date,
+        ...(timing.allDay
+          ? { startDate: timing.startDate, endDate: timing.endDate }
+          : { startsAt: timing.startsAt, endsAt: timing.endsAt }),
+      });
+    }
+  }
+  return expanded;
 }
 
 export interface Holiday {
@@ -78,7 +117,7 @@ export function itemsByDay(
       }
       // Timed events show their start time on the first day only
       const time = !event.allDay && day === first ? event.startsAt : null;
-      add(day, { kind: "event", id: `e-${event.id}-${day}`, event, time });
+      add(day, { kind: "event", id: `e-${eventKey(event)}-${day}`, event, time });
     }
   }
   for (const task of tasks) {
@@ -243,5 +282,38 @@ export function resizedTiming(event: CalendarEvent, minutes: number) {
     allDay: false as const,
     startsAt: event.startsAt!,
     endsAt: new Date(Math.max(end.getTime(), minEnd)).toISOString(),
+  };
+}
+
+// The series timing after one of its occurrences was edited with "all events":
+// the series moves by the same number of days as the occurrence and takes its
+// new time of day and length. Removed occurrences move along with it.
+export function seriesTimingFrom(
+  series: CalendarEvent,
+  occurrence: CalendarEvent,
+  timing: { allDay: boolean; startDate?: string | null; endDate?: string | null; startsAt?: string | null; endsAt?: string | null }
+) {
+  const newFirst = timing.allDay ? timing.startDate! : toDateKey(new Date(timing.startsAt!));
+  const shift = dayDiff(occurrence.occurrenceDate!, newFirst);
+  const seriesFirst = addDays(eventDays(series).first, shift);
+  const exdates = shift ? series.exdates.map((d) => addDays(d, shift)) : series.exdates;
+
+  if (timing.allDay) {
+    return {
+      allDay: true as const,
+      startDate: seriesFirst,
+      endDate: addDays(seriesFirst, dayDiff(timing.startDate!, timing.endDate!)),
+      exdates,
+    };
+  }
+  const time = new Date(timing.startsAt!);
+  const start = new Date(`${seriesFirst}T00:00`);
+  start.setHours(time.getHours(), time.getMinutes());
+  const duration = Date.parse(timing.endsAt!) - Date.parse(timing.startsAt!);
+  return {
+    allDay: false as const,
+    startsAt: start.toISOString(),
+    endsAt: new Date(start.getTime() + duration).toISOString(),
+    exdates,
   };
 }

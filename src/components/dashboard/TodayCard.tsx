@@ -9,7 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { CardHeading } from "./CardHeading";
 import { useHolidays } from "@/hooks/useHolidays";
 import { useFormat, useHolidayCountries } from "@/components/SettingsProvider";
-import { eventDays, type CalendarEvent } from "@/lib/calendar";
+import { eventDays, eventKey, type CalendarEvent } from "@/lib/calendar";
 import { toDateKey, type Task } from "@/lib/tasks";
 
 const MAX_EVENTS = 3;
@@ -52,7 +52,7 @@ export function TodayCard({ tasks, events }: { tasks: Task[]; events: CalendarEv
 
           <ul className="flex-1 min-w-0 space-y-1 text-sm">
             {todaysEvents.slice(0, MAX_EVENTS).map((event) => (
-              <li key={event.id} className="flex items-center gap-2 min-w-0">
+              <li key={eventKey(event)} className="flex items-center gap-2 min-w-0">
                 <CalendarClock className="size-3.5 shrink-0 text-leaf" />
                 <span className="shrink-0 text-xs text-muted-foreground">
                   {event.allDay || eventDays(event).first !== today ? "All day" : format.time(event.startsAt!)}

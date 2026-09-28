@@ -50,6 +50,13 @@
       "when": 1790631655078,
       "tag": "0006_date_time_settings",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1790633798191,
+      "tag": "0007_event_recurrence",
+      "breakpoints": true
     }
   ]
 }

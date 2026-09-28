@@ -6,6 +6,7 @@ import type { PgUpdateSetSource } from "drizzle-orm/pg-core";
 import { z } from "zod";
 import { db } from "@/db";
 import { events } from "@/db/schema";
+import { formatRRule, parseRRule } from "@/lib/recurrence";
 
 const dateString = z
   .string()
@@ -24,12 +25,31 @@ type Timing = z.infer<typeof timing>;
 const timingIsOrdered = (t: Timing) =>
   t.allDay ? t.endDate >= t.startDate : new Date(t.endsAt) >= new Date(t.startsAt);
 
+// Only rules Nestery understands are stored, in a normalized form
+const rrule = z
+  .string()
+  .max(200)
+  .transform((value, ctx) => {
+    const rule = parseRRule(value);
+    if (!rule) {
+      ctx.addIssue({ code: "custom", message: "Unsupported repeat rule" });
+      return z.NEVER;
+    }
+    return formatRRule(rule);
+  });
+
 const details = z.object({
   title: z.string().trim().min(1, "Event title is required").max(200),
   notes: z.string().max(10_000).nullish(),
+  // null (or absent) means the event does not repeat
+  rrule: rrule.nullish(),
 });
 
 export const createEventInput = details
+  .extend({
+    // Set when one occurrence of a series is edited on its own
+    seriesId: z.string().uuid().nullish(),
+  })
   .and(timing)
   .refine(timingIsOrdered, "The event ends before it starts");
 
@@ -44,6 +64,12 @@ export const updateEventInput = details
     endDate: dateString.optional(),
     startsAt: dateTime.optional(),
     endsAt: dateTime.optional(),
+    // Local start dates of occurrences removed from a series
+    exdates: z
+      .array(dateString)
+      .max(1000)
+      .transform((dates) => [...new Set(dates)].sort())
+      .optional(),
   })
   .superRefine((v, ctx) => {
     if (Object.keys(v).length === 0) {
@@ -93,19 +119,35 @@ export async function listEvents(userId: string, { from, to }: z.infer<typeof li
         eq(events.userId, userId),
         or(
           and(isNotNull(events.startDate), lte(events.startDate, to), gte(events.endDate, from)),
-          and(isNotNull(events.startsAt), lt(events.startsAt, rangeEnd), gte(events.endsAt, rangeStart))
+          and(isNotNull(events.startsAt), lt(events.startsAt, rangeEnd), gte(events.endsAt, rangeStart)),
+          // Series that began earlier may still have occurrences in the range;
+          // the client expands them
+          and(
+            isNotNull(events.rrule),
+            or(lte(events.startDate, to), lt(events.startsAt, rangeEnd))
+          )
         )
       )
     );
 }
 
+// Returns null when `seriesId` is not one of the user's events
 export async function createEvent(userId: string, input: CreateEventInput) {
+  if (input.seriesId) {
+    const [series] = await db
+      .select({ id: events.id })
+      .from(events)
+      .where(and(eq(events.id, input.seriesId), eq(events.userId, userId)));
+    if (!series) return null;
+  }
   const [event] = await db
     .insert(events)
     .values({
       userId,
       title: input.title,
       notes: input.notes ?? null,
+      rrule: input.rrule ?? null,
+      seriesId: input.seriesId ?? null,
       ...timingValues(input),
     })
     .returning();
@@ -117,6 +159,8 @@ export async function updateEvent(userId: string, id: string, input: UpdateEvent
   const values: PgUpdateSetSource<typeof events> = {};
   if (input.title !== undefined) values.title = input.title;
   if (input.notes !== undefined) values.notes = input.notes;
+  if (input.rrule !== undefined) values.rrule = input.rrule;
+  if (input.exdates !== undefined) values.exdates = input.exdates;
   const newTiming = timing.safeParse(input);
   if (newTiming.success) Object.assign(values, timingValues(newTiming.data));
 

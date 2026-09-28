@@ -7,7 +7,7 @@ import {
   listEvents,
   listEventsInput,
 } from "@/server/events";
-import { getUserId, parseInput, unauthorized } from "@/server/session";
+import { getUserId, notFound, parseInput, unauthorized } from "@/server/session";
 
 // GET /api/events?from=YYYY-MM-DD&to=YYYY-MM-DD
 export async function GET(request: Request) {
@@ -31,7 +31,7 @@ export async function POST(request: Request) {
   );
   if ("response" in input) return input.response;
 
-  return NextResponse.json(await createEvent(userId, input.data), {
-    status: 201,
-  });
+  const event = await createEvent(userId, input.data);
+  if (!event) return notFound();
+  return NextResponse.json(event, { status: 201 });
 }
