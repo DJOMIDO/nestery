@@ -3,6 +3,7 @@
 
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
+import { CardHeading } from './CardHeading';
 import { Menu } from 'lucide-react';
 import { compareTasks, tagCounts, type Task } from '@/lib/tasks';
 
@@ -18,13 +19,9 @@ export function OverviewCard({ tasks = [] }: OverviewCardProps) {
   const tags = tagCounts(openTasks);
 
   return (
-    <Card className="w-full h-full hover:shadow-md bg-white dark:bg-gray-800">
+    <Card className="w-full h-full rounded-lg hover:shadow-md bg-card">
       <CardContent className="p-4 flex-1 min-h-0 overflow-y-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold">Overview</h3>
-          <Menu className="w-5 h-5 text-muted-foreground" />
-        </div>
+        <CardHeading title="Overview" icon={Menu} />
 
         <div className="divide-y divide-muted-foreground">
           {/* Tasks Section: next open tasks */}
@@ -42,7 +39,7 @@ export function OverviewCard({ tasks = [] }: OverviewCardProps) {
             ) : (
               openTasks.slice(0, MAX_TASKS).map((task) => (
                 <div key={task.id} className="py-1">
-                  <span className="inline-block max-w-full truncate bg-indigo-100 dark:bg-indigo-200 text-indigo-600 px-2 py-1 rounded text-sm">
+                  <span className="inline-block max-w-full truncate bg-leaf-soft text-leaf px-2 py-1 rounded text-sm">
                     {task.title}
                   </span>
                 </div>
@@ -62,7 +59,7 @@ export function OverviewCard({ tasks = [] }: OverviewCardProps) {
                 {tags.map(({ tag, count }) => (
                   <span
                     key={tag}
-                    className="inline-block bg-lime-100 dark:bg-lime-200 text-lime-600 px-2 py-1 rounded text-sm"
+                    className="inline-block bg-bark-soft text-bark px-2 py-1 rounded text-sm"
                   >
                     #{tag} <span className="opacity-70">{count}</span>
                   </span>

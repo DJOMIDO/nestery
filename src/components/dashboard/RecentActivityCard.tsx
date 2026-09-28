@@ -4,6 +4,7 @@
 
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
+import { CardHeading } from "./CardHeading";
 import { Activity, CheckCircle2, ClipboardList } from "lucide-react";
 import { formatRelative, taskActivity, type Task } from "@/lib/tasks";
 
@@ -12,12 +13,9 @@ export function RecentActivityCard({ tasks }: { tasks: Task[] }) {
   const activities = taskActivity(tasks);
 
   return (
-    <Card className="w-full h-full shadow-sm bg-white dark:bg-gray-800 hover:shadow-md">
+    <Card className="w-full h-full rounded-lg shadow-sm bg-card hover:shadow-md">
       <CardContent className="p-4 flex flex-col min-h-0 flex-1">
-        <div className="flex items-center justify-between mb-3 group">
-          <h3 className="text-lg font-semibold group-hover:text-muted-foreground transition-colors duration-200">Recent Activity</h3>
-          <Activity className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors duration-200" />
-        </div>
+        <CardHeading title="Recent Activity" icon={Activity} />
         {activities.length === 0 ? (
           <p className="text-sm text-muted-foreground">No activity yet.</p>
         ) : (
@@ -27,7 +25,7 @@ export function RecentActivityCard({ tasks }: { tasks: Task[] }) {
               return (
                 <li
                   key={id}
-                  className="flex justify-between items-start p-2 hover:bg-gray-50 dark:hover:bg-gray-700 border-l-4 border-transparent hover:border-indigo-500"
+                  className="flex justify-between items-start p-2 hover:bg-muted border-l-4 border-transparent hover:border-leaf"
                 >
                   <Link
                     href="/tasks"
@@ -35,11 +33,11 @@ export function RecentActivityCard({ tasks }: { tasks: Task[] }) {
                   >
                     <Icon
                       className={`w-4 h-4 flex-shrink-0 ${
-                        kind === "completed" ? "text-lime-600" : "text-indigo-600"
+                        kind === "completed" ? "text-leaf" : "text-bark"
                       }`}
                     />
                     <span
-                      className="inline-block bg-indigo-100 text-indigo-600 dark:bg-indigo-200
+                      className="inline-block bg-leaf-soft text-leaf
                    px-2 py-1 rounded text-sm font-medium truncate whitespace-nowrap overflow-hidden"
                     >
                       {kind === "completed" ? "Completed" : "Created"} &apos;{title}&apos;

@@ -82,7 +82,7 @@ export function MiniCalendar({
                 <span
                   className={cn(
                     "absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full",
-                    selected ? "bg-primary-foreground" : "bg-indigo-500"
+                    selected ? "bg-primary-foreground" : "bg-leaf"
                   )}
                 />
               )}

@@ -31,7 +31,7 @@ export function UserItem({ collapsed, name, onLogout }: UserItemProps) {
         collapsed ? "justify-center px-0" : "justify-start"
       )}
     >
-      <div className="w-8 h-8 rounded-full bg-indigo-300 text-white font-bold flex items-center justify-center text-sm shrink-0">
+      <div className="w-8 h-8 rounded-full bg-forest text-white font-bold flex items-center justify-center text-sm shrink-0">
         {initials}
       </div>
 

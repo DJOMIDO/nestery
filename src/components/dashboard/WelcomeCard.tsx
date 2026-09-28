@@ -11,12 +11,9 @@ export function WelcomeCard() {
   return (
     <Card
       className={`
-        w-full shadow-sm
-        text-white bg-gradient-to-r from-purple-400 to-indigo-500
-        dark:from-purple-700 dark:to-blue-800
-        hover:shadow-md
-        hover:from-purple-300 hover:to-indigo-400
-        dark:hover:from-purple-600 dark:hover:to-blue-600
+        w-full rounded-lg shadow-sm
+        text-white bg-gradient-to-r from-forest to-moss
+        hover:shadow-md hover:brightness-110 transition
       `}
     >
       <CardContent className="p-4">

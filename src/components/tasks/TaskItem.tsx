@@ -106,7 +106,7 @@ export function TaskItem({
                 e.stopPropagation();
                 onTagClick?.(tag);
               }}
-              className="text-indigo-600 dark:text-indigo-400 hover:underline"
+              className="text-leaf hover:underline"
             >
               #{tag}
             </button>

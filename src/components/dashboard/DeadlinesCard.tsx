@@ -3,6 +3,7 @@
 
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
+import { CardHeading } from "./CardHeading";
 import { Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toDateKey, upcomingDeadlines, type Task } from "@/lib/tasks";
@@ -23,13 +24,10 @@ export function DeadlinesCard({ tasks }: { tasks: Task[] }) {
   const deadlines = upcomingDeadlines(tasks, 7, today).slice(0, MAX_ITEMS);
 
   return (
-    <Card className="w-full h-full shadow-sm bg-white dark:bg-gray-800 hover:shadow-md">
+    <Card className="w-full h-full rounded-lg shadow-sm bg-card hover:shadow-md">
       <CardContent className="p-4 flex-1 min-h-0 overflow-y-auto">
 
-        <div className="flex items-center justify-between group">
-          <h3 className="text-lg font-semibold group-hover:text-muted-foreground transition-colors duration-200">Deadlines</h3>
-          <Clock className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors duration-200" />
-        </div>
+        <CardHeading title="Deadlines" icon={Clock} />
 
         {deadlines.length === 0 && (
           <p className="text-sm text-muted-foreground py-3">
@@ -46,14 +44,14 @@ export function DeadlinesCard({ tasks }: { tasks: Task[] }) {
                 href="/tasks"
                 className={`
                   flex items-center justify-between p-3 rounded-md
-                  hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors
+                  hover:bg-muted transition-colors
                 `}
               >
 
                 <div
                   className={`
                     w-1 h-8 mr-3 rounded
-                    ${status === "overdue" ? "bg-rose-500" : "bg-lime-500"}
+                    ${status === "overdue" ? "bg-rose-500" : "bg-leaf"}
                   `}
                 />
 
@@ -64,7 +62,7 @@ export function DeadlinesCard({ tasks }: { tasks: Task[] }) {
                       ${
                         status === "overdue"
                           ? "bg-red-100 text-rose-600"
-                          : "bg-lime-100 text-lime-600"
+                          : "bg-leaf-soft text-leaf"
                       }
                     `}
                   >

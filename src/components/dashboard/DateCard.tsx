@@ -3,8 +3,10 @@
 "use client";
 
 import { useState } from "react";
+import { CalendarDays } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { usePublicHolidays, Holiday } from "@/lib/usePublicHolidays";
+import { CardHeading } from "./CardHeading";
 
 export function DateCard() {
   const [today] = useState(new Date());
@@ -19,51 +21,38 @@ export function DateCard() {
   const dayNum = today.getDate();
 
   return (
-    <Card
-      className={`
-        w-full
-        hover:shadow-md hover:bg-indigo-50 dark:hover:bg-gray-700
-        bg-white dark:bg-gray-800
-      `}
-    >
-      <CardContent
-        className="
-          p-4
-          flex flex-col items-center justify-center space-y-4 
-          md:flex-row md:items-start md:justify-start md:space-x-4 md:space-y-0
-        "
-      >
+    <Card className="w-full h-full rounded-lg shadow-sm bg-card hover:shadow-md">
+      <CardContent className="p-4">
+        <CardHeading title="Calendar" icon={CalendarDays} />
 
-        <div className="flex flex-col items-center flex-shrink-0">
-          <p className="text-xl font-bold text-rose-500">{weekday}</p>
-          <p className="text-5xl font-extrabold">{dayNum}</p>
-        </div>
+        <div className="flex items-start space-x-4">
+          <div className="flex flex-col items-center flex-shrink-0">
+            <p className="text-sm font-bold text-bark">{weekday}</p>
+            <p className="text-4xl font-extrabold leading-none">{dayNum}</p>
+          </div>
 
-        <div className="flex-1 min-w-0 flex flex-col items-center md:items-start">
-          {upcoming.length > 0 ? (
-            upcoming.map((h: Holiday) => (
-              <div key={h.date} className="mb-3 text-center md:text-left">
-                <p className="text-xs uppercase text-muted-foreground mb-1">
-                  {new Date(h.date)
-                    .toLocaleDateString("en-US", {
-                      weekday: "long",
-                      month: "short",
-                      day: "numeric",
-                    })
-                    .toUpperCase()}
-                </p>
-                <p className="inline-block text-indigo-600 bg-indigo-100 px-2 py-1 rounded text-sm font-medium">
-                  {h.localName}
-                </p>
-              </div>
-            ))
-          ) : (
-            <div className="flex items-center justify-center h-full">
-              <p className="text-base font-medium text-muted-foreground">
-                No upcoming events
-              </p>
-            </div>
-          )}
+          <div className="flex-1 min-w-0 space-y-2">
+            {upcoming.length > 0 ? (
+              upcoming.map((h: Holiday) => (
+                <div key={h.date}>
+                  <p className="text-xs uppercase text-muted-foreground mb-1">
+                    {new Date(h.date)
+                      .toLocaleDateString("en-US", {
+                        weekday: "long",
+                        month: "short",
+                        day: "numeric",
+                      })
+                      .toUpperCase()}
+                  </p>
+                  <p className="inline-block max-w-full truncate text-leaf bg-leaf-soft px-2 py-1 rounded text-sm font-medium">
+                    {h.localName}
+                  </p>
+                </div>
+              ))
+            ) : (
+              <p className="text-sm text-muted-foreground">No upcoming holidays.</p>
+            )}
+          </div>
         </div>
       </CardContent>
     </Card>

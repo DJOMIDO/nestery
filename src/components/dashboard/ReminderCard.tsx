@@ -2,9 +2,11 @@
 
 "use client";
 
+import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
-import { ListChecks } from "lucide-react";
+import { Bell } from "lucide-react";
 import { dueReminders, type Task } from "@/lib/tasks";
+import { CardHeading } from "./CardHeading";
 
 const formatTime = (iso: string) =>
   new Date(iso).toLocaleString("en-US", {
@@ -20,44 +22,35 @@ export function ReminderCard({ tasks }: { tasks: Task[] }) {
   const next = reminders[0];
 
   return (
-    <Card
-      className={`
-        w-full
-        hover:shadow-md hover:bg-indigo-50 dark:hover:bg-gray-700
-        bg-white dark:bg-gray-800
-      `}
-    >
-      <CardContent className="p-4 flex flex-col md:flex-row md:space-x-4 space-y-4 md:space-y-0">
-        <div className="flex flex-col items-center flex-shrink-0 space-y-4">
-          <div className="p-2 bg-indigo-500 rounded-full">
-            <ListChecks className="w-5 h-5 text-white" />
-          </div>
-          <div className="text-center">
-            <p className="text-2xl font-bold">{reminders.length}</p>
-            <p className="text-xs font-medium text-indigo-500">Reminders</p>
-          </div>
-        </div>
+    <Card className="w-full h-full rounded-lg shadow-sm bg-card hover:shadow-md">
+      <CardContent className="p-4">
+        <CardHeading title="Reminders" icon={Bell} />
 
-        <div className="flex-1 min-w-0 flex flex-col items-center md:items-start justify-center">
-          {next ? (
-            <>
-              <p className="text-xs uppercase text-muted-foreground mb-1">
-                {formatTime(next.remindAt!)}
-              </p>
-              <p className="text-base font-medium truncate max-w-full">
-                {next.title}
-              </p>
-              {reminders.length > 1 && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  +{reminders.length - 1} more today
+        <div className="flex items-start space-x-4">
+          <div className="flex flex-col items-center flex-shrink-0">
+            <p className="text-sm font-bold text-bark">DUE</p>
+            <p className="text-4xl font-extrabold leading-none">{reminders.length}</p>
+          </div>
+
+          <div className="flex-1 min-w-0">
+            {next ? (
+              <Link href="/tasks" className="block hover:underline">
+                <p className="text-xs uppercase text-muted-foreground mb-1">
+                  {formatTime(next.remindAt!)}
                 </p>
-              )}
-            </>
-          ) : (
-            <p className="text-base font-medium text-muted-foreground truncate whitespace-nowrap overflow-hidden">
-              All reminders completed
-            </p>
-          )}
+                <p className="inline-block max-w-full truncate text-leaf bg-leaf-soft px-2 py-1 rounded text-sm font-medium">
+                  {next.title}
+                </p>
+                {reminders.length > 1 && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    +{reminders.length - 1} more today
+                  </p>
+                )}
+              </Link>
+            ) : (
+              <p className="text-sm text-muted-foreground">All reminders completed.</p>
+            )}
+          </div>
         </div>
       </CardContent>
     </Card>

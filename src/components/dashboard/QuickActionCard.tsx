@@ -3,6 +3,7 @@
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
+import { CardHeading } from "./CardHeading";
 import { Button } from "@/components/ui/button";
 import { ClipboardList, Zap } from "lucide-react";
 
@@ -12,14 +13,9 @@ interface QuickActionCardProps {
 
 export function QuickActionCard({ onAddTask }: QuickActionCardProps) {
   return (
-    <Card className="w-full h-full shadow-sm bg-white dark:bg-gray-800 hover:shadow-md">
+    <Card className="w-full h-full rounded-lg shadow-sm bg-card hover:shadow-md">
       <CardContent className="p-4 flex flex-col flex-1 min-h-0">
-        <div className="flex items-center justify-between mb-4 group">
-          <h3 className="text-lg font-semibold group-hover:text-muted-foreground transition-colors duration-200">
-            Quick Actions
-          </h3>
-          <Zap className="w-6 h-6 text-muted-foreground group-hover:text-foreground transition-colors duration-200" />
-        </div>
+        <CardHeading title="Quick Actions" icon={Zap} />
         <div className="flex flex-1 flex-col items-center justify-center space-y-3">
           <Button
             size="sm"

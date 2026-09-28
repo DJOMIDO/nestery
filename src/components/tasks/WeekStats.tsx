@@ -8,8 +8,8 @@ import { cn } from "@/lib/utils";
 export function WeekStats({ tasks }: { tasks: Task[] }) {
   const stats = weekStats(tasks);
   const tiles = [
-    { label: "Done this week", value: stats.completed, className: "text-lime-600" },
-    { label: "Due this week", value: stats.dueThisWeek, className: "text-indigo-600" },
+    { label: "Done this week", value: stats.completed, className: "text-leaf" },
+    { label: "Due this week", value: stats.dueThisWeek, className: "text-bark" },
     { label: "Overdue", value: stats.overdue, className: stats.overdue ? "text-rose-600" : "" },
     { label: "Open", value: stats.open, className: "" },
   ];
