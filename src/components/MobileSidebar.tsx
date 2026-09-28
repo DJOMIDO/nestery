@@ -2,12 +2,11 @@
 
 "use client";
 
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction, useEffect } from "react";
 import { X } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { SideBarItem } from "@/components/SideBarItem";
 import { UserItem } from "@/components/UserItem";
-import { useThemeToggleItem } from "@/components/ThemeToggle";
 import { useCurrentUserName } from "@/lib/useCurrentUserName";
 import { signOut } from "@/lib/auth-client";
 import { navItems } from "@/components/nav";
@@ -21,8 +20,12 @@ export function MobileSidebar({
 }) {
   const pathname = usePathname();
   const router = useRouter();
-  const themeToggleItem = useThemeToggleItem();
   const username = useCurrentUserName();
+
+  // Close after any navigation, including links inside the user menu
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname, setOpen]);
 
   if (!open) return null;
 
@@ -64,17 +67,6 @@ export function MobileSidebar({
         </nav>
 
         <div className="p-2 border-t space-y-1 border-sidebar-border">
-          {themeToggleItem && (
-            <SideBarItem
-              icon={themeToggleItem.icon}
-              label={themeToggleItem.label}
-              collapsed={false}
-              onClick={() => {
-                themeToggleItem.onClick();
-                setOpen(false);
-              }}
-            />
-          )}
           <UserItem
             name={username || "User"}
             collapsed={false}

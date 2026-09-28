@@ -5,7 +5,6 @@
 import { usePathname, useRouter } from "next/navigation";
 import { SquareChevronLeft, SquareChevronRight } from "lucide-react";
 
-import { useThemeToggleItem } from "@/components/ThemeToggle";
 import { SideBarItem } from "@/components/SideBarItem";
 import { UserItem } from "@/components/UserItem";
 import { navItems } from "@/components/nav";
@@ -17,7 +16,6 @@ export function Sidebar({ className = "" }: { className?: string }) {
   const router = useRouter();
   const pathname = usePathname();
   const { collapsed, isReady, toggle } = useSidebarCollapsed();
-  const themeToggleItem = useThemeToggleItem();
   const username = useCurrentUserName();
 
   if (!isReady) return null;
@@ -62,14 +60,6 @@ export function Sidebar({ className = "" }: { className?: string }) {
       </div>
 
       <div className="px-2 pb-6 space-y-3">
-        {themeToggleItem && (
-          <SideBarItem
-            icon={themeToggleItem.icon}
-            label={themeToggleItem.label}
-            collapsed={collapsed}
-            onClick={themeToggleItem.onClick}
-          />
-        )}
         <UserItem
           name={username || "User"}
           collapsed={collapsed}
