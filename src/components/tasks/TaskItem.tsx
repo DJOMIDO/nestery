@@ -4,15 +4,15 @@
 import { Bell, CalendarDays, Pencil, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { toDateKey, type Task } from "@/lib/tasks";
+import { TASK_STATUS_LABELS, toDateKey, type Task } from "@/lib/tasks";
 
-const priorityStyles: Record<Task["priority"], string> = {
+export const priorityStyles: Record<Task["priority"], string> = {
   high: "bg-rose-100 text-rose-600 dark:bg-rose-900/40 dark:text-rose-300",
   medium: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300",
   low: "bg-muted text-muted-foreground",
 };
 
-const formatDue = (dateKey: string) => {
+export const formatDue = (dateKey: string) => {
   const [y, m, d] = dateKey.split("-").map(Number);
   return new Date(y, m - 1, d).toLocaleDateString("en-US", {
     month: "short",
@@ -86,7 +86,7 @@ export function TaskItem({
           <Badge className={cn("border-transparent capitalize", priorityStyles[task.priority])}>
             {task.priority}
           </Badge>
-          {task.status === "in_progress" && <Badge variant="outline">In progress</Badge>}
+          {task.status === "in_progress" && <Badge variant="outline">{TASK_STATUS_LABELS.in_progress}</Badge>}
           {task.dueDate && (
             <span className={cn("flex items-center gap-1", overdue && "text-rose-600")}>
               <CalendarDays className="w-3.5 h-3.5" />

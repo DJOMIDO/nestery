@@ -17,7 +17,14 @@ import {
 } from "@/components/ui/select";
 import type { TaskInput } from "@/hooks/useTasks";
 import { cn } from "@/lib/utils";
-import { parseTags, type Task, type TaskPriority, type TaskStatus } from "@/lib/tasks";
+import {
+  parseTags,
+  TASK_STATUS_LABELS,
+  TASK_STATUSES,
+  type Task,
+  type TaskPriority,
+  type TaskStatus,
+} from "@/lib/tasks";
 
 // ISO timestamp -> value for <input type="datetime-local"> in local time
 function toLocalInput(iso: string | null) {
@@ -137,9 +144,11 @@ export function TaskForm({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="todo">To do</SelectItem>
-              <SelectItem value="in_progress">In progress</SelectItem>
-              <SelectItem value="done">Done</SelectItem>
+              {TASK_STATUSES.map((value) => (
+                <SelectItem key={value} value={value}>
+                  {TASK_STATUS_LABELS[value]}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
