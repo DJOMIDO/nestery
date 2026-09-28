@@ -2,21 +2,25 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ChevronDown, ChevronRight, Plus, X } from "lucide-react";
+import { ChevronDown, ChevronRight, Columns3, List, Plus, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { TaskBoard } from "@/components/tasks/TaskBoard";
 import { TaskDetailPanel } from "@/components/tasks/TaskDetailPanel";
 import { TaskDialog } from "@/components/tasks/TaskDialog";
 import { TaskItem } from "@/components/tasks/TaskItem";
 import { TaskOverviewPanel } from "@/components/tasks/TaskOverviewPanel";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { cn } from "@/lib/utils";
 import { useTasks } from "@/hooks/useTasks";
+import { useTasksView, type TasksView } from "@/hooks/useTasksView";
 import {
   groupTasks,
   TASK_GROUP_LABELS,
   type Task,
   type TaskGroupKey,
+  type TaskStatus,
 } from "@/lib/tasks";
 
 const OPEN_GROUPS: TaskGroupKey[] = ["overdue", "today", "upcoming", "noDate"];
@@ -34,6 +38,7 @@ export default function TasksPage() {
   const { tasks, loading, createTask, updateTask, deleteTask } = useTasks();
   // The side panel is only shown on large screens (Tailwind `lg`)
   const isWide = useMediaQuery("(min-width: 1024px)");
+  const [view, setView] = useTasksView();
 
   const [quickTitle, setQuickTitle] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -127,22 +132,96 @@ export default function TasksPage() {
 
   const hasFilter = tagFilter || dateFilter;
 
+  const openInDialog = (task: Task) => {
+    setEditing(task);
+    setDialogOpen(true);
+  };
+
+  // Board quick add: the task starts in that column and picks up the active filters
+  const handleBoardAdd = (title: string, status: TaskStatus) =>
+    createTask({
+      title,
+      status,
+      tags: tagFilter ? [tagFilter] : [],
+      dueDate: dateFilter,
+    });
+
+  const header = (
+    <TasksHeader
+      openCount={openCount}
+      doneCount={tasks.length - openCount}
+      view={view}
+      onViewChange={setView}
+      onNew={openCreateDialog}
+    />
+  );
+
+  const filterChips = (
+    hasFilter && (
+      <div className="flex flex-wrap items-center gap-2 text-sm">
+        <span className="text-muted-foreground">Filtered by</span>
+        {tagFilter && (
+          <button
+            onClick={() => setTagFilter(null)}
+            className="flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium"
+            aria-label={`Clear tag filter #${tagFilter}`}
+          >
+            #{tagFilter} <X className="w-3 h-3" />
+          </button>
+        )}
+        {dateFilter && (
+          <button
+            onClick={() => setDateFilter(null)}
+            className="flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium"
+            aria-label="Clear date filter"
+          >
+            Due {formatDay(dateFilter)} <X className="w-3 h-3" />
+          </button>
+        )}
+      </div>
+    )
+  );
+
+  const dialog = (
+    <TaskDialog
+      open={dialogOpen}
+      onOpenChange={setDialogOpen}
+      task={editing}
+      onSubmit={(input) =>
+        editing ? updateTask(editing.id, input) : createTask(input)
+      }
+    />
+  );
+
+  if (view === "board") {
+    return (
+      // Fills the viewport on large screens; each column scrolls on its own
+      <div className="flex flex-col gap-4 min-h-0 lg:h-full">
+        {header}
+        {filterChips}
+        {loading ? (
+          <p className="text-sm text-muted-foreground">Loading tasks…</p>
+        ) : (
+          <TaskBoard
+            tasks={filtered}
+            onMove={(task, status) => updateTask(task.id, { status })}
+            onAdd={handleBoardAdd}
+            onOpen={openInDialog}
+            onDelete={handleDelete}
+            onTagClick={setTagFilter}
+          />
+        )}
+        {dialog}
+      </div>
+    );
+  }
+
   return (
     // On large screens both columns fill the viewport; the list scrolls on its own
     <div className="grid grid-cols-1 lg:grid-cols-2 lg:grid-rows-1 gap-6 lg:h-full">
       {/* Left: task list */}
       <div className="space-y-6 min-w-0 lg:min-h-0 lg:overflow-y-auto lg:pr-2">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Tasks</h1>
-            <p className="text-sm text-muted-foreground">
-              {openCount} open · {tasks.length - openCount} completed
-            </p>
-          </div>
-          <Button onClick={openCreateDialog}>
-            <Plus className="w-4 h-4 mr-1" /> New Task
-          </Button>
-        </div>
+        {header}
 
         <form onSubmit={handleQuickAdd} className="flex gap-2">
           <Input
@@ -156,29 +235,7 @@ export default function TasksPage() {
           </Button>
         </form>
 
-        {hasFilter && (
-          <div className="flex flex-wrap items-center gap-2 text-sm">
-            <span className="text-muted-foreground">Filtered by</span>
-            {tagFilter && (
-              <button
-                onClick={() => setTagFilter(null)}
-                className="flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium"
-                aria-label={`Clear tag filter #${tagFilter}`}
-              >
-                #{tagFilter} <X className="w-3 h-3" />
-              </button>
-            )}
-            {dateFilter && (
-              <button
-                onClick={() => setDateFilter(null)}
-                className="flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium"
-                aria-label="Clear date filter"
-              >
-                Due {formatDay(dateFilter)} <X className="w-3 h-3" />
-              </button>
-            )}
-          </div>
-        )}
+        {filterChips}
 
         {loading ? (
           <p className="text-sm text-muted-foreground">Loading tasks…</p>
@@ -246,14 +303,61 @@ export default function TasksPage() {
         </div>
       </aside>
 
-      <TaskDialog
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-        task={editing}
-        onSubmit={(input) =>
-          editing ? updateTask(editing.id, input) : createTask(input)
-        }
-      />
+      {dialog}
+    </div>
+  );
+}
+
+function TasksHeader({
+  openCount,
+  doneCount,
+  view,
+  onViewChange,
+  onNew,
+}: {
+  openCount: number;
+  doneCount: number;
+  view: TasksView;
+  onViewChange: (view: TasksView) => void;
+  onNew: () => void;
+}) {
+  const views = [
+    { value: "list" as const, label: "List view", icon: List },
+    { value: "board" as const, label: "Board view", icon: Columns3 },
+  ];
+
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <div>
+        <h1 className="text-2xl font-bold">Tasks</h1>
+        <p className="text-sm text-muted-foreground">
+          {openCount} open · {doneCount} completed
+        </p>
+      </div>
+      <div className="flex items-center gap-2">
+        <div role="group" aria-label="View" className="flex rounded-md border p-0.5">
+          {views.map(({ value, label, icon: Icon }) => (
+            <Button
+              key={value}
+              variant="ghost"
+              size="icon"
+              className={cn(
+                "size-8",
+                view === value && "bg-leaf-soft text-leaf hover:bg-leaf-soft hover:text-leaf"
+              )}
+              onClick={() => onViewChange(value)}
+              aria-label={label}
+              aria-pressed={view === value}
+              title={label}
+            >
+              <Icon className="w-4 h-4" />
+            </Button>
+          ))}
+        </div>
+        <Button onClick={onNew}>
+          <Plus className="w-4 h-4 mr-1" /> New Task
+        </Button>
+      </div>
     </div>
   );
 }
