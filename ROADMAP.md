@@ -32,7 +32,7 @@ tracks what is done, what is planned next, and ideas that were considered.
 
 ## Calendar
 
-**In progress**
+**Done**
 - Phase 1: month view with your own events (timed, all-day, multi-day), task
   due dates, reminders and public holidays; a day agenda; a Today card and a
   New Event action on the dashboard
@@ -40,9 +40,15 @@ tracks what is done, what is planned next, and ideas that were considered.
   time, week start (Monday/Sunday) and holiday countries (up to 3), applied
   across the whole app
 
+**In progress**
+- Phase 2a: week view with a time grid (overlapping events side by side, a
+  now line, click an empty slot to add an event); drag events and tasks to
+  another day, drag events to another time (15-minute steps), and drag an
+  event's bottom edge to change when it ends
+
 **Planned**
-- **Phase 2**: week view with a time grid, recurring events (daily, weekly,
-  monthly, yearly), drag an event or a task to another day to reschedule.
+- **Phase 2b**: recurring events (daily, weekly on chosen days, monthly,
+  yearly; until a date or a number of times), editing one occurrence or all.
 - **Phase 3**: import `.ics` files and subscribe to calendar feeds (e.g. a
   university timetable exported from ADE), shown read-only alongside events.
 
