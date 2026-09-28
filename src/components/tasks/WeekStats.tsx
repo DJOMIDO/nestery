@@ -3,10 +3,12 @@
 
 import { weekStats, type Task } from "@/lib/tasks";
 import { cn } from "@/lib/utils";
+import { useFormat } from "@/components/SettingsProvider";
 
-// Four small tiles summarizing the current week (Monday to Sunday)
+// Four small tiles summarizing the current week (from the configured week start)
 export function WeekStats({ tasks }: { tasks: Task[] }) {
-  const stats = weekStats(tasks);
+  const { weekStart } = useFormat();
+  const stats = weekStats(tasks, undefined, weekStart);
   const tiles = [
     { label: "Done this week", value: stats.completed, className: "text-leaf" },
     { label: "Due this week", value: stats.dueThisWeek, className: "text-bark" },

@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { formatRelative, taskActivity, type Task } from "@/lib/tasks";
 import { noteActivity, noteHref, type Note } from "@/lib/notes";
+import { useFormat } from "@/components/SettingsProvider";
 
 const MAX_ITEMS = 10;
 
@@ -56,6 +57,7 @@ function recentActivity(tasks: Task[], notes: Note[]): ActivityRow[] {
 // Recent task and note activity
 export function RecentActivityCard({ tasks, notes }: { tasks: Task[]; notes: Note[] }) {
   const activities = recentActivity(tasks, notes);
+  const format = useFormat();
 
   return (
     <Card className="w-full h-full rounded-lg shadow-sm bg-card hover:shadow-md">
@@ -82,7 +84,7 @@ export function RecentActivityCard({ tasks, notes }: { tasks: Task[]; notes: Not
                   </span>
                 </Link>
                 <span className="pl-2 text-xs text-muted-foreground whitespace-nowrap">
-                  {formatRelative(at)}
+                  {formatRelative(at, undefined, format.day)}
                 </span>
               </li>
             ))}

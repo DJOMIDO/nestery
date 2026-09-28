@@ -5,6 +5,7 @@ import { Pin } from "lucide-react";
 import { noteTitle, notePreview, type Note } from "@/lib/notes";
 import { formatRelative } from "@/lib/tasks";
 import { cn } from "@/lib/utils";
+import { useFormat } from "@/components/SettingsProvider";
 
 interface NoteListItemProps {
   note: Note;
@@ -13,6 +14,7 @@ interface NoteListItemProps {
 }
 
 export function NoteListItem({ note, selected, onSelect }: NoteListItemProps) {
+  const format = useFormat();
   return (
     <li>
       <button
@@ -32,7 +34,7 @@ export function NoteListItem({ note, selected, onSelect }: NoteListItemProps) {
             {noteTitle(note)}
           </span>
           <span className="shrink-0 text-xs text-muted-foreground">
-            {formatRelative(note.updatedAt)}
+            {formatRelative(note.updatedAt, undefined, format.day)}
           </span>
         </div>
         <p className="mt-0.5 truncate text-sm text-muted-foreground">{notePreview(note)}</p>

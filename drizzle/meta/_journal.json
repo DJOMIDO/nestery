@@ -36,6 +36,20 @@
       "when": 1790606401358,
       "tag": "0004_notes",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1790630514733,
+      "tag": "0005_calendar",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1790631655078,
+      "tag": "0006_date_time_settings",
+      "breakpoints": true
     }
   ]
 }

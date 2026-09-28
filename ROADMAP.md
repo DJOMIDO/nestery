@@ -30,12 +30,26 @@ tracks what is done, what is planned next, and ideas that were considered.
 - **Slash menu**: type `/` on an empty line to insert headings, lists,
   checklists, tables and so on.
 
+## Calendar
+
+**In progress**
+- Phase 1: month view with your own events (timed, all-day, multi-day), task
+  due dates, reminders and public holidays; a day agenda; a Today card and a
+  New Event action on the dashboard
+- Date & time settings: date format (English US/UK, French, Chinese), 12/24-hour
+  time, week start (Monday/Sunday) and holiday countries (up to 3), applied
+  across the whole app
+
+**Planned**
+- **Phase 2**: week view with a time grid, recurring events (daily, weekly,
+  monthly, yearly), drag an event or a task to another day to reschedule.
+- **Phase 3**: import `.ics` files and subscribe to calendar feeds (e.g. a
+  university timetable exported from ADE), shown read-only alongside events.
+
 ## Ideas
 
 Tools worth borrowing from Nextcloud, in rough order of priority:
 
-- **Calendar**: month and week views of task due dates, reminders and public
-  holidays (all existing data), with your own events added later.
 - **Bookmarks**: save links with the page title and icon fetched
   automatically, organized with the shared tags.
 - **Cookbook**: recipes with ingredients, steps and serving scaling; import

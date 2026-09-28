@@ -5,8 +5,7 @@ import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { addDays, startOfWeek, toDateKey } from "@/lib/tasks";
-
-const WEEKDAYS = ["M", "T", "W", "T", "F", "S", "S"];
+import { useFormat } from "@/components/SettingsProvider";
 
 interface MiniCalendarProps {
   // Dates (YYYY-MM-DD) that have open tasks due, marked with a dot
@@ -20,20 +19,18 @@ export function MiniCalendar({
   selectedDate,
   onSelectDate,
 }: MiniCalendarProps) {
+  const format = useFormat();
   const today = toDateKey(new Date());
   // First day of the displayed month
   const [month, setMonth] = useState(() => today.slice(0, 7) + "-01");
 
   const [y, m] = month.split("-").map(Number);
-  const title = new Date(y, m - 1, 1).toLocaleDateString("en-US", {
-    month: "long",
-    year: "numeric",
-  });
+  const title = format.monthYear(month);
   const shiftMonth = (delta: number) =>
     setMonth(toDateKey(new Date(y, m - 1 + delta, 1)));
 
-  // Six rows of seven days, starting on the Monday on or before the 1st
-  const gridStart = startOfWeek(month);
+  // Six rows of seven days, starting on the first weekday on or before the 1st
+  const gridStart = startOfWeek(month, format.weekStart);
   const days = Array.from({ length: 42 }, (_, i) => addDays(gridStart, i));
 
   return (
@@ -56,7 +53,7 @@ export function MiniCalendar({
         </button>
       </div>
       <div className="grid grid-cols-7 gap-1 text-center text-xs">
-        {WEEKDAYS.map((d, i) => (
+        {format.weekdayNames("narrow").map((d, i) => (
           <span key={i} className="text-muted-foreground py-1">
             {d}
           </span>

@@ -4,7 +4,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { WelcomeCard } from "@/components/dashboard/WelcomeCard";
-import { DateCard } from "@/components/dashboard/DateCard";
+import { TodayCard } from "@/components/dashboard/TodayCard";
 import { ReminderCard } from "@/components/dashboard/ReminderCard";
 import { OverviewCard } from "@/components/dashboard/OverviewCard";
 import { QuickActionCard } from "@/components/dashboard/QuickActionCard";
@@ -12,15 +12,21 @@ import { RecentActivityCard } from "@/components/dashboard/RecentActivityCard";
 import { DeadlinesCard } from "@/components/dashboard/DeadlinesCard";
 import { WeekCard } from "@/components/dashboard/WeekCard";
 import { TaskDialog } from "@/components/tasks/TaskDialog";
+import { EventDialog } from "@/components/calendar/EventDialog";
 import { useTasks } from "@/hooks/useTasks";
 import { useNotes } from "@/hooks/useNotes";
+import { useEvents } from "@/hooks/useEvents";
+import { toDateKey } from "@/lib/tasks";
 import { noteHref } from "@/lib/notes";
 
 export default function DashboardPage() {
   const router = useRouter();
   const { tasks, createTask } = useTasks();
   const { notes, createNote } = useNotes();
+  const [today] = useState(() => toDateKey(new Date()));
+  const { events, createEvent } = useEvents(today, today);
   const [isNewTaskOpen, setIsNewTaskOpen] = useState(false);
+  const [isNewEventOpen, setIsNewEventOpen] = useState(false);
 
   // Create the note here and open it straight in the editor
   const handleAddNote = async () => {
@@ -34,7 +40,7 @@ export default function DashboardPage() {
       {/* Top row */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:shrink-0">
         <WelcomeCard />
-        <DateCard />
+        <TodayCard tasks={tasks} events={events} />
         <ReminderCard tasks={tasks} />
       </div>
 
@@ -45,6 +51,7 @@ export default function DashboardPage() {
           <QuickActionCard
             onAddTask={() => setIsNewTaskOpen(true)}
             onAddNote={handleAddNote}
+            onAddEvent={() => setIsNewEventOpen(true)}
           />
           <RecentActivityCard tasks={tasks} notes={notes} />
           <DeadlinesCard tasks={tasks} />
@@ -56,6 +63,13 @@ export default function DashboardPage() {
         open={isNewTaskOpen}
         onOpenChange={setIsNewTaskOpen}
         onSubmit={createTask}
+      />
+      <EventDialog
+        open={isNewEventOpen}
+        onOpenChange={setIsNewEventOpen}
+        event={null}
+        defaultDate={today}
+        onSubmit={createEvent}
       />
     </div>
   );

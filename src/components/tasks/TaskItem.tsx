@@ -5,28 +5,13 @@ import { Bell, CalendarDays, Pencil, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { TASK_STATUS_LABELS, toDateKey, type Task } from "@/lib/tasks";
+import { useFormat } from "@/components/SettingsProvider";
 
 export const priorityStyles: Record<Task["priority"], string> = {
   high: "bg-rose-100 text-rose-600 dark:bg-rose-900/40 dark:text-rose-300",
   medium: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300",
   low: "bg-muted text-muted-foreground",
 };
-
-export const formatDue = (dateKey: string) => {
-  const [y, m, d] = dateKey.split("-").map(Number);
-  return new Date(y, m - 1, d).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-  });
-};
-
-const formatRemind = (iso: string) =>
-  new Date(iso).toLocaleString("en-US", {
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
 
 interface TaskItemProps {
   task: Task;
@@ -48,6 +33,7 @@ export function TaskItem({
   onTagClick,
 }: TaskItemProps) {
   const done = task.status === "done";
+  const format = useFormat();
   const overdue = !done && !!task.dueDate && task.dueDate < toDateKey(new Date());
 
   return (
@@ -90,13 +76,13 @@ export function TaskItem({
           {task.dueDate && (
             <span className={cn("flex items-center gap-1", overdue && "text-rose-600")}>
               <CalendarDays className="w-3.5 h-3.5" />
-              {formatDue(task.dueDate)}
+              {format.day(task.dueDate)}
             </span>
           )}
           {task.remindAt && (
             <span className="flex items-center gap-1">
               <Bell className="w-3.5 h-3.5" />
-              {formatRemind(task.remindAt)}
+              {format.dayTime(task.remindAt)}
             </span>
           )}
           {task.tags.map((tag) => (
