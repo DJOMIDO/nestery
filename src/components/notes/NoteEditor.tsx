@@ -3,11 +3,11 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { EditorContent, useEditor } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
-import { Placeholder } from "@tiptap/extensions";
 import { ArrowLeft, Pin, PinOff, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { NoteBubbleMenu } from "@/components/notes/NoteBubbleMenu";
 import { NoteToolbar } from "@/components/notes/NoteToolbar";
+import { noteExtensions } from "@/components/notes/extensions";
 import type { NoteInput } from "@/hooks/useNotes";
 import type { Note, NoteContent } from "@/lib/notes";
 import { cn } from "@/lib/utils";
@@ -44,6 +44,10 @@ export function NoteEditor({
 }: NoteEditorProps) {
   const [title, setTitle] = useState(note.title);
   const [status, setStatus] = useState<SaveStatus>("saved");
+  // Link editor open in the bubble menu
+  const [linkEditing, setLinkEditing] = useState(false);
+  // Scroll container, so the bubble menu follows the text when it scrolls
+  const [scrollEl, setScrollEl] = useState<HTMLDivElement | null>(null);
 
   // Edits not yet sent, merged so each save sends only the latest values
   const pending = useRef<NoteInput>({});
@@ -96,14 +100,27 @@ export function NoteEditor({
   }, [flush]);
 
   const editor = useEditor({
-    extensions: [
-      StarterKit.configure({ link: { openOnClick: false } }),
-      Placeholder.configure({ placeholder: "Start writing…" }),
-    ],
+    extensions: noteExtensions,
     content: note.content,
     immediatelyRender: false,
     editorProps: {
       attributes: { class: "note-content", "aria-label": "Note content" },
+      // Cmd/Ctrl+click opens a link in a new tab
+      handleClick: (_view, _pos, event) => {
+        const link = (event.target as HTMLElement).closest("a");
+        if (!link || !(event.metaKey || event.ctrlKey)) return false;
+        window.open(link.href, "_blank", "noopener,noreferrer");
+        return true;
+      },
+      // Cmd/Ctrl+K edits the link on the selection
+      handleKeyDown: (view, event) => {
+        if (event.key !== "k" || !(event.metaKey || event.ctrlKey)) return false;
+        const onLink = view.state.selection.$from.marks().some((m) => m.type.name === "link");
+        if (view.state.selection.empty && !onLink) return false;
+        event.preventDefault();
+        setLinkEditing(true);
+        return true;
+      },
     },
     onUpdate: ({ editor }) =>
       queue({
@@ -111,6 +128,16 @@ export function NoteEditor({
         contentText: editor.getText({ blockSeparator: "\n" }),
       }),
   });
+
+  // Moving the cursor elsewhere closes the link editor
+  useEffect(() => {
+    if (!editor) return;
+    const close = () => setLinkEditing(false);
+    editor.on("selectionUpdate", close);
+    return () => {
+      editor.off("selectionUpdate", close);
+    };
+  }, [editor]);
 
   const handleDelete = async () => {
     // Save first so Undo restores the latest text
@@ -154,11 +181,11 @@ export function NoteEditor({
 
       {editor && (
         <div className="border-y py-1">
-          <NoteToolbar editor={editor} />
+          <NoteToolbar editor={editor} onEditLink={() => setLinkEditing(true)} />
         </div>
       )}
 
-      <div className="flex-1 min-h-0 overflow-y-auto pt-4">
+      <div ref={setScrollEl} className="relative flex-1 min-h-0 overflow-y-auto pt-4">
         <input
           value={title}
           onChange={(e) => {
@@ -178,6 +205,14 @@ export function NoteEditor({
           className="w-full bg-transparent text-2xl font-bold outline-none placeholder:text-muted-foreground/60 mb-3"
         />
         <EditorContent editor={editor} />
+        {editor && (
+          <NoteBubbleMenu
+            editor={editor}
+            linkEditing={linkEditing}
+            onLinkEditingChange={setLinkEditing}
+            scrollTarget={scrollEl}
+          />
+        )}
       </div>
     </div>
   );

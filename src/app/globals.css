@@ -207,6 +207,52 @@
   .note-content hr {
     @apply my-6 border-border;
   }
+  /* Highlight ("==text==") */
+  .note-content mark {
+    @apply rounded-sm bg-leaf-soft px-0.5 text-inherit;
+  }
+  /* Checklists: checkbox in place of the bullet; checked items are struck through */
+  .note-content ul[data-type="taskList"] {
+    @apply list-none pl-1;
+  }
+  .note-content ul[data-type="taskList"] li {
+    @apply flex items-start gap-2;
+  }
+  .note-content ul[data-type="taskList"] li > label {
+    @apply mt-[0.3em] shrink-0 select-none;
+  }
+  .note-content ul[data-type="taskList"] li > label input {
+    @apply size-4 cursor-pointer accent-leaf;
+  }
+  .note-content ul[data-type="taskList"] li > div {
+    @apply flex-1 min-w-0;
+  }
+  .note-content ul[data-type="taskList"] li[data-checked="true"] > div {
+    @apply text-muted-foreground line-through;
+  }
+  /* Tables scroll sideways on narrow screens instead of squeezing */
+  .note-content .tableWrapper {
+    @apply overflow-x-auto;
+  }
+  .note-content table {
+    @apply w-full border-collapse table-fixed text-sm;
+  }
+  .note-content th,
+  .note-content td {
+    @apply relative min-w-24 border border-border px-2 py-1.5 align-top;
+  }
+  .note-content th {
+    @apply bg-muted text-left font-semibold;
+  }
+  .note-content th > p,
+  .note-content td > p {
+    @apply m-0;
+  }
+  /* Cells selected by dragging across the table */
+  .note-content .selectedCell::after {
+    content: "";
+    @apply pointer-events-none absolute inset-0 bg-leaf-soft/50;
+  }
   /* Placeholder on an empty note */
   .note-content p.is-editor-empty:first-child::before {
     content: attr(data-placeholder);

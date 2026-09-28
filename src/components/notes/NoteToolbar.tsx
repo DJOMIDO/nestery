@@ -4,19 +4,33 @@
 import { useEditorState, type Editor } from "@tiptap/react";
 import {
   Bold,
+  ChevronDown,
   Code,
   Heading1,
   Heading2,
+  Heading3,
+  Highlighter,
   Italic,
+  Link2,
   List,
+  ListChecks,
   ListOrdered,
+  Pilcrow,
   Quote,
   SquareCode,
   Strikethrough,
+  Table,
   Underline,
   type LucideIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 
 interface ToolbarAction {
@@ -26,65 +40,216 @@ interface ToolbarAction {
   run: (editor: Editor) => void;
 }
 
-// Grouped; groups are separated by a divider
+// Block types, in the order they are detected: wrappers (quote, code) win
+// over the heading or paragraph inside them
+const BLOCK_TYPES: ToolbarAction[] = [
+  { label: "Code block", icon: SquareCode, isActive: (e) => e.isActive("codeBlock"), run: (e) => e.chain().focus().setCodeBlock().run() },
+  { label: "Quote", icon: Quote, isActive: (e) => e.isActive("blockquote"), run: (e) => e.chain().focus().clearNodes().toggleBlockquote().run() },
+  { label: "Heading 1", icon: Heading1, isActive: (e) => e.isActive("heading", { level: 1 }), run: (e) => e.chain().focus().setHeading({ level: 1 }).run() },
+  { label: "Heading 2", icon: Heading2, isActive: (e) => e.isActive("heading", { level: 2 }), run: (e) => e.chain().focus().setHeading({ level: 2 }).run() },
+  { label: "Heading 3", icon: Heading3, isActive: (e) => e.isActive("heading", { level: 3 }), run: (e) => e.chain().focus().setHeading({ level: 3 }).run() },
+  { label: "Text", icon: Pilcrow, isActive: () => true, run: (e) => e.chain().focus().clearNodes().run() },
+];
+
+// Menu order for the block type dropdown
+const BLOCK_MENU = ["Text", "Heading 1", "Heading 2", "Heading 3", "Quote", "Code block"].map(
+  (label) => BLOCK_TYPES.find((b) => b.label === label)!
+);
+
+// Button groups, separated by a divider
 const GROUPS: ToolbarAction[][] = [
   [
     { label: "Bold", icon: Bold, isActive: (e) => e.isActive("bold"), run: (e) => e.chain().focus().toggleBold().run() },
     { label: "Italic", icon: Italic, isActive: (e) => e.isActive("italic"), run: (e) => e.chain().focus().toggleItalic().run() },
     { label: "Underline", icon: Underline, isActive: (e) => e.isActive("underline"), run: (e) => e.chain().focus().toggleUnderline().run() },
     { label: "Strikethrough", icon: Strikethrough, isActive: (e) => e.isActive("strike"), run: (e) => e.chain().focus().toggleStrike().run() },
-  ],
-  [
-    { label: "Heading 1", icon: Heading1, isActive: (e) => e.isActive("heading", { level: 1 }), run: (e) => e.chain().focus().toggleHeading({ level: 1 }).run() },
-    { label: "Heading 2", icon: Heading2, isActive: (e) => e.isActive("heading", { level: 2 }), run: (e) => e.chain().focus().toggleHeading({ level: 2 }).run() },
+    { label: "Highlight", icon: Highlighter, isActive: (e) => e.isActive("highlight"), run: (e) => e.chain().focus().toggleHighlight().run() },
+    { label: "Inline code", icon: Code, isActive: (e) => e.isActive("code"), run: (e) => e.chain().focus().toggleCode().run() },
   ],
   [
     { label: "Bullet list", icon: List, isActive: (e) => e.isActive("bulletList"), run: (e) => e.chain().focus().toggleBulletList().run() },
     { label: "Numbered list", icon: ListOrdered, isActive: (e) => e.isActive("orderedList"), run: (e) => e.chain().focus().toggleOrderedList().run() },
-  ],
-  [
-    { label: "Quote", icon: Quote, isActive: (e) => e.isActive("blockquote"), run: (e) => e.chain().focus().toggleBlockquote().run() },
-    { label: "Inline code", icon: Code, isActive: (e) => e.isActive("code"), run: (e) => e.chain().focus().toggleCode().run() },
-    { label: "Code block", icon: SquareCode, isActive: (e) => e.isActive("codeBlock"), run: (e) => e.chain().focus().toggleCodeBlock().run() },
+    { label: "Checklist", icon: ListChecks, isActive: (e) => e.isActive("taskList"), run: (e) => e.chain().focus().toggleTaskList().run() },
   ],
 ];
 
 const ACTIONS = GROUPS.flat();
 
-export function NoteToolbar({ editor }: { editor: Editor }) {
-  // Re-render only when an action's active state changes, not on every keystroke
-  const active = useEditorState({
+// Table operations, available while the cursor is in a table
+const TABLE_ACTIONS: { label: string; run: (editor: Editor) => void; destructive?: boolean }[][] = [
+  [
+    { label: "Add row above", run: (e) => e.chain().focus().addRowBefore().run() },
+    { label: "Add row below", run: (e) => e.chain().focus().addRowAfter().run() },
+    { label: "Add column left", run: (e) => e.chain().focus().addColumnBefore().run() },
+    { label: "Add column right", run: (e) => e.chain().focus().addColumnAfter().run() },
+  ],
+  [{ label: "Toggle header row", run: (e) => e.chain().focus().toggleHeaderRow().run() }],
+  [
+    { label: "Delete row", run: (e) => e.chain().focus().deleteRow().run(), destructive: true },
+    { label: "Delete column", run: (e) => e.chain().focus().deleteColumn().run(), destructive: true },
+    { label: "Delete table", run: (e) => e.chain().focus().deleteTable().run(), destructive: true },
+  ],
+];
+
+const activeClass = "bg-leaf-soft text-leaf hover:bg-leaf-soft hover:text-leaf";
+
+interface NoteToolbarProps {
+  editor: Editor;
+  // Opens the link editor in the bubble menu
+  onEditLink: () => void;
+}
+
+export function NoteToolbar({ editor, onEditLink }: NoteToolbarProps) {
+  // Re-render only when something shown here changes, not on every keystroke
+  const state = useEditorState({
     editor,
-    selector: ({ editor }) => ACTIONS.map((a) => a.isActive(editor)),
+    selector: ({ editor }) => ({
+      active: ACTIONS.map((a) => a.isActive(editor)),
+      block: BLOCK_TYPES.find((b) => b.isActive(editor))!.label,
+      link: editor.isActive("link"),
+      // A link needs selected text, or an existing link under the cursor
+      canLink: !editor.state.selection.empty || editor.isActive("link"),
+      inTable: editor.isActive("table"),
+    }),
   });
+
+  const block = BLOCK_TYPES.find((b) => b.label === state.block)!;
+  // Radix returns focus to the trigger when a menu closes; send it back to the text
+  const refocusEditor = (e: Event) => {
+    e.preventDefault();
+    editor.commands.focus();
+  };
 
   let index = 0;
   return (
     <div role="toolbar" aria-label="Formatting" className="flex flex-wrap items-center gap-0.5">
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="sm" className="h-8 w-32 justify-between" aria-label={`Block type: ${block.label}`}>
+            <span className="flex items-center gap-1.5 truncate">
+              <block.icon className="w-4 h-4" />
+              {block.label}
+            </span>
+            <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" onCloseAutoFocus={refocusEditor}>
+          {BLOCK_MENU.map((b) => (
+            <DropdownMenuItem
+              key={b.label}
+              onSelect={() => b.label !== block.label && b.run(editor)}
+              className={cn(b.label === block.label && "bg-leaf-soft text-leaf")}
+            >
+              <b.icon />
+              {b.label}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+
       {GROUPS.map((group, g) => (
         <div key={g} className="flex items-center gap-0.5">
-          {g > 0 && <div className="mx-1 h-5 w-px bg-border" aria-hidden />}
+          <Divider />
           {group.map((action) => {
-            const isActive = active[index++];
-            const Icon = action.icon;
+            const isActive = state.active[index++];
             return (
-              <Button
+              <ToolbarButton
                 key={action.label}
-                type="button"
-                variant="ghost"
-                size="icon"
-                className={cn("size-8", isActive && "bg-leaf-soft text-leaf hover:bg-leaf-soft hover:text-leaf")}
+                label={action.label}
+                icon={action.icon}
+                active={isActive}
                 onClick={() => action.run(editor)}
-                aria-label={action.label}
-                aria-pressed={isActive}
-                title={action.label}
-              >
-                <Icon className="w-4 h-4" />
-              </Button>
+              />
             );
           })}
         </div>
       ))}
+
+      <Divider />
+      <ToolbarButton
+        label="Link (⌘K)"
+        icon={Link2}
+        active={state.link}
+        disabled={!state.canLink}
+        onClick={() => {
+          editor.commands.focus();
+          onEditLink();
+        }}
+      />
+
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="ghost"
+            size="sm"
+            className={cn("h-8 gap-0.5 px-2", state.inTable && activeClass)}
+            aria-label="Table"
+            title="Table"
+          >
+            <Table className="w-4 h-4" />
+            <ChevronDown className="w-3 h-3" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" onCloseAutoFocus={refocusEditor}>
+          <DropdownMenuItem
+            disabled={state.inTable}
+            onSelect={() =>
+              editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
+            }
+          >
+            Insert table
+          </DropdownMenuItem>
+          {TABLE_ACTIONS.map((group, g) => (
+            <div key={g}>
+              <DropdownMenuSeparator />
+              {group.map((action) => (
+                <DropdownMenuItem
+                  key={action.label}
+                  disabled={!state.inTable}
+                  variant={action.destructive ? "destructive" : "default"}
+                  onSelect={() => action.run(editor)}
+                >
+                  {action.label}
+                </DropdownMenuItem>
+              ))}
+            </div>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
+  );
+}
+
+function Divider() {
+  return <div className="mx-1 h-5 w-px bg-border" aria-hidden />;
+}
+
+function ToolbarButton({
+  label,
+  icon: Icon,
+  active,
+  disabled,
+  onClick,
+}: {
+  label: string;
+  icon: LucideIcon;
+  active?: boolean;
+  disabled?: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <Button
+      type="button"
+      variant="ghost"
+      size="icon"
+      className={cn("size-8", active && activeClass)}
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={label}
+      aria-pressed={active}
+      title={label}
+    >
+      <Icon className="w-4 h-4" />
+    </Button>
   );
 }
