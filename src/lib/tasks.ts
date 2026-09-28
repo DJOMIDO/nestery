@@ -144,16 +144,20 @@ export function tagCounts(tasks: Task[]) {
     .sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag));
 }
 
-// Monday of the week containing `dateKey`
-export function startOfWeek(dateKey: string) {
+// First day of the week containing `dateKey`; weeks start on Monday (1) or Sunday (0)
+export function startOfWeek(dateKey: string, weekStart: 0 | 1 = 1) {
   const [y, m, d] = dateKey.split("-").map(Number);
   const day = new Date(y, m - 1, d).getDay(); // 0 = Sunday
-  return addDays(dateKey, -((day + 6) % 7));
+  return addDays(dateKey, -((day - weekStart + 7) % 7));
 }
 
 // Summary for the current week (Monday to Sunday)
-export function weekStats(tasks: Task[], today = toDateKey(new Date())) {
-  const weekStart = startOfWeek(today);
+export function weekStats(
+  tasks: Task[],
+  today = toDateKey(new Date()),
+  firstDay: 0 | 1 = 1
+) {
+  const weekStart = startOfWeek(today, firstDay);
   const weekEnd = addDays(weekStart, 6);
   const open = tasks.filter((t) => t.status !== "done");
   return {
@@ -203,13 +207,19 @@ export function taskActivity(tasks: Task[], limit = 10): TaskActivity[] {
 
 const relativeFormat = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
 
-// "just now", "5 minutes ago", "yesterday", "3 days ago", or a date
-export function formatRelative(iso: string, now = new Date()) {
+// "just now", "5 minutes ago", "yesterday", "3 days ago", or a date. The
+// words stay English (UI text); pass `formatDay` to write the date per settings.
+export function formatRelative(
+  iso: string,
+  now = new Date(),
+  formatDay: (iso: string) => string = (d) =>
+    new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric" })
+) {
   const seconds = Math.round((new Date(iso).getTime() - now.getTime()) / 1000);
   const abs = Math.abs(seconds);
   if (abs < 60) return "just now";
   if (abs < 3600) return relativeFormat.format(Math.round(seconds / 60), "minute");
   if (abs < 86400) return relativeFormat.format(Math.round(seconds / 3600), "hour");
   if (abs < 7 * 86400) return relativeFormat.format(Math.round(seconds / 86400), "day");
-  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  return formatDay(iso);
 }

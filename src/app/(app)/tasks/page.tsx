@@ -22,20 +22,13 @@ import {
   type TaskGroupKey,
   type TaskStatus,
 } from "@/lib/tasks";
+import { useFormat } from "@/components/SettingsProvider";
 
 const OPEN_GROUPS: TaskGroupKey[] = ["overdue", "today", "upcoming", "noDate"];
 
-const formatDay = (dateKey: string) => {
-  const [y, m, d] = dateKey.split("-").map(Number);
-  return new Date(y, m - 1, d).toLocaleDateString("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-  });
-};
-
 export default function TasksPage() {
   const { tasks, loading, createTask, updateTask, deleteTask } = useTasks();
+  const format = useFormat();
   // The side panel is only shown on large screens (Tailwind `lg`)
   const isWide = useMediaQuery("(min-width: 1024px)");
   const [view, setView] = useTasksView();
@@ -175,7 +168,7 @@ export default function TasksPage() {
             className="flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium"
             aria-label="Clear date filter"
           >
-            Due {formatDay(dateFilter)} <X className="w-3 h-3" />
+            Due {format.dayWithWeekday(dateFilter)} <X className="w-3 h-3" />
           </button>
         )}
       </div>

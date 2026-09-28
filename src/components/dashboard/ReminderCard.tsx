@@ -7,17 +7,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Bell } from "lucide-react";
 import { dueReminders, type Task } from "@/lib/tasks";
 import { CardHeading } from "./CardHeading";
-
-const formatTime = (iso: string) =>
-  new Date(iso).toLocaleString("en-US", {
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
+import { useFormat } from "@/components/SettingsProvider";
 
 // Open tasks whose reminder is due today (or already past)
 export function ReminderCard({ tasks }: { tasks: Task[] }) {
+  const format = useFormat();
   const reminders = dueReminders(tasks);
   const next = reminders[0];
 
@@ -36,7 +30,7 @@ export function ReminderCard({ tasks }: { tasks: Task[] }) {
             {next ? (
               <Link href="/tasks" className="block hover:underline">
                 <p className="text-xs uppercase text-muted-foreground mb-1">
-                  {formatTime(next.remindAt!)}
+                  {format.dayTime(next.remindAt!)}
                 </p>
                 <p className="inline-block max-w-full truncate text-leaf bg-leaf-soft px-2 py-1 rounded text-sm font-medium">
                   {next.title}

@@ -4,9 +4,10 @@
 import { useDraggable } from "@dnd-kit/core";
 import { CalendarDays, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { formatDue, priorityStyles } from "@/components/tasks/TaskItem";
+import { priorityStyles } from "@/components/tasks/TaskItem";
 import { toDateKey, type Task } from "@/lib/tasks";
 import { cn } from "@/lib/utils";
+import { useFormat } from "@/components/SettingsProvider";
 
 interface TaskCardProps {
   task: Task;
@@ -22,16 +23,6 @@ const DESCRIPTION_MAX = 120;
 function descriptionPreview(description: string) {
   const text = description.replace(/\s+/g, " ").trim();
   return text.length > DESCRIPTION_MAX ? `${text.slice(0, DESCRIPTION_MAX).trimEnd()}…` : text;
-}
-
-// "Sep 28", with the year when it is not the current one
-function formatCreated(iso: string) {
-  const date = new Date(iso);
-  return date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    ...(date.getFullYear() !== new Date().getFullYear() && { year: "numeric" }),
-  });
 }
 
 // A board card. Drag it to another column to change the task's status;
@@ -77,6 +68,7 @@ export function TaskCardBody({
   lifted?: boolean;
 }) {
   const done = task.status === "done";
+  const format = useFormat();
   const overdue = !done && !!task.dueDate && task.dueDate < toDateKey(new Date());
 
   return (
@@ -130,7 +122,7 @@ export function TaskCardBody({
           {task.dueDate && (
             <span className={cn("flex items-center gap-1", overdue && "text-rose-600")}>
               <CalendarDays className="w-3.5 h-3.5" />
-              {formatDue(task.dueDate)}
+              {format.day(task.dueDate)}
             </span>
           )}
           {task.tags.map((tag) => (
@@ -152,7 +144,10 @@ export function TaskCardBody({
       )}
 
       <p className="mt-2 text-[11px] text-muted-foreground/80">
-        Created {formatCreated(task.createdAt)}
+        Created{" "}
+        {new Date(task.createdAt).getFullYear() === new Date().getFullYear()
+          ? format.day(task.createdAt)
+          : format.dayWithYear(task.createdAt)}
       </p>
     </div>
   );

@@ -7,19 +7,13 @@ import { CardHeading } from "./CardHeading";
 import { Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toDateKey, upcomingDeadlines, type Task } from "@/lib/tasks";
+import { useFormat } from "@/components/SettingsProvider";
 
 const MAX_ITEMS = 5;
 
-const formatDate = (dateKey: string) => {
-  const [y, m, d] = dateKey.split("-").map(Number);
-  return new Date(y, m - 1, d).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-  });
-};
-
 // Open tasks that are overdue or due within the next 7 days
 export function DeadlinesCard({ tasks }: { tasks: Task[] }) {
+  const format = useFormat();
   const today = toDateKey(new Date());
   const deadlines = upcomingDeadlines(tasks, 7, today).slice(0, MAX_ITEMS);
 
@@ -72,7 +66,7 @@ export function DeadlinesCard({ tasks }: { tasks: Task[] }) {
 
                 <div className="flex items-center pl-2 space-x-2 whitespace-nowrap">
                   <span className="text-xs text-muted-foreground">
-                    {formatDate(dueDate!)}
+                    {format.day(dueDate!)}
                   </span>
                   <Badge
                     variant={status === "overdue" ? "destructive" : "outline"}

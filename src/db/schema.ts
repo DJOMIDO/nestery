@@ -7,6 +7,7 @@ import {
   jsonb,
   pgEnum,
   pgTable,
+  smallint,
   text,
   timestamp,
   uuid,
@@ -143,3 +144,50 @@ export const notes = pgTable(
   },
   (t) => [index("notes_user_id_idx").on(t.userId)]
 );
+
+// Timed events use startsAt/endsAt; all-day events use startDate/endDate
+// (inclusive) so they stay on their calendar days in any time zone.
+export const events = pgTable(
+  "events",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    userId: text()
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    title: text().notNull(),
+    notes: text(),
+    allDay: boolean().notNull().default(false),
+    startsAt: timestamp({ withTimezone: true }),
+    endsAt: timestamp({ withTimezone: true }),
+    startDate: date(),
+    endDate: date(),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp({ withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    index("events_user_starts_at_idx").on(t.userId, t.startsAt),
+    index("events_user_start_date_idx").on(t.userId, t.startDate),
+  ]
+);
+
+// Per-user preferences, one row per user (created on first save)
+export const userSettings = pgTable("user_settings", {
+  userId: text()
+    .primaryKey()
+    .references(() => user.id, { onDelete: "cascade" }),
+  // ISO 3166-1 alpha-2 codes, e.g. ["FR", "CN"]
+  holidayCountries: text().array().notNull().default([]),
+  // How dates are written (a BCP 47 locale such as "en-US" or "zh-CN")
+  dateLocale: text().notNull().default("en-US"),
+  // "h12" or "h23"; null follows the date locale
+  hourCycle: text(),
+  // 1 = Monday, 0 = Sunday
+  weekStart: smallint().notNull().default(1),
+  updatedAt: timestamp({ withTimezone: true })
+    .notNull()
+    .defaultNow()
+    .$onUpdate(() => new Date()),
+});

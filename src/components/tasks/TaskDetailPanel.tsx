@@ -6,15 +6,7 @@ import { Button } from "@/components/ui/button";
 import { TaskForm } from "@/components/tasks/TaskForm";
 import type { TaskInput } from "@/hooks/useTasks";
 import type { Task } from "@/lib/tasks";
-
-const formatTime = (iso: string) =>
-  new Date(iso).toLocaleString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
+import { useFormat } from "@/components/SettingsProvider";
 
 interface TaskDetailPanelProps {
   task: Task;
@@ -24,6 +16,7 @@ interface TaskDetailPanelProps {
 }
 
 export function TaskDetailPanel({ task, onSave, onDelete, onClose }: TaskDetailPanelProps) {
+  const format = useFormat();
   return (
     <div className="flex flex-col h-full gap-4">
       <div className="flex items-center justify-between">
@@ -52,8 +45,8 @@ export function TaskDetailPanel({ task, onSave, onDelete, onClose }: TaskDetailP
       />
 
       <p className="text-xs text-muted-foreground">
-        Created {formatTime(task.createdAt)}
-        {task.completedAt && ` · Completed ${formatTime(task.completedAt)}`}
+        Created {format.dayTime(task.createdAt)}
+        {task.completedAt && ` · Completed ${format.dayTime(task.completedAt)}`}
       </p>
     </div>
   );
