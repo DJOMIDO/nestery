@@ -140,27 +140,6 @@
   }
 }
 
-@layer utilities {
-  .landing-bg {
-    background-image: url('/images/landing.png');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-  }
-  .login-bg {
-    background-image: url('/images/auth.png');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-  }
-  .signup-bg {
-    background-image: url('/images/auth.png');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-  }
-}
-
 
 /* Note editor (Tiptap) content. Tailwind's reset removes list markers and
    heading sizes, so the editor's document gets its own typography here. */

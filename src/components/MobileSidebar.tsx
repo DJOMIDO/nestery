@@ -10,6 +10,7 @@ import { UserItem } from "@/components/UserItem";
 import { useCurrentUserName } from "@/lib/useCurrentUserName";
 import { signOut } from "@/lib/auth-client";
 import { navItems } from "@/components/nav";
+import { NesteryMark } from "@/components/brand/NatureShapes";
 
 export function MobileSidebar({
   open,
@@ -39,7 +40,10 @@ export function MobileSidebar({
       <aside className="fixed inset-y-0 left-0 z-50 w-full max-w-xs bg-sidebar text-sidebar-foreground flex flex-col">
 
         <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
-          <span className="text-xl font-bold">Nestery</span>
+          <span className="flex items-center gap-2">
+            <NesteryMark className="size-6" />
+            <span className="text-xl font-bold">Nestery</span>
+          </span>
           <button
             onClick={() => setOpen(false)}
             className="p-2 text-muted-foreground"

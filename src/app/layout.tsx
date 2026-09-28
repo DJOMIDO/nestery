@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Nestery",
-  description: "Collaborate and organize your team tasks",
+  description: "A calm, personal home for your tasks and notes.",
 };
 
 export default function RootLayout({
