@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
+import { request } from "@/lib/api";
 import type { Task } from "@/lib/tasks";
 
 // Shape accepted by POST /api/tasks and PATCH /api/tasks/[id]
@@ -13,18 +14,6 @@ export interface TaskInput {
   priority?: Task["priority"];
   dueDate?: string | null;
   remindAt?: string | null;
-}
-
-async function request<T>(url: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(url, {
-    ...init,
-    headers: { "Content-Type": "application/json" },
-  });
-  if (!res.ok) {
-    const body = await res.json().catch(() => null);
-    throw new Error(body?.error || `Request failed (${res.status})`);
-  }
-  return (res.status === 204 ? null : await res.json()) as T;
 }
 
 // Loads the current user's tasks and exposes create/update/delete helpers
