@@ -23,11 +23,13 @@ interface EventDialogProps {
   // Event being edited; null to create one on `defaultDate`
   event: CalendarEvent | null;
   defaultDate: string;
+  // "HH:MM" start for a new timed event (e.g. the slot clicked in the week view)
+  defaultTime?: string;
   onSubmit: (input: EventInput) => Promise<unknown>;
   onDelete?: (event: CalendarEvent) => void;
 }
 
-export function EventDialog({ open, onOpenChange, event, defaultDate, onSubmit, onDelete }: EventDialogProps) {
+export function EventDialog({ open, onOpenChange, event, defaultDate, defaultTime, onSubmit, onDelete }: EventDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
@@ -36,9 +38,10 @@ export function EventDialog({ open, onOpenChange, event, defaultDate, onSubmit, 
         </DialogHeader>
         {/* The content unmounts when closed, so the form resets on each open */}
         <EventForm
-          key={event?.id ?? `new-${defaultDate}`}
+          key={event?.id ?? `new-${defaultDate}-${defaultTime ?? ""}`}
           event={event}
           defaultDate={defaultDate}
+          defaultTime={defaultTime}
           onCancel={() => onOpenChange(false)}
           onDelete={
             event && onDelete
@@ -57,37 +60,45 @@ export function EventDialog({ open, onOpenChange, event, defaultDate, onSubmit, 
   );
 }
 
+const pad = (n: number) => String(n).padStart(2, "0");
+
 // "09:05" in local time
 const timeOf = (iso: string) => {
   const d = new Date(iso);
-  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+  return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
 };
 
 // Local date + time -> ISO timestamp with the browser's offset applied
 const toIso = (date: string, time: string) => new Date(`${date}T${time}`).toISOString();
 
-// Start at the next full hour when the day is today, otherwise 09:00; one hour long
-function defaultTimes(date: string) {
+// One hour from `start` ("HH:MM"), or the given start; otherwise the next full
+// hour when the day is today, else 09:00. Never runs past 23:59.
+function defaultTimes(date: string, start?: string) {
   const now = new Date();
-  const hour = date === toDateKey(now) ? Math.min(now.getHours() + 1, 23) : 9;
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return { start: `${pad(hour)}:00`, end: `${pad(Math.min(hour + 1, 23))}:${hour + 1 > 23 ? "59" : "00"}` };
+  const startMinutes = start
+    ? Number(start.slice(0, 2)) * 60 + Number(start.slice(3, 5))
+    : (date === toDateKey(now) ? Math.min(now.getHours() + 1, 23) : 9) * 60;
+  const endMinutes = Math.min(startMinutes + 60, 23 * 60 + 59);
+  const hhmm = (m: number) => `${pad(Math.floor(m / 60))}:${pad(m % 60)}`;
+  return { start: hhmm(startMinutes), end: hhmm(endMinutes) };
 }
 
 function EventForm({
   event,
   defaultDate,
+  defaultTime,
   onSubmit,
   onCancel,
   onDelete,
 }: {
   event: CalendarEvent | null;
   defaultDate: string;
+  defaultTime?: string;
   onSubmit: (input: EventInput) => Promise<void>;
   onCancel: () => void;
   onDelete?: () => void;
 }) {
-  const defaults = defaultTimes(defaultDate);
+  const defaults = defaultTimes(defaultDate, defaultTime);
   const [title, setTitle] = useState(event?.title ?? "");
   const [notes, setNotes] = useState(event?.notes ?? "");
   const [allDay, setAllDay] = useState(event?.allDay ?? false);

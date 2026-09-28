@@ -1,28 +1,10 @@
 // src/hooks/useTasksView.ts
 
-import { useEffect, useState } from "react";
+import { useStoredChoice } from "@/hooks/useStoredChoice";
 
 export type TasksView = "list" | "board";
 
-const STORAGE_KEY = "tasks-view";
+const VIEWS = ["list", "board"] as const;
 
-// List or board on the Tasks page, remembered per browser. Storage can be
-// unavailable (private mode, blocked site data), so it falls back to "list".
-export function useTasksView() {
-  const [view, setView] = useState<TasksView>("list");
-
-  useEffect(() => {
-    try {
-      if (localStorage.getItem(STORAGE_KEY) === "board") setView("board");
-    } catch {}
-  }, []);
-
-  const changeView = (next: TasksView) => {
-    setView(next);
-    try {
-      localStorage.setItem(STORAGE_KEY, next);
-    } catch {}
-  };
-
-  return [view, changeView] as const;
-}
+// List or board on the Tasks page, remembered per browser
+export const useTasksView = () => useStoredChoice<TasksView>("tasks-view", VIEWS, "list");

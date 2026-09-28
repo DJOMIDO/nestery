@@ -45,7 +45,23 @@ export function useEvents(from: string, to: string) {
     }
   }, []);
 
+  // Optimistic, so a dragged event lands immediately; rolled back if saving fails
   const updateEvent = useCallback(async (id: string, input: EventInput) => {
+    let previous: CalendarEvent | undefined;
+    setEvents((prev) =>
+      prev.map((e) => {
+        if (e.id !== id) return e;
+        previous = e;
+        // A timing change replaces the other pair, as the server does
+        const timing =
+          input.allDay === true
+            ? { startsAt: null, endsAt: null }
+            : input.allDay === false
+              ? { startDate: null, endDate: null }
+              : {};
+        return { ...e, ...timing, ...input };
+      })
+    );
     try {
       const event = await request<CalendarEvent>(`/api/events/${id}`, {
         method: "PATCH",
@@ -54,6 +70,10 @@ export function useEvents(from: string, to: string) {
       setEvents((prev) => prev.map((e) => (e.id === id ? event : e)));
       return event;
     } catch (err) {
+      if (previous) {
+        const original = previous;
+        setEvents((prev) => prev.map((e) => (e.id === id ? original : e)));
+      }
       toast.error((err as Error).message);
       return null;
     }

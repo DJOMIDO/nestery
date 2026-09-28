@@ -118,3 +118,130 @@ export function guessHolidayCountries(languages: readonly string[]) {
   }
   return [];
 }
+
+// ---------------------------------------------------------------------------
+// Week view: time layout, moving and resizing
+// ---------------------------------------------------------------------------
+
+export const DAY_MINUTES = 24 * 60;
+// Drag and resize snap to quarter hours; shorter events still get this much room
+export const SNAP_MINUTES = 15;
+
+// Seven days starting on the week start, for the week containing `day`
+export function weekDays(day: string, weekStart: 0 | 1 = 1) {
+  const start = startOfWeek(day, weekStart);
+  return Array.from({ length: 7 }, (_, i) => addDays(start, i));
+}
+
+// Whole days from `from` to `to` (both YYYY-MM-DD), unaffected by DST
+export function dayDiff(from: string, to: string) {
+  const utc = (d: string) => Date.UTC(+d.slice(0, 4), +d.slice(5, 7) - 1, +d.slice(8, 10));
+  return Math.round((utc(to) - utc(from)) / 86_400_000);
+}
+
+export const snapMinutes = (minutes: number) =>
+  Math.round(minutes / SNAP_MINUTES) * SNAP_MINUTES;
+
+// Minutes since local midnight, by the wall clock
+const clockMinutes = (d: Date) => d.getHours() * 60 + d.getMinutes();
+
+export interface TimedSegment {
+  event: CalendarEvent;
+  day: string;
+  // Minutes from local midnight, clipped to the day
+  start: number;
+  end: number;
+  // Side-by-side placement among overlapping events
+  column: number;
+  columns: number;
+}
+
+// Timed events cut into one segment per day they touch, laid out so events
+// that overlap in time sit side by side
+export function timedSegments(events: CalendarEvent[], days: string[]) {
+  const byDay = new Map<string, TimedSegment[]>(days.map((d) => [d, []]));
+  for (const event of events) {
+    if (event.allDay) continue;
+    const startsAt = new Date(event.startsAt!);
+    const endsAt = new Date(event.endsAt!);
+    const { first, last } = eventDays(event);
+    for (const day of days) {
+      if (day < first || day > last) continue;
+      const start = day === first ? clockMinutes(startsAt) : 0;
+      // Ending at midnight counts as the end of the previous day
+      const end = day === toDateKey(endsAt) ? clockMinutes(endsAt) : DAY_MINUTES;
+      byDay.get(day)!.push({ event, day, start, end: Math.max(end, start), column: 0, columns: 1 });
+    }
+  }
+  for (const segments of byDay.values()) layoutOverlaps(segments);
+  return byDay;
+}
+
+// Greedy column layout: each group of mutually overlapping events shares its
+// width equally, and each event takes the first column that is free
+function layoutOverlaps(segments: TimedSegment[]) {
+  // Very short events still occupy a visible block, so they count as that long
+  const visibleEnd = (s: TimedSegment) => Math.max(s.end, s.start + SNAP_MINUTES);
+  segments.sort((a, b) => a.start - b.start || visibleEnd(b) - visibleEnd(a));
+
+  let group: TimedSegment[] = [];
+  let columnEnds: number[] = [];
+  let groupEnd = -1;
+  const closeGroup = () => {
+    for (const s of group) s.columns = columnEnds.length;
+    group = [];
+    columnEnds = [];
+  };
+
+  for (const segment of segments) {
+    if (segment.start >= groupEnd) closeGroup();
+    let column = columnEnds.findIndex((end) => end <= segment.start);
+    if (column === -1) column = columnEnds.push(0) - 1;
+    columnEnds[column] = visibleEnd(segment);
+    segment.column = column;
+    group.push(segment);
+    groupEnd = Math.max(groupEnd, visibleEnd(segment));
+  }
+  closeGroup();
+}
+
+// Same wall-clock time `days` later (so 09:00 stays 09:00 across DST changes)
+export function shiftDays(iso: string, days: number) {
+  const d = new Date(iso);
+  d.setDate(d.getDate() + days);
+  return d;
+}
+
+// New timing after moving an event by whole days and, for timed events,
+// by minutes. Timed events keep their duration.
+export function movedTiming(event: CalendarEvent, days: number, minutes = 0) {
+  if (event.allDay) {
+    return {
+      allDay: true as const,
+      startDate: addDays(event.startDate!, days),
+      endDate: addDays(event.endDate!, days),
+    };
+  }
+  const start = shiftDays(event.startsAt!, days);
+  start.setMinutes(start.getMinutes() + minutes);
+  const duration = Date.parse(event.endsAt!) - Date.parse(event.startsAt!);
+  return {
+    allDay: false as const,
+    startsAt: start.toISOString(),
+    endsAt: new Date(start.getTime() + duration).toISOString(),
+  };
+}
+
+// New timing after dragging a timed event's end by `minutes`; it never gets
+// shorter than one snap step
+export function resizedTiming(event: CalendarEvent, minutes: number) {
+  const start = Date.parse(event.startsAt!);
+  const end = new Date(event.endsAt!);
+  end.setMinutes(end.getMinutes() + minutes);
+  const minEnd = start + SNAP_MINUTES * 60_000;
+  return {
+    allDay: false as const,
+    startsAt: event.startsAt!,
+    endsAt: new Date(Math.max(end.getTime(), minEnd)).toISOString(),
+  };
+}
