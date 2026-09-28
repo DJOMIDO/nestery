@@ -3,11 +3,12 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { EditorContent, useEditor } from "@tiptap/react";
-import { ArrowLeft, Pin, PinOff, Trash2 } from "lucide-react";
+import { ArrowLeft, Download, FileCode2, Pin, PinOff, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { NoteBubbleMenu } from "@/components/notes/NoteBubbleMenu";
 import { NoteToolbar } from "@/components/notes/NoteToolbar";
 import { noteExtensions } from "@/components/notes/extensions";
+import { downloadMarkdown, noteToMarkdown } from "@/components/notes/markdown";
 import type { NoteInput } from "@/hooks/useNotes";
 import type { Note, NoteContent } from "@/lib/notes";
 import { cn } from "@/lib/utils";
@@ -46,6 +47,10 @@ export function NoteEditor({
   const [status, setStatus] = useState<SaveStatus>("saved");
   // Link editor open in the bubble menu
   const [linkEditing, setLinkEditing] = useState(false);
+  // Markdown source view: the textarea holds the text, the hidden editor
+  // follows it on every change so autosave keeps working unchanged
+  const [sourceMode, setSourceMode] = useState(false);
+  const [source, setSource] = useState("");
   // Scroll container, so the bubble menu follows the text when it scrolls
   const [scrollEl, setScrollEl] = useState<HTMLDivElement | null>(null);
 
@@ -139,6 +144,26 @@ export function NoteEditor({
     };
   }, [editor]);
 
+  const toggleSource = () => {
+    if (!editor) return;
+    if (sourceMode) {
+      setSourceMode(false);
+      editor.commands.focus();
+    } else {
+      setSource(editor.getMarkdown());
+      setSourceMode(true);
+    }
+  };
+
+  const handleSourceChange = (markdown: string) => {
+    setSource(markdown);
+    editor?.commands.setContent(markdown, { contentType: "markdown", emitUpdate: true });
+  };
+
+  const handleExport = () => {
+    if (editor) downloadMarkdown(title, noteToMarkdown(title, editor.getMarkdown()));
+  };
+
   const handleDelete = async () => {
     // Save first so Undo restores the latest text
     await flush();
@@ -156,6 +181,29 @@ export function NoteEditor({
         <span className="flex-1 text-xs text-muted-foreground" aria-live="polite">
           {STATUS_LABELS[status]}
         </span>
+        <Button
+          variant="ghost"
+          size="icon"
+          className={cn("size-8", sourceMode && "bg-leaf-soft text-leaf hover:bg-leaf-soft hover:text-leaf")}
+          onClick={toggleSource}
+          disabled={!editor}
+          aria-label="Markdown source"
+          aria-pressed={sourceMode}
+          title={sourceMode ? "Back to formatted view" : "Edit as Markdown"}
+        >
+          <FileCode2 className="w-4 h-4" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="size-8"
+          onClick={handleExport}
+          disabled={!editor}
+          aria-label="Export as Markdown"
+          title="Export as Markdown (.md)"
+        >
+          <Download className="w-4 h-4" />
+        </Button>
         <Button
           variant="ghost"
           size="icon"
@@ -179,7 +227,12 @@ export function NoteEditor({
         </Button>
       </div>
 
-      {editor && (
+      {sourceMode && (
+        <div className="border-y py-2 px-1 text-xs text-muted-foreground">
+          Editing as Markdown. Changes apply to the note as you type.
+        </div>
+      )}
+      {editor && !sourceMode && (
         <div className="border-y py-1">
           <NoteToolbar editor={editor} onEditLink={() => setLinkEditing(true)} />
         </div>
@@ -195,7 +248,7 @@ export function NoteEditor({
           onKeyDown={(e) => {
             if (e.key === "Enter") {
               e.preventDefault();
-              editor?.commands.focus("start");
+              if (!sourceMode) editor?.commands.focus("start");
             }
           }}
           autoFocus={autoFocusTitle}
@@ -204,8 +257,18 @@ export function NoteEditor({
           aria-label="Note title"
           className="w-full bg-transparent text-2xl font-bold outline-none placeholder:text-muted-foreground/60 mb-3"
         />
-        <EditorContent editor={editor} />
-        {editor && (
+        {sourceMode && (
+          <textarea
+            autoFocus
+            value={source}
+            onChange={(e) => handleSourceChange(e.target.value)}
+            spellCheck={false}
+            aria-label="Markdown source"
+            className="w-full min-h-[40vh] field-sizing-content resize-none bg-transparent font-mono text-sm leading-relaxed outline-none"
+          />
+        )}
+        <EditorContent editor={editor} className={cn(sourceMode && "hidden")} />
+        {editor && !sourceMode && (
           <NoteBubbleMenu
             editor={editor}
             linkEditing={linkEditing}

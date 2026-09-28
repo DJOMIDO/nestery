@@ -1,17 +1,21 @@
 // src/app/(app)/notes/page.tsx
 "use client";
 
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { NotebookPen, Plus, Search } from "lucide-react";
+import { NotebookPen, Plus, Search, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NoteEditor } from "@/components/notes/NoteEditor";
 import { NoteListItem } from "@/components/notes/NoteListItem";
+import { markdownToNote } from "@/components/notes/markdown";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { useNotes } from "@/hooks/useNotes";
 import { compareNotes, matchesQuery, type Note } from "@/lib/notes";
+
+// Same limit as a note's content on the server
+const MAX_IMPORT_BYTES = 1_000_000;
 
 // useSearchParams needs a Suspense boundary on a statically rendered page
 export default function NotesPage() {
@@ -61,6 +65,29 @@ function NotesView() {
     setNewNoteId(note.id);
   };
 
+  const fileInput = useRef<HTMLInputElement>(null);
+
+  // Each Markdown file becomes a note; the last one imported is opened
+  const handleImport = async (files: FileList | null) => {
+    let last: Note | null = null;
+    let count = 0;
+    for (const file of Array.from(files ?? [])) {
+      if (file.size > MAX_IMPORT_BYTES) {
+        toast.error(`${file.name} is too large to import (max 1 MB)`);
+        continue;
+      }
+      const note = await createNote(markdownToNote(await file.text(), file.name));
+      if (note) {
+        last = note;
+        count++;
+      }
+    }
+    if (!last) return;
+    setQuery("");
+    setSelectedId(last.id);
+    toast.success(`Imported ${count} ${count === 1 ? "note" : "notes"}`);
+  };
+
   const handleTogglePin = (note: Note) =>
     updateNote(note.id, { pinned: !note.pinned });
 
@@ -98,9 +125,33 @@ function NotesView() {
                 {notes.length} {notes.length === 1 ? "note" : "notes"}
               </p>
             </div>
-            <Button onClick={handleCreate}>
-              <Plus className="w-4 h-4 mr-1" /> New Note
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => fileInput.current?.click()}
+                aria-label="Import Markdown files"
+                title="Import Markdown (.md)"
+              >
+                <Upload className="w-4 h-4" />
+              </Button>
+              <input
+                ref={fileInput}
+                type="file"
+                accept=".md,.markdown,.txt,text/markdown,text/plain"
+                multiple
+                hidden
+                onChange={async (e) => {
+                  const input = e.currentTarget;
+                  await handleImport(input.files);
+                  // Allow importing the same file again
+                  input.value = "";
+                }}
+              />
+              <Button onClick={handleCreate}>
+                <Plus className="w-4 h-4 mr-1" /> New Note
+              </Button>
+            </div>
           </div>
 
           <div className="relative">
