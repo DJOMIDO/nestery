@@ -2,6 +2,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { WelcomeCard } from "@/components/dashboard/WelcomeCard";
 import { DateCard } from "@/components/dashboard/DateCard";
 import { ReminderCard } from "@/components/dashboard/ReminderCard";
@@ -12,10 +13,20 @@ import { DeadlinesCard } from "@/components/dashboard/DeadlinesCard";
 import { WeekCard } from "@/components/dashboard/WeekCard";
 import { TaskDialog } from "@/components/tasks/TaskDialog";
 import { useTasks } from "@/hooks/useTasks";
+import { useNotes } from "@/hooks/useNotes";
+import { noteHref } from "@/lib/notes";
 
 export default function DashboardPage() {
+  const router = useRouter();
   const { tasks, createTask } = useTasks();
+  const { notes, createNote } = useNotes();
   const [isNewTaskOpen, setIsNewTaskOpen] = useState(false);
+
+  // Create the note here and open it straight in the editor
+  const handleAddNote = async () => {
+    const note = await createNote();
+    if (note) router.push(`${noteHref(note.id)}&new=1`);
+  };
 
   return (
     // On large screens the dashboard fits the viewport; cards scroll inside
@@ -31,8 +42,11 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:flex-1 lg:min-h-0 lg:grid-rows-1">
         <OverviewCard tasks={tasks} />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:col-span-2 lg:grid-rows-2 lg:min-h-0">
-          <QuickActionCard onAddTask={() => setIsNewTaskOpen(true)} />
-          <RecentActivityCard tasks={tasks} />
+          <QuickActionCard
+            onAddTask={() => setIsNewTaskOpen(true)}
+            onAddNote={handleAddNote}
+          />
+          <RecentActivityCard tasks={tasks} notes={notes} />
           <DeadlinesCard tasks={tasks} />
           <WeekCard tasks={tasks} />
         </div>

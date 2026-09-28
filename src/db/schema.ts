@@ -4,6 +4,7 @@ import {
   boolean,
   date,
   index,
+  jsonb,
   pgEnum,
   pgTable,
   text,
@@ -11,6 +12,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 import { TASK_PRIORITIES, TASK_STATUSES } from "@/lib/tasks";
+import type { NoteContent } from "@/lib/notes";
 
 // ---------------------------------------------------------------------------
 // Better Auth tables (user / session / account / verification).
@@ -119,4 +121,25 @@ export const tasks = pgTable(
       .$onUpdate(() => new Date()),
   },
   (t) => [index("tasks_user_id_idx").on(t.userId)]
+);
+
+export const notes = pgTable(
+  "notes",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    userId: text()
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    title: text().notNull().default(""),
+    // Editor document (Tiptap JSON); contentText is its plain text for previews and search
+    content: jsonb().$type<NoteContent>().notNull(),
+    contentText: text().notNull().default(""),
+    pinned: boolean().notNull().default(false),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp({ withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [index("notes_user_id_idx").on(t.userId)]
 );
