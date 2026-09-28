@@ -6,6 +6,8 @@ import { TaskItem, TaskList } from "@tiptap/extension-list";
 import { TableKit } from "@tiptap/extension-table";
 import Highlight from "@tiptap/extension-highlight";
 import { Placeholder } from "@tiptap/extensions";
+import { Markdown } from "@tiptap/markdown";
+import { MarkdownPaste } from "@/components/notes/markdownPaste";
 
 export const noteExtensions = [
   StarterKit.configure({
@@ -19,4 +21,7 @@ export const noteExtensions = [
   // "==text==" highlights
   Highlight,
   Placeholder.configure({ placeholder: "Start writing…" }),
+  // Markdown in and out: source view, import/export, and pasting Markdown text
+  Markdown,
+  MarkdownPaste,
 ];
