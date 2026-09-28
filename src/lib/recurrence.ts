@@ -173,3 +173,34 @@ export function describeRule(
   if (rule.until) text += `, until ${formatDay(rule.until)}`;
   return text;
 }
+
+// Shortest time between two starts of the series, in days. A weekly rule on
+// Mon and Wed has occurrences 2 days apart; months are counted as 28 days.
+export function shortestGapDays(rule: RecurrenceRule) {
+  switch (rule.freq) {
+    case "DAILY":
+      return rule.interval;
+    case "MONTHLY":
+      return 28 * rule.interval;
+    case "YEARLY":
+      return 365 * rule.interval;
+    case "WEEKLY": {
+      // Positions in a Monday-first week
+      const days = [...new Set(rule.byDay?.length ? rule.byDay : [1])]
+        .map((d) => (d + 6) % 7)
+        .sort((a, b) => a - b);
+      const gaps = days.slice(1).map((d, i) => d - days[i]);
+      // From the last chosen day to the first one in the next repeating week
+      gaps.push(7 * rule.interval - (days[days.length - 1] - days[0]));
+      return Math.min(...gaps);
+    }
+  }
+}
+
+// Occurrences may touch but not overlap, so an event must not last longer
+// than the gap between two starts (as in Google Calendar). `days` is how many
+// calendar days an all-day event covers; `ms` is a timed event's duration.
+export function durationFitsRule(rule: RecurrenceRule, length: { days: number } | { ms: number }) {
+  const gap = shortestGapDays(rule);
+  return "days" in length ? length.days <= gap : length.ms <= gap * 86_400_000;
+}

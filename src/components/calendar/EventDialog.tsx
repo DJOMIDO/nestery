@@ -15,12 +15,16 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RepeatFields } from "@/components/calendar/RepeatFields";
 import type { EventInput } from "@/hooks/useEvents";
-import { eventKey, type CalendarEvent } from "@/lib/calendar";
-import { formatRRule, parseRRule, type RecurrenceRule } from "@/lib/recurrence";
+import { dayDiff, eventKey, type CalendarEvent } from "@/lib/calendar";
+import { durationFitsRule, formatRRule, parseRRule, type RecurrenceRule } from "@/lib/recurrence";
 import { toDateKey } from "@/lib/tasks";
 
 // For an occurrence of a repeating event: change just it, or the whole series
 export type EditScope = "one" | "all";
+
+const TOO_LONG_MESSAGE =
+  "Each occurrence lasts longer than the time until the next one, so they would overlap. " +
+  "Shorten Starts/Ends to one occurrence, and use Repeat ends to stop repeating on a date.";
 
 interface EventDialogProps {
   open: boolean;
@@ -123,6 +127,18 @@ function EventForm({
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
+  // Each occurrence must end before the next one starts; otherwise they pile up
+  const tooLongToRepeat =
+    !!rule &&
+    !!startDate &&
+    !!endDate &&
+    !durationFitsRule(
+      rule,
+      allDay
+        ? { days: dayDiff(startDate, endDate) + 1 }
+        : { ms: Date.parse(toIso(endDate, endTime)) - Date.parse(toIso(startDate, startTime)) }
+    );
+
   // Moving the start keeps the end from falling before it
   const changeStartDate = (value: string) => {
     setStartDate(value);
@@ -141,6 +157,7 @@ function EventForm({
       ? endDate >= startDate
       : new Date(timing.endsAt!) >= new Date(timing.startsAt!);
     if (!ordered) return setError("The event ends before it starts");
+    if (tooLongToRepeat) return setError(TOO_LONG_MESSAGE);
 
     const rrule = rule ? formatRRule(rule) : null;
     const input: EventInput = { title: title.trim(), notes: notes.trim() || null, rrule, ...timing };
@@ -228,6 +245,11 @@ function EventForm({
       </div>
 
       <RepeatFields rule={rule} onChange={setRule} startDate={startDate} />
+      {tooLongToRepeat && (
+        <p role="alert" className="-mt-1 text-sm text-destructive">
+          {TOO_LONG_MESSAGE}
+        </p>
+      )}
 
       <div className="space-y-2">
         <Label htmlFor="event-notes">Notes</Label>
@@ -240,7 +262,7 @@ function EventForm({
         />
       </div>
 
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      {error && error !== TOO_LONG_MESSAGE && <p className="text-sm text-destructive">{error}</p>}
 
       {askScope ? (
         <div role="group" aria-label="Apply to" className="space-y-3 rounded-md border bg-muted/40 p-3">

@@ -6,7 +6,7 @@ import type { PgUpdateSetSource } from "drizzle-orm/pg-core";
 import { z } from "zod";
 import { db } from "@/db";
 import { events } from "@/db/schema";
-import { formatRRule, parseRRule } from "@/lib/recurrence";
+import { durationFitsRule, formatRRule, parseRRule } from "@/lib/recurrence";
 
 const dateString = z
   .string()
@@ -24,6 +24,20 @@ type Timing = z.infer<typeof timing>;
 
 const timingIsOrdered = (t: Timing) =>
   t.allDay ? t.endDate >= t.startDate : new Date(t.endsAt) >= new Date(t.startsAt);
+
+// A repeating event must end before its next occurrence starts
+function fitsRepeat(rrule: string | null | undefined, t: Timing) {
+  const rule = rrule ? parseRRule(rrule) : null;
+  if (!rule) return true;
+  return durationFitsRule(
+    rule,
+    t.allDay
+      ? { days: Math.round((Date.parse(t.endDate) - Date.parse(t.startDate)) / 86_400_000) + 1 }
+      : { ms: Date.parse(t.endsAt) - Date.parse(t.startsAt) }
+  );
+}
+
+const TOO_LONG_TO_REPEAT = "The event lasts longer than how often it repeats";
 
 // Only rules Nestery understands are stored, in a normalized form
 const rrule = z
@@ -51,7 +65,8 @@ export const createEventInput = details
     seriesId: z.string().uuid().nullish(),
   })
   .and(timing)
-  .refine(timingIsOrdered, "The event ends before it starts");
+  .refine(timingIsOrdered, "The event ends before it starts")
+  .refine((v) => fitsRepeat(v.rrule, v), TOO_LONG_TO_REPEAT);
 
 const TIMING_KEYS = ["allDay", "startDate", "endDate", "startsAt", "endsAt"];
 
@@ -82,6 +97,8 @@ export const updateEventInput = details
       ctx.addIssue({ code: "custom", message: "Send allDay together with its start and end" });
     } else if (!timingIsOrdered(parsed.data)) {
       ctx.addIssue({ code: "custom", message: "The event ends before it starts" });
+    } else if (!fitsRepeat(v.rrule, parsed.data)) {
+      ctx.addIssue({ code: "custom", message: TOO_LONG_TO_REPEAT });
     }
   });
 

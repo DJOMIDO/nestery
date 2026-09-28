@@ -74,7 +74,8 @@ export function RepeatFields({ rule, onChange, startDate }: RepeatFieldsProps) {
 
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap items-end gap-3">
+      {/* Each group is a label above its control, so the controls line up */}
+      <div className="flex flex-wrap items-start gap-3">
         <div className="space-y-2">
           <Label htmlFor="event-repeat">Repeat</Label>
           <Select value={rule?.freq ?? "none"} onValueChange={setFrequency}>
@@ -92,20 +93,20 @@ export function RepeatFields({ rule, onChange, startDate }: RepeatFieldsProps) {
         </div>
 
         {rule && (
-          <div className="flex items-center gap-2 text-sm">
-            <Label htmlFor="event-interval" className="font-normal">
-              Every
-            </Label>
-            <Input
-              id="event-interval"
-              type="number"
-              min={1}
-              max={99}
-              value={rule.interval}
-              onChange={(e) => update({ interval: Math.min(Math.max(Number(e.target.value) || 1, 1), 99) })}
-              className="w-16"
-            />
-            <span>{UNITS[rule.freq][rule.interval === 1 ? 0 : 1]}</span>
+          <div className="space-y-2">
+            <Label htmlFor="event-interval">Every</Label>
+            <div className="flex items-center gap-2 text-sm">
+              <Input
+                id="event-interval"
+                type="number"
+                min={1}
+                max={99}
+                value={rule.interval}
+                onChange={(e) => update({ interval: Math.min(Math.max(Number(e.target.value) || 1, 1), 99) })}
+                className="w-16"
+              />
+              <span>{UNITS[rule.freq][rule.interval === 1 ? 0 : 1]}</span>
+            </div>
           </div>
         )}
       </div>
@@ -134,44 +135,45 @@ export function RepeatFields({ rule, onChange, startDate }: RepeatFieldsProps) {
       )}
 
       {rule && (
-        <div className="flex flex-wrap items-center gap-2 text-sm">
-          <Label htmlFor="event-ends" className="font-normal">
-            Ends
-          </Label>
-          <Select value={ends} onValueChange={(v) => setEnds(v as Ends)}>
-            <SelectTrigger id="event-ends" className="w-32">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="never">Never</SelectItem>
-              <SelectItem value="until">On date</SelectItem>
-              <SelectItem value="count">After</SelectItem>
-            </SelectContent>
-          </Select>
-          {ends === "until" && (
-            <Input
-              type="date"
-              value={rule.until}
-              min={startDate}
-              onChange={(e) => e.target.value && update({ until: e.target.value })}
-              aria-label="Repeat until"
-              className="w-40"
-            />
-          )}
-          {ends === "count" && (
-            <>
+        <div className="space-y-2">
+          {/* When the series stops; not the event's own end (Starts/Ends above) */}
+          <Label htmlFor="event-repeat-ends">Repeat ends</Label>
+          <div className="flex flex-wrap items-center gap-2 text-sm">
+            <Select value={ends} onValueChange={(v) => setEnds(v as Ends)}>
+              <SelectTrigger id="event-repeat-ends" className="w-40">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="never">Never</SelectItem>
+                <SelectItem value="until">On a date</SelectItem>
+                <SelectItem value="count">After a number of times</SelectItem>
+              </SelectContent>
+            </Select>
+            {ends === "until" && (
               <Input
-                type="number"
-                min={1}
-                max={999}
-                value={rule.count}
-                onChange={(e) => update({ count: Math.min(Math.max(Number(e.target.value) || 1, 1), 999) })}
-                aria-label="Number of times"
-                className="w-20"
+                type="date"
+                value={rule.until}
+                min={startDate}
+                onChange={(e) => e.target.value && update({ until: e.target.value })}
+                aria-label="Repeat until"
+                className="w-40"
               />
-              <span>times</span>
-            </>
-          )}
+            )}
+            {ends === "count" && (
+              <>
+                <Input
+                  type="number"
+                  min={1}
+                  max={999}
+                  value={rule.count}
+                  onChange={(e) => update({ count: Math.min(Math.max(Number(e.target.value) || 1, 1), 999) })}
+                  aria-label="Number of times"
+                  className="w-20"
+                />
+                <span>times</span>
+              </>
+            )}
+          </div>
         </div>
       )}
 
