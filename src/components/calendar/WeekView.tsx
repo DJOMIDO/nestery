@@ -8,6 +8,7 @@ import { useFormat } from "@/components/SettingsProvider";
 import {
   DAY_MINUTES,
   SNAP_MINUTES,
+  eventKey,
   snapMinutes,
   timedSegments,
   type CalendarEvent,
@@ -33,7 +34,7 @@ interface WeekViewProps {
   onOpen: (item: CalendarItem) => void;
   // Click on an empty slot: new event starting there (minutes from midnight)
   onCreateAt: (day: string, minutes: number) => void;
-  // While an event's end is being dragged: its id and the change in minutes
+  // While an event's end is being dragged: its eventKey and the change in minutes
   resizing?: { eventId: string; minutes: number } | null;
 }
 
@@ -163,13 +164,13 @@ export function WeekView({ days, items, events, today, selected, onSelect, onOpe
                 const { event } = segment;
                 // Only the last day's segment has the end that can be dragged
                 const endsHere = day === toDateKey(new Date(Date.parse(event.endsAt!) - 1));
-                const resizeBy = resizing?.eventId === event.id && endsHere ? resizing.minutes : 0;
+                const resizeBy = resizing?.eventId === eventKey(event) && endsHere ? resizing.minutes : 0;
                 const end = Math.min(
                   Math.max(segment.end + snapMinutes(resizeBy), segment.start + SNAP_MINUTES),
                   DAY_MINUTES
                 );
                 const height = Math.max(end - segment.start, SNAP_MINUTES) * PX_PER_MINUTE;
-                const item: CalendarItem = { kind: "event", id: `e-${event.id}-${day}`, event, time: event.startsAt };
+                const item: CalendarItem = { kind: "event", id: `e-${eventKey(event)}-${day}`, event, time: event.startsAt };
                 return (
                   <DraggableItem
                     key={item.id}

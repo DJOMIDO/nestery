@@ -21,7 +21,7 @@ import { CalendarDays, CalendarRange, ChevronLeft, ChevronRight, Plus } from "lu
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { DayAgenda } from "@/components/calendar/DayAgenda";
-import { EventDialog } from "@/components/calendar/EventDialog";
+import { EventDialog, type EditScope } from "@/components/calendar/EventDialog";
 import { MonthGrid } from "@/components/calendar/MonthGrid";
 import { PX_PER_MINUTE, WeekView } from "@/components/calendar/WeekView";
 import type { DragData, DropData } from "@/components/calendar/dnd";
@@ -33,10 +33,12 @@ import { useFormat, useHolidayCountries } from "@/components/SettingsProvider";
 import { useTasks } from "@/hooks/useTasks";
 import {
   dayDiff,
+  eventKey,
   itemsByDay,
   monthGrid,
   movedTiming,
   resizedTiming,
+  seriesTimingFrom,
   shiftMonth,
   snapMinutes,
   weekDays,
@@ -74,7 +76,7 @@ export default function CalendarPage() {
   const last = days[days.length - 1];
 
   const { tasks, updateTask } = useTasks();
-  const { events, createEvent, updateEvent, deleteEvent } = useEvents(first, last);
+  const { events, occurrences, createEvent, updateEvent, deleteEvent } = useEvents(first, last);
   const { countries, guessed } = useHolidayCountries();
   // The visible days can span two years around January and December
   const years = useMemo(
@@ -84,8 +86,8 @@ export default function CalendarPage() {
   const holidays = useHolidays(countries, years);
 
   const items = useMemo(
-    () => itemsByDay(days, { events, tasks, holidays }),
-    [days, events, tasks, holidays]
+    () => itemsByDay(days, { events: occurrences, tasks, holidays }),
+    [days, occurrences, tasks, holidays]
   );
 
   const [eventDialogOpen, setEventDialogOpen] = useState(false);
@@ -133,21 +135,68 @@ export default function CalendarPage() {
     }
   };
 
-  const handleEventSubmit = (input: EventInput) =>
-    editingEvent ? updateEvent(editingEvent.id, input) : createEvent(input);
+  // ---- Repeating events --------------------------------------------------
 
-  const handleDeleteEvent = async (event: CalendarEvent) => {
-    if (!(await deleteEvent(event.id))) return;
-    toast("Event deleted", {
+  // The stored series behind an expanded occurrence
+  const seriesOf = (event: CalendarEvent) =>
+    event.occurrenceDate ? events.find((e) => e.id === event.id) : undefined;
+
+  const timingOf = (e: Pick<CalendarEvent, "allDay" | "startDate" | "endDate" | "startsAt" | "endsAt">): EventInput =>
+    e.allDay
+      ? { allDay: true, startDate: e.startDate, endDate: e.endDate }
+      : { allDay: false, startsAt: e.startsAt, endsAt: e.endsAt };
+
+  // "Only this event": the occurrence becomes its own event, and the series
+  // skips that date from now on
+  const detachOccurrence = async (series: CalendarEvent, occurrence: CalendarEvent, input: EventInput) => {
+    const created = await createEvent({
+      title: occurrence.title,
+      notes: occurrence.notes,
+      ...timingOf(occurrence),
+      ...input,
+      rrule: null,
+      seriesId: series.id,
+    });
+    if (!created) return null;
+    await updateEvent(series.id, { exdates: [...series.exdates, occurrence.occurrenceDate!] });
+    return created;
+  };
+
+  const handleEventSubmit = (input: EventInput, scope: EditScope) => {
+    if (!editingEvent) return createEvent(input);
+    const series = seriesOf(editingEvent);
+    if (!series) return updateEvent(editingEvent.id, input);
+    if (scope === "one") return detachOccurrence(series, editingEvent, input);
+    // "All events": the occurrence's new day and time carry over to the series
+    const timing = "allDay" in input ? seriesTimingFrom(series, editingEvent, input as Parameters<typeof seriesTimingFrom>[2]) : {};
+    return updateEvent(series.id, { ...input, ...timing });
+  };
+
+  const handleDeleteEvent = async (event: CalendarEvent, scope: EditScope = "all") => {
+    const series = seriesOf(event);
+    if (series && scope === "one") {
+      const date = event.occurrenceDate!;
+      if (!(await updateEvent(series.id, { exdates: [...series.exdates, date] }))) return;
+      toast("Event deleted", {
+        action: {
+          label: "Undo",
+          onClick: () => updateEvent(series.id, { exdates: series.exdates.filter((d) => d !== date) }),
+        },
+      });
+      return;
+    }
+    const target = series ?? event;
+    if (!(await deleteEvent(target.id))) return;
+    toast(target.rrule ? "Repeating event deleted" : "Event deleted", {
       action: {
         label: "Undo",
         onClick: () =>
           createEvent({
-            title: event.title,
-            notes: event.notes,
-            ...(event.allDay
-              ? { allDay: true, startDate: event.startDate, endDate: event.endDate }
-              : { allDay: false, startsAt: event.startsAt, endsAt: event.endsAt }),
+            title: target.title,
+            notes: target.notes,
+            ...timingOf(target),
+            rrule: target.rrule,
+            exdates: target.exdates,
           }),
       },
     });
@@ -198,7 +247,7 @@ export default function CalendarPage() {
 
   const handleDragMove = ({ active, over, delta }: DragMoveEvent) => {
     const data = active.data.current as DragData;
-    if (data.type === "resize") setResizing({ eventId: data.event.id, minutes: delta.y / PX_PER_MINUTE });
+    if (data.type === "resize") setResizing({ eventId: eventKey(data.event), minutes: delta.y / PX_PER_MINUTE });
     setDropLabel(describeDrop(planDrop(data, over?.data.current as DropData | undefined, delta.y)));
   };
 
@@ -212,8 +261,13 @@ export default function CalendarPage() {
     endDrag();
     const plan = planDrop(active.data.current as DragData, over?.data.current as DropData | undefined, delta.y);
     if (!plan) return;
-    if ("task" in plan) updateTask(plan.task!.id, { dueDate: plan.dueDate });
-    else updateEvent(plan.event.id, plan.timing);
+    if ("task" in plan) return updateTask(plan.task!.id, { dueDate: plan.dueDate });
+    const series = seriesOf(plan.event);
+    if (!series) return updateEvent(plan.event.id, plan.timing);
+    // Dragging an occurrence of a repeating event moves just that one
+    detachOccurrence(series, plan.event, plan.timing).then(
+      (moved) => moved && toast("Moved this occurrence only. Edit the event to change the whole series.")
+    );
   };
 
   const draggedTitle =
@@ -299,7 +353,7 @@ export default function CalendarPage() {
             <WeekView
               days={days}
               items={items}
-              events={events}
+              events={occurrences}
               today={today}
               selected={selected}
               onSelect={selectDay}

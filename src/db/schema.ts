@@ -11,6 +11,7 @@ import {
   text,
   timestamp,
   uuid,
+  type AnyPgColumn,
 } from "drizzle-orm/pg-core";
 import { TASK_PRIORITIES, TASK_STATUSES } from "@/lib/tasks";
 import type { NoteContent } from "@/lib/notes";
@@ -161,6 +162,13 @@ export const events = pgTable(
     endsAt: timestamp({ withTimezone: true }),
     startDate: date(),
     endDate: date(),
+    // Repeating events: an RFC 5545 RRULE (e.g. "FREQ=WEEKLY;BYDAY=MO,WE"),
+    // and the local dates of occurrences that were deleted or edited on their own
+    rrule: text(),
+    exdates: date().array().notNull().default([]),
+    // An occurrence edited on its own becomes an event pointing at its series,
+    // and goes away with it
+    seriesId: uuid().references((): AnyPgColumn => events.id, { onDelete: "cascade" }),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp({ withTimezone: true })
       .notNull()

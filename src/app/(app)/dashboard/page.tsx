@@ -24,7 +24,7 @@ export default function DashboardPage() {
   const { tasks, createTask } = useTasks();
   const { notes, createNote } = useNotes();
   const [today] = useState(() => toDateKey(new Date()));
-  const { events, createEvent } = useEvents(today, today);
+  const { occurrences, createEvent } = useEvents(today, today);
   const [isNewTaskOpen, setIsNewTaskOpen] = useState(false);
   const [isNewEventOpen, setIsNewEventOpen] = useState(false);
 
@@ -40,7 +40,7 @@ export default function DashboardPage() {
       {/* Top row */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:shrink-0">
         <WelcomeCard />
-        <TodayCard tasks={tasks} events={events} />
+        <TodayCard tasks={tasks} events={occurrences} />
         <ReminderCard tasks={tasks} />
       </div>
 

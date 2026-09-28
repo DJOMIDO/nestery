@@ -13,9 +13,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { RepeatFields } from "@/components/calendar/RepeatFields";
 import type { EventInput } from "@/hooks/useEvents";
-import type { CalendarEvent } from "@/lib/calendar";
+import { eventKey, type CalendarEvent } from "@/lib/calendar";
+import { formatRRule, parseRRule, type RecurrenceRule } from "@/lib/recurrence";
 import { toDateKey } from "@/lib/tasks";
+
+// For an occurrence of a repeating event: change just it, or the whole series
+export type EditScope = "one" | "all";
 
 interface EventDialogProps {
   open: boolean;
@@ -25,8 +30,8 @@ interface EventDialogProps {
   defaultDate: string;
   // "HH:MM" start for a new timed event (e.g. the slot clicked in the week view)
   defaultTime?: string;
-  onSubmit: (input: EventInput) => Promise<unknown>;
-  onDelete?: (event: CalendarEvent) => void;
+  onSubmit: (input: EventInput, scope: EditScope) => Promise<unknown>;
+  onDelete?: (event: CalendarEvent, scope: EditScope) => void;
 }
 
 export function EventDialog({ open, onOpenChange, event, defaultDate, defaultTime, onSubmit, onDelete }: EventDialogProps) {
@@ -38,21 +43,21 @@ export function EventDialog({ open, onOpenChange, event, defaultDate, defaultTim
         </DialogHeader>
         {/* The content unmounts when closed, so the form resets on each open */}
         <EventForm
-          key={event?.id ?? `new-${defaultDate}-${defaultTime ?? ""}`}
+          key={event ? eventKey(event) : `new-${defaultDate}-${defaultTime ?? ""}`}
           event={event}
           defaultDate={defaultDate}
           defaultTime={defaultTime}
           onCancel={() => onOpenChange(false)}
           onDelete={
             event && onDelete
-              ? () => {
+              ? (scope) => {
                   onOpenChange(false);
-                  onDelete(event);
+                  onDelete(event, scope);
                 }
               : undefined
           }
-          onSubmit={async (input) => {
-            if (await onSubmit(input)) onOpenChange(false);
+          onSubmit={async (input, scope) => {
+            if (await onSubmit(input, scope)) onOpenChange(false);
           }}
         />
       </DialogContent>
@@ -94,10 +99,15 @@ function EventForm({
   event: CalendarEvent | null;
   defaultDate: string;
   defaultTime?: string;
-  onSubmit: (input: EventInput) => Promise<void>;
+  onSubmit: (input: EventInput, scope: EditScope) => Promise<void>;
   onCancel: () => void;
-  onDelete?: () => void;
+  onDelete?: (scope: EditScope) => void;
 }) {
+  // Editing one occurrence of a series asks which ones a change applies to
+  const isOccurrence = !!event?.occurrenceDate;
+  const originalRule = event?.rrule ?? null;
+  const [rule, setRule] = useState<RecurrenceRule | null>(() => (originalRule ? parseRRule(originalRule) : null));
+  const [askScope, setAskScope] = useState<{ action: "save"; input: EventInput } | { action: "delete" } | null>(null);
   const defaults = defaultTimes(defaultDate, defaultTime);
   const [title, setTitle] = useState(event?.title ?? "");
   const [notes, setNotes] = useState(event?.notes ?? "");
@@ -132,10 +142,27 @@ function EventForm({
       : new Date(timing.endsAt!) >= new Date(timing.startsAt!);
     if (!ordered) return setError("The event ends before it starts");
 
+    const rrule = rule ? formatRRule(rule) : null;
+    const input: EventInput = { title: title.trim(), notes: notes.trim() || null, rrule, ...timing };
     setError(null);
+    // A new repeat rule only makes sense for the whole series
+    if (isOccurrence && rrule === originalRule) return setAskScope({ action: "save", input });
+    await save(input, "all");
+  };
+
+  const save = async (input: EventInput, scope: EditScope) => {
     setSaving(true);
-    await onSubmit({ title: title.trim(), notes: notes.trim() || null, ...timing });
+    await onSubmit(input, scope);
     setSaving(false);
+  };
+
+  const handleDelete = () => (isOccurrence ? setAskScope({ action: "delete" }) : onDelete?.("all"));
+
+  const chooseScope = (scope: EditScope) => {
+    if (!askScope) return;
+    setAskScope(null);
+    if (askScope.action === "save") save(askScope.input, scope);
+    else onDelete?.(scope);
   };
 
   return (
@@ -200,6 +227,8 @@ function EventForm({
         </div>
       </div>
 
+      <RepeatFields rule={rule} onChange={setRule} startDate={startDate} />
+
       <div className="space-y-2">
         <Label htmlFor="event-notes">Notes</Label>
         <Textarea
@@ -213,20 +242,44 @@ function EventForm({
 
       {error && <p className="text-sm text-destructive">{error}</p>}
 
-      <div className="flex items-center gap-2 pt-2">
-        {onDelete && (
-          <Button type="button" variant="ghost" className="text-destructive hover:text-destructive" onClick={onDelete}>
-            <Trash2 className="w-4 h-4 mr-1" /> Delete
+      {askScope ? (
+        <div role="group" aria-label="Apply to" className="space-y-3 rounded-md border bg-muted/40 p-3">
+          <p className="text-sm">
+            {askScope.action === "save" ? "Save changes to" : "Delete"} only this event, or every event in the
+            series?
+          </p>
+          <div className="flex flex-wrap justify-end gap-2">
+            <Button type="button" variant="ghost" onClick={() => setAskScope(null)}>
+              Back
+            </Button>
+            <Button type="button" variant="outline" onClick={() => chooseScope("one")} autoFocus>
+              This event
+            </Button>
+            <Button
+              type="button"
+              variant={askScope.action === "delete" ? "destructive" : "default"}
+              onClick={() => chooseScope("all")}
+            >
+              All events
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <div className="flex items-center gap-2 pt-2">
+          {onDelete && (
+            <Button type="button" variant="ghost" className="text-destructive hover:text-destructive" onClick={handleDelete}>
+              <Trash2 className="w-4 h-4 mr-1" /> Delete
+            </Button>
+          )}
+          <div className="flex-1" />
+          <Button type="button" variant="outline" onClick={onCancel}>
+            Cancel
           </Button>
-        )}
-        <div className="flex-1" />
-        <Button type="button" variant="outline" onClick={onCancel}>
-          Cancel
-        </Button>
-        <Button type="submit" disabled={saving}>
-          {saving ? "Saving…" : event ? "Save" : "Create"}
-        </Button>
-      </div>
+          <Button type="submit" disabled={saving}>
+            {saving ? "Saving…" : event ? "Save" : "Create"}
+          </Button>
+        </div>
+      )}
     </form>
   );
 }

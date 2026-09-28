@@ -1,18 +1,22 @@
 // src/hooks/useEvents.ts
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { request } from "@/lib/api";
-import type { CalendarEvent } from "@/lib/calendar";
+import { expandEvents, type CalendarEvent } from "@/lib/calendar";
 
 // Shape accepted by POST /api/events and PATCH /api/events/[id]. Timing
 // changes send allDay with its matching start/end pair.
 export type EventInput = Partial<
-  Pick<CalendarEvent, "title" | "notes" | "allDay" | "startsAt" | "endsAt" | "startDate" | "endDate">
+  Pick<
+    CalendarEvent,
+    "title" | "notes" | "allDay" | "startsAt" | "endsAt" | "startDate" | "endDate" | "rrule" | "exdates" | "seriesId"
+  >
 >;
 
 // Loads the events overlapping the days from..to (YYYY-MM-DD) and exposes
 // create/update/delete helpers that keep the list in sync. Errors are toasts.
+// `events` holds series as stored; `occurrences` has them expanded for display.
 export function useEvents(from: string, to: string) {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -90,5 +94,7 @@ export function useEvents(from: string, to: string) {
     }
   }, []);
 
-  return { events, loading, reload, createEvent, updateEvent, deleteEvent };
+  const occurrences = useMemo(() => expandEvents(events, from, to), [events, from, to]);
+
+  return { events, occurrences, loading, reload, createEvent, updateEvent, deleteEvent };
 }

@@ -1,10 +1,11 @@
 // src/components/calendar/CalendarItemView.tsx
 "use client";
 
-import { Bell, CalendarClock, CheckCircle2, Circle, PartyPopper } from "lucide-react";
+import { Bell, CalendarClock, CheckCircle2, Circle, PartyPopper, Repeat } from "lucide-react";
 import { useFormat } from "@/components/SettingsProvider";
 import { eventDays, type CalendarEvent, type CalendarItem } from "@/lib/calendar";
 import type { Formatter } from "@/lib/format";
+import { describeRule, parseRRule } from "@/lib/recurrence";
 import { toDateKey } from "@/lib/tasks";
 import { cn } from "@/lib/utils";
 
@@ -68,6 +69,9 @@ export function CalendarChip({ item }: { item: CalendarItem }) {
     >
       {item.kind === "reminder" && <Bell className="size-3 shrink-0" />}
       <span className="truncate">{label}</span>
+      {item.kind === "event" && item.event.rrule && (
+        <Repeat className="ml-auto size-3 shrink-0 opacity-70" aria-label="Repeats" />
+      )}
     </span>
   );
 }
@@ -82,8 +86,11 @@ export function CalendarRow({ item }: { item: CalendarItem }) {
         <Icon className="size-4" />
       </span>
       <div className="min-w-0 flex-1">
-        <p className={cn("text-sm font-medium break-words", done && "line-through text-muted-foreground")}>
+        <p className={cn("flex items-center gap-1.5 text-sm font-medium break-words", done && "line-through text-muted-foreground")}>
           {title}
+          {item.kind === "event" && item.event.rrule && (
+            <Repeat className="size-3.5 shrink-0 text-muted-foreground" aria-label="Repeats" />
+          )}
         </p>
         <p className={cn("text-xs text-muted-foreground", isOverdue(item) && "text-rose-600")}>{detail}</p>
       </div>
@@ -97,7 +104,9 @@ function rowContent(item: CalendarItem, format: Formatter) {
       return {
         icon: CalendarClock,
         title: item.event.title,
-        detail: [eventWhen(item.event, format), item.event.notes].filter(Boolean).join(" · "),
+        detail: [eventWhen(item.event, format), repeatText(item.event, format), item.event.notes]
+          .filter(Boolean)
+          .join(" · "),
       };
     case "holiday":
       return {
@@ -117,4 +126,14 @@ function rowContent(item: CalendarItem, format: Formatter) {
     case "reminder":
       return { icon: Bell, title: item.task.title, detail: `Reminder at ${format.time(item.time)}` };
   }
+}
+
+// "Every week on Mon", or null for events that do not repeat
+function repeatText(event: CalendarEvent, format: Formatter) {
+  const rule = event.rrule ? parseRRule(event.rrule) : null;
+  if (!rule) return null;
+  return describeRule(rule, {
+    weekdayName: (d) => format.weekday(new Date(2024, 0, 7 + d)),
+    formatDay: format.dayWithYear,
+  });
 }
