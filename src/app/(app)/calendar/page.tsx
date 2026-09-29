@@ -279,7 +279,7 @@ export default function CalendarPage() {
     if (!series) return updateEvent(plan.event.id, plan.timing);
     // Dragging an occurrence of a repeating event moves just that one
     detachOccurrence(series, plan.event, plan.timing).then(
-      (moved) => moved && toast("Moved this occurrence only. Edit the event to change the whole series.")
+      (moved) => moved && toast.info("Moved this occurrence only. Edit the event to change the whole series.")
     );
   };
 

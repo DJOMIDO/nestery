@@ -32,7 +32,7 @@ export default function LandingPage() {
         </div>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-          <Button asChild size="lg" className="bg-forest text-white hover:bg-forest/90 w-40">
+          <Button asChild size="lg" className="w-40">
             <Link href="/signup">Get started</Link>
           </Button>
           <Button asChild size="lg" variant="outline" className="w-40">
