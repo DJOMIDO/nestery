@@ -17,10 +17,12 @@ import { signInSchema } from "@/lib/authSchema";
 import { signInWithEmail, signInWithGitHub } from "@/lib/auth-client";
 import { GithubLoginButton } from "@/components/GithubLoginButton";
 import { AuthShell } from "@/components/auth/AuthShell";
+import { useSocialProviders } from "@/components/auth/SocialProviders";
 
 type LoginFormData = z.infer<typeof signInSchema>;
 
 export default function LoginPage() {
+  const providers = useSocialProviders();
   const router = useRouter();
 
   const {
@@ -74,10 +76,13 @@ export default function LoginPage() {
         </Button>
       </form>
 
-      <div className="pt-4 border-t text-center space-y-3">
-        <p className="text-sm text-muted-foreground">Or continue with</p>
-        <GithubLoginButton onClick={signInWithGitHub} />
-      </div>
+      {/* Only when GitHub sign-in is configured on the server */}
+      {providers.includes("github") && (
+        <div className="pt-4 border-t text-center space-y-3">
+          <p className="text-sm text-muted-foreground">Or continue with</p>
+          <GithubLoginButton onClick={signInWithGitHub} />
+        </div>
+      )}
 
       <div className="text-center text-sm">
         New to Nestery?{" "}

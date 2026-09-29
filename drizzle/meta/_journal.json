@@ -71,6 +71,13 @@
       "when": 1790674403701,
       "tag": "0009_calendar_import_export",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1790707546394,
+      "tag": "0010_rate_limit",
+      "breakpoints": true
     }
   ]
 }
