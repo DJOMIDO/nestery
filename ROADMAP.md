@@ -43,23 +43,23 @@ tracks what is done, what is planned next, and ideas that were considered.
   now line, click an empty slot to add an event); drag events and tasks to
   another day, drag events to another time (15-minute steps), and drag an
   event's bottom edge to change when it ends
-
 - Phase 2b: repeating events (daily, weekly on chosen days, monthly, yearly;
   every N; until a date or a number of times), stored as RRULEs; edit or
   delete one occurrence or the whole series; dragging an occurrence moves
   just that one. Not yet: "this and following occurrences".
-
-**In progress**
 - Phase 3a: subscribe to calendar feeds (.ics / webcal links such as an ADE
   timetable, Google or Outlook), shown read-only in their own color next to
   your events and on the Today card; switch each on or off; refreshed
   hourly or on demand. The server fetches feeds with SSRF protection
   (public hosts only, redirects re-checked, time and size limits).
+- Phase 3b: import `.ics` files as your own events (supported repeat rules
+  kept, edited occurrences attached to their series, re-imports skipped by
+  UID, a choice for unsupported rules); a private feed link (secret token,
+  can be replaced or turned off) so other calendar apps can subscribe to
+  your events and open tasks' due dates
 
 **Planned**
-- **Phase 3b**: import `.ics` files as your own events; a private feed link
-  (with a secret token you can regenerate) so phone and desktop calendar
-  apps can subscribe to your Nestery events and task due dates.
+- "This and following occurrences" when editing a repeating event.
 
 ## Ideas
 

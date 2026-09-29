@@ -16,6 +16,7 @@ import {
 import { fetchHolidayCountries, type Country } from "@/hooks/useHolidays";
 import { useSettings, type SettingsInput } from "@/components/SettingsProvider";
 import { SubscriptionSettings } from "@/components/calendar/SubscriptionSettings";
+import { CalendarTransferSettings } from "@/components/calendar/CalendarTransferSettings";
 import { MAX_HOLIDAY_COUNTRIES } from "@/lib/calendar";
 import {
   createFormatter,
@@ -46,6 +47,7 @@ export default function SettingsPage() {
       </section>
 
       <SubscriptionSettings />
+      <CalendarTransferSettings />
     </div>
   );
 }

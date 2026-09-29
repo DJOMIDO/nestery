@@ -64,6 +64,13 @@
       "when": 1790673532421,
       "tag": "0008_calendar_subscriptions",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1790674403701,
+      "tag": "0009_calendar_import_export",
+      "breakpoints": true
     }
   ]
 }

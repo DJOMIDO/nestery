@@ -17,13 +17,23 @@ import {
 
 export interface Settings extends DateTimePrefs {
   holidayCountries: string[];
+  // IANA zone, kept in sync with the browser (the calendar feed uses it)
+  timeZone: string | null;
+  // Secret of the calendar feed URL; null when the feed is off
+  feedToken: string | null;
   // False until the user saves settings for the first time
   saved: boolean;
 }
 
-export type SettingsInput = Partial<Omit<Settings, "saved">>;
+export type SettingsInput = Partial<Omit<Settings, "saved" | "feedToken">>;
 
-const DEFAULT_SETTINGS: Settings = { ...DEFAULT_DATE_TIME, holidayCountries: [], saved: false };
+const DEFAULT_SETTINGS: Settings = {
+  ...DEFAULT_DATE_TIME,
+  holidayCountries: [],
+  timeZone: null,
+  feedToken: null,
+  saved: false,
+};
 
 // Last known settings, so a reload starts in the user's format instead of
 // flashing the defaults. Per browser only; the server copy is the source of truth.
@@ -33,6 +43,8 @@ interface SettingsContextValue {
   settings: Settings;
   loading: boolean;
   save: (input: SettingsInput) => Promise<Settings | null>;
+  // Turn the calendar feed on (with a new link) or off
+  setFeed: (on: boolean) => Promise<Settings | null>;
   format: Formatter;
   // Browser-language guess, used for holidays until the user saves a choice
   guessedCountries: string[];
@@ -60,7 +72,18 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     setGuessedCountries(guessHolidayCountries(navigator.languages ?? [navigator.language]));
 
     request<Settings>("/api/settings")
-      .then(remember)
+      .then(async (loaded) => {
+        remember(loaded);
+        // Keep the stored zone in sync with this browser, quietly
+        const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        if (zone && zone !== loaded.timeZone) {
+          const next = await request<Settings>("/api/settings", {
+            method: "PATCH",
+            body: JSON.stringify({ timeZone: zone }),
+          }).catch(() => null);
+          if (next) remember(next);
+        }
+      })
       .catch((err) => toast.error((err as Error).message))
       .finally(() => setLoading(false));
   }, []);
@@ -79,6 +102,17 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  const setFeed = useCallback(async (on: boolean) => {
+    try {
+      const next = await request<Settings>("/api/calendar/feed-token", { method: on ? "POST" : "DELETE" });
+      remember(next);
+      return next;
+    } catch (err) {
+      toast.error((err as Error).message);
+      return null;
+    }
+  }, []);
+
   const { dateLocale, hourCycle, weekStart } = settings;
   const format = useMemo(
     () => createFormatter({ dateLocale, hourCycle, weekStart }),
@@ -86,7 +120,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <SettingsContext.Provider value={{ settings, loading, save, format, guessedCountries }}>
+    <SettingsContext.Provider value={{ settings, loading, save, setFeed, format, guessedCountries }}>
       {children}
     </SettingsContext.Provider>
   );
