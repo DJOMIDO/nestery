@@ -57,6 +57,13 @@
       "when": 1790633798191,
       "tag": "0007_event_recurrence",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1790673532421,
+      "tag": "0008_calendar_subscriptions",
+      "breakpoints": true
     }
   ]
 }

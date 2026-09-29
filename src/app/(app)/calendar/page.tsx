@@ -22,6 +22,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { DayAgenda } from "@/components/calendar/DayAgenda";
 import { EventDialog, type EditScope } from "@/components/calendar/EventDialog";
+import { EventDetailsDialog } from "@/components/calendar/EventDetailsDialog";
 import { MonthGrid } from "@/components/calendar/MonthGrid";
 import { PX_PER_MINUTE, WeekView } from "@/components/calendar/WeekView";
 import type { DragData, DropData } from "@/components/calendar/dnd";
@@ -29,6 +30,8 @@ import { TaskDialog } from "@/components/tasks/TaskDialog";
 import { useEvents, type EventInput } from "@/hooks/useEvents";
 import { useHolidays } from "@/hooks/useHolidays";
 import { useStoredChoice } from "@/hooks/useStoredChoice";
+import { useSubscriptionEvents, useSubscriptions } from "@/hooks/useSubscriptions";
+import { SUBSCRIPTION_COLORS } from "@/lib/subscriptions";
 import { useFormat, useHolidayCountries } from "@/components/SettingsProvider";
 import { useTasks } from "@/hooks/useTasks";
 import {
@@ -77,6 +80,11 @@ export default function CalendarPage() {
 
   const { tasks, updateTask } = useTasks();
   const { events, occurrences, createEvent, updateEvent, deleteEvent } = useEvents(first, last);
+  // Subscribed calendars: read-only, reloaded when one is switched on or off
+  const { subscriptions, update: updateSubscription } = useSubscriptions();
+  const enabledKey = subscriptions.filter((s) => s.enabled).map((s) => s.id).join(",");
+  const subscribedEvents = useSubscriptionEvents(first, last, enabledKey);
+  const shownEvents = useMemo(() => [...occurrences, ...subscribedEvents], [occurrences, subscribedEvents]);
   const { countries, guessed } = useHolidayCountries();
   // The visible days can span two years around January and December
   const years = useMemo(
@@ -86,8 +94,8 @@ export default function CalendarPage() {
   const holidays = useHolidays(countries, years);
 
   const items = useMemo(
-    () => itemsByDay(days, { events: occurrences, tasks, holidays }),
-    [days, occurrences, tasks, holidays]
+    () => itemsByDay(days, { events: shownEvents, tasks, holidays }),
+    [days, shownEvents, tasks, holidays]
   );
 
   const [eventDialogOpen, setEventDialogOpen] = useState(false);
@@ -97,6 +105,8 @@ export default function CalendarPage() {
   // Kept after closing so the dialog does not flash an empty form while it animates out
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [taskDialogOpen, setTaskDialogOpen] = useState(false);
+  const [viewingEvent, setViewingEvent] = useState<CalendarEvent | null>(null);
+  const [detailsOpen, setDetailsOpen] = useState(false);
 
   const title =
     view === "month"
@@ -126,7 +136,10 @@ export default function CalendarPage() {
   };
 
   const openItem = (item: CalendarItem) => {
-    if (item.kind === "event") {
+    if (item.kind === "event" && item.event.source) {
+      setViewingEvent(item.event);
+      setDetailsOpen(true);
+    } else if (item.kind === "event") {
       setEditingEvent(item.event);
       setEventDialogOpen(true);
     } else if (item.kind === "task" || item.kind === "reminder") {
@@ -328,6 +341,36 @@ export default function CalendarPage() {
             </div>
           </div>
 
+          {subscriptions.length > 0 && (
+            <div role="group" aria-label="Subscribed calendars" className="flex flex-wrap items-center gap-2 text-xs">
+              {subscriptions.map((sub) => (
+                <button
+                  key={sub.id}
+                  type="button"
+                  onClick={() => updateSubscription(sub.id, { enabled: !sub.enabled })}
+                  aria-pressed={sub.enabled}
+                  title={sub.lastError ? `Last refresh failed: ${sub.lastError}` : undefined}
+                  className={cn(
+                    "flex items-center gap-1.5 rounded-full border px-2.5 py-1 transition-colors",
+                    sub.enabled ? "bg-card" : "text-muted-foreground opacity-60 hover:opacity-100"
+                  )}
+                >
+                  <span
+                    className={cn(
+                      "size-2 rounded-full",
+                      sub.enabled ? SUBSCRIPTION_COLORS[sub.color].dot : "border border-current"
+                    )}
+                  />
+                  {sub.name}
+                  {sub.lastError && <span className="text-destructive">!</span>}
+                </button>
+              ))}
+              <Link href="/settings#calendars" className="text-muted-foreground underline-offset-2 hover:underline">
+                Manage
+              </Link>
+            </div>
+          )}
+
           {guessed && (
             <p className="text-xs text-muted-foreground">
               {countries.length > 0
@@ -353,7 +396,7 @@ export default function CalendarPage() {
             <WeekView
               days={days}
               items={items}
-              events={occurrences}
+              events={shownEvents}
               today={today}
               selected={selected}
               onSelect={selectDay}
@@ -400,6 +443,7 @@ export default function CalendarPage() {
         onSubmit={handleEventSubmit}
         onDelete={handleDeleteEvent}
       />
+      <EventDetailsDialog event={viewingEvent} open={detailsOpen} onOpenChange={setDetailsOpen} />
       <TaskDialog
         open={taskDialogOpen}
         onOpenChange={setTaskDialogOpen}

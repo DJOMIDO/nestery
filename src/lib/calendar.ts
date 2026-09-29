@@ -4,6 +4,7 @@
 
 import { addDays, startOfWeek, toDateKey, type Task } from "@/lib/tasks";
 import { occurrenceDates, parseRRule } from "@/lib/recurrence";
+import type { EventSource } from "@/lib/subscriptions";
 
 // An event as returned by /api/events. Timed events have startsAt/endsAt;
 // all-day events have startDate/endDate (YYYY-MM-DD, end inclusive).
@@ -26,6 +27,8 @@ export interface CalendarEvent {
   updatedAt: string;
   // Client-only: on an expanded occurrence of a series, its original start date
   occurrenceDate?: string;
+  // Set on read-only events from a subscribed calendar
+  source?: EventSource;
 }
 
 // Unique per occurrence, since every occurrence shares its series' id

@@ -199,3 +199,30 @@ export const userSettings = pgTable("user_settings", {
     .defaultNow()
     .$onUpdate(() => new Date()),
 });
+
+// External calendars (ICS feeds) shown read-only next to the user's events.
+// The last fetched feed is cached and refreshed when it gets stale.
+export const calendarSubscriptions = pgTable(
+  "calendar_subscriptions",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    userId: text()
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    name: text().notNull(),
+    url: text().notNull(),
+    // A key of SUBSCRIPTION_COLORS in src/lib/subscriptions.ts
+    color: text().notNull().default("sky"),
+    enabled: boolean().notNull().default(true),
+    ics: text(),
+    lastFetchedAt: timestamp({ withTimezone: true }),
+    // Why the last refresh failed; cleared by the next success
+    lastError: text(),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp({ withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [index("calendar_subscriptions_user_id_idx").on(t.userId)]
+);
