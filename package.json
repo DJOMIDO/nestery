@@ -34,6 +34,7 @@
     "better-auth": "^1.7.6",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "date-holidays": "^3.37.0",
     "drizzle-orm": "^0.45.3",
     "ical.js": "^2.2.1",
     "lucide-react": "^0.513.0",

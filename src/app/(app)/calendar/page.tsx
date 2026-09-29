@@ -365,7 +365,7 @@ export default function CalendarPage() {
                   {sub.lastError && <span className="text-destructive">!</span>}
                 </button>
               ))}
-              <Link href="/settings#calendars" className="text-muted-foreground underline-offset-2 hover:underline">
+              <Link href="/settings?section=calendars" className="text-muted-foreground underline-offset-2 hover:underline">
                 Manage
               </Link>
             </div>
@@ -376,8 +376,8 @@ export default function CalendarPage() {
               {countries.length > 0
                 ? `Showing ${countries.join(", ")} holidays based on your browser.`
                 : "No public holidays shown."}{" "}
-              <Link href="/settings" className="text-leaf underline-offset-2 hover:underline">
-                Choose holiday countries
+              <Link href="/settings?section=holidays" className="text-leaf underline-offset-2 hover:underline">
+                Choose countries and regions
               </Link>
             </p>
           )}

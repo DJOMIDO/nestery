@@ -1,275 +1,141 @@
 // app/settings/page.tsx
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { Search, X } from "lucide-react";
-import { toast } from "sonner";
+import { Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import {
+  ArrowLeft,
+  ArrowLeftRight,
+  ChevronRight,
+  Clock,
+  PartyPopper,
+  Rss,
+  type LucideIcon,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { fetchHolidayCountries, type Country } from "@/hooks/useHolidays";
-import { useSettings, type SettingsInput } from "@/components/SettingsProvider";
-import { SubscriptionSettings } from "@/components/calendar/SubscriptionSettings";
 import { CalendarTransferSettings } from "@/components/calendar/CalendarTransferSettings";
-import { MAX_HOLIDAY_COUNTRIES } from "@/lib/calendar";
-import {
-  createFormatter,
-  DATE_LOCALES,
-  type DateLocale,
-  type HourCycle,
-  type WeekStart,
-} from "@/lib/format";
+import { SubscriptionSettings } from "@/components/calendar/SubscriptionSettings";
+import { DateTimeSettings } from "@/components/settings/DateTimeSettings";
+import { HolidaySettings } from "@/components/settings/HolidaySettings";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { cn } from "@/lib/utils";
 
+interface Section {
+  id: string;
+  label: string;
+  description: string;
+  icon: LucideIcon;
+  content: React.ComponentType;
+}
+
+// The categories in the left-hand list; the chosen one shows on the right
+const SECTIONS: Section[] = [
+  {
+    id: "date-time",
+    label: "Date & time",
+    description: "Date format, 12/24-hour time, week start",
+    icon: Clock,
+    content: DateTimeSettings,
+  },
+  {
+    id: "holidays",
+    label: "Public holidays",
+    description: "Countries and regions on your calendar",
+    icon: PartyPopper,
+    content: HolidaySettings,
+  },
+  {
+    id: "calendars",
+    label: "Calendar subscriptions",
+    description: "Other calendars shown next to yours",
+    icon: Rss,
+    content: SubscriptionSettings,
+  },
+  {
+    id: "import-export",
+    label: "Import & export",
+    description: "Import .ics files, subscribe from other apps",
+    icon: ArrowLeftRight,
+    content: CalendarTransferSettings,
+  },
+];
+
+// useSearchParams needs a Suspense boundary on a statically rendered page
 export default function SettingsPage() {
   return (
-    <div className="max-w-2xl space-y-6">
+    <Suspense>
+      <SettingsView />
+    </Suspense>
+  );
+}
+
+function SettingsView() {
+  const router = useRouter();
+  const params = useSearchParams();
+  // List and details side by side from `md` up; one at a time below
+  const isWide = useMediaQuery("(min-width: 768px)");
+
+  // ?section=… keeps the choice across reloads and lets other pages link to a section
+  const requested = SECTIONS.find((s) => s.id === params.get("section"));
+  const current = requested ?? (isWide ? SECTIONS[0] : null);
+
+  const open = (id: string | null) =>
+    router.replace(id ? `/settings?section=${id}` : "/settings", { scroll: false });
+
+  const showList = isWide || !current;
+
+  return (
+    <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold">Settings</h1>
         <p className="text-sm text-muted-foreground">Preferences for your Nestery.</p>
       </div>
-      <section className="space-y-6 rounded-lg border bg-card p-5">
-        <div>
-          <h2 className="font-semibold">Date &amp; time</h2>
-          <p className="text-sm text-muted-foreground">
-            How dates and times are shown across Nestery, and which holidays appear.
-          </p>
-        </div>
-        <FormatSettings />
-        <div className="border-t" />
-        <HolidaySettings />
-      </section>
 
-      <SubscriptionSettings />
-      <CalendarTransferSettings />
-    </div>
-  );
-}
-
-// A fixed sample moment for the previews: Monday, September 28, 2026, 2:30 PM
-const SAMPLE = new Date(2026, 8, 28, 14, 30);
-
-function FormatSettings() {
-  const { settings, loading, save } = useSettings();
-  const { dateLocale, hourCycle, weekStart } = settings;
-
-  const apply = async (input: SettingsInput) => {
-    if (await save(input)) toast.success("Saved");
-  };
-
-  // Preview a candidate choice with the other settings unchanged
-  const preview = (change: Partial<typeof settings>) =>
-    createFormatter({ dateLocale, hourCycle, weekStart, ...change });
-
-  return (
-    <div className="grid gap-4 sm:grid-cols-3">
-      <SettingSelect
-        id="date-format"
-        label="Date format"
-        value={dateLocale}
-        disabled={loading}
-        onChange={(v) => apply({ dateLocale: v as DateLocale })}
-        options={DATE_LOCALES.map(({ value, label }) => ({
-          value,
-          label,
-          hint: preview({ dateLocale: value }).dayWithWeekday(SAMPLE),
-        }))}
-      />
-      <SettingSelect
-        id="time-format"
-        label="Time format"
-        value={hourCycle ?? "auto"}
-        disabled={loading}
-        onChange={(v) => apply({ hourCycle: v === "auto" ? null : (v as HourCycle) })}
-        options={[
-          { value: "auto", label: "Match date format", hint: preview({ hourCycle: null }).time(SAMPLE) },
-          { value: "h12", label: "12-hour", hint: preview({ hourCycle: "h12" }).time(SAMPLE) },
-          { value: "h23", label: "24-hour", hint: preview({ hourCycle: "h23" }).time(SAMPLE) },
-        ]}
-      />
-      <SettingSelect
-        id="week-start"
-        label="Week starts on"
-        value={String(weekStart)}
-        disabled={loading}
-        onChange={(v) => apply({ weekStart: Number(v) as WeekStart })}
-        options={[
-          { value: "1", label: "Monday" },
-          { value: "0", label: "Sunday" },
-        ]}
-      />
-    </div>
-  );
-}
-
-function SettingSelect({
-  id,
-  label,
-  value,
-  options,
-  disabled,
-  onChange,
-}: {
-  id: string;
-  label: string;
-  value: string;
-  options: { value: string; label: string; hint?: string }[];
-  disabled?: boolean;
-  onChange: (value: string) => void;
-}) {
-  return (
-    <div className="space-y-2">
-      <label htmlFor={id} className="text-sm font-medium">
-        {label}
-      </label>
-      <Select value={value} onValueChange={onChange} disabled={disabled}>
-        <SelectTrigger id={id} className="w-full">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {options.map((o) => (
-            <SelectItem key={o.value} value={o.value}>
-              {o.label}
-              {o.hint && <span className="text-muted-foreground">· {o.hint}</span>}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </div>
-  );
-}
-
-function HolidaySettings() {
-  const { settings, loading, save, guessedCountries } = useSettings();
-  const [countries, setCountries] = useState<Country[]>([]);
-  const [loadError, setLoadError] = useState(false);
-  const [selected, setSelected] = useState<string[] | null>(null);
-  const [query, setQuery] = useState("");
-  const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    fetchHolidayCountries()
-      .then(setCountries)
-      .catch(() => setLoadError(true));
-  }, []);
-
-  // Start from the saved choice, or the browser guess the calendar is using
-  useEffect(() => {
-    if (!loading && selected === null) {
-      setSelected(settings.saved ? settings.holidayCountries : guessedCountries);
-    }
-  }, [loading, settings, guessedCountries, selected]);
-
-  const chosen = selected ?? [];
-  const nameOf = (code: string) => countries.find((c) => c.countryCode === code)?.name ?? code;
-  const full = chosen.length >= MAX_HOLIDAY_COUNTRIES;
-  const dirty =
-    !loading && (!settings.saved || chosen.join() !== settings.holidayCountries.join());
-
-  const matches = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return q
-      ? countries.filter(
-          (c) => c.name.toLowerCase().includes(q) || c.countryCode.toLowerCase() === q
-        )
-      : countries;
-  }, [countries, query]);
-
-  const toggle = (code: string) =>
-    setSelected((prev) => {
-      const list = prev ?? [];
-      return list.includes(code) ? list.filter((c) => c !== code) : [...list, code];
-    });
-
-  const handleSave = async () => {
-    setSaving(true);
-    if (await save({ holidayCountries: chosen })) toast.success("Holiday countries saved");
-    setSaving(false);
-  };
-
-  return (
-    <div className="space-y-4">
-      <div>
-        <h3 className="text-sm font-medium">Public holidays</h3>
-        <p className="text-sm text-muted-foreground">
-          Holidays from these countries appear on your calendar and dashboard. Choose up to{" "}
-          {MAX_HOLIDAY_COUNTRIES}.
-        </p>
-      </div>
-
-      <div className="flex min-h-8 flex-wrap items-center gap-2" aria-live="polite">
-        {chosen.length === 0 ? (
-          <span className="text-sm text-muted-foreground">No countries selected.</span>
-        ) : (
-          chosen.map((code) => (
-            <button
-              key={code}
-              type="button"
-              onClick={() => toggle(code)}
-              className="flex items-center gap-1 rounded-full bg-leaf-soft px-3 py-1 text-xs font-medium text-leaf"
-              aria-label={`Remove ${nameOf(code)}`}
-            >
-              {nameOf(code)} <X className="size-3" />
-            </button>
-          ))
+      <div className="grid gap-6 md:grid-cols-[16rem_minmax(0,1fr)] md:items-start">
+        {showList && (
+          <nav aria-label="Settings sections" className="rounded-lg border bg-card p-1.5 md:sticky md:top-0">
+            <ul className="space-y-0.5">
+              {SECTIONS.map((section) => {
+                const Icon = section.icon;
+                const active = section.id === current?.id;
+                return (
+                  <li key={section.id}>
+                    <button
+                      type="button"
+                      onClick={() => open(section.id)}
+                      aria-current={active ? "page" : undefined}
+                      className={cn(
+                        "flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left transition-colors",
+                        active ? "bg-leaf-soft text-leaf" : "hover:bg-muted"
+                      )}
+                    >
+                      <Icon className="size-4 shrink-0" />
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-sm font-medium">{section.label}</span>
+                        <span className={cn("block truncate text-xs", active ? "text-leaf/80" : "text-muted-foreground")}>
+                          {section.description}
+                        </span>
+                      </span>
+                      {/* On narrow screens the list leads to a separate page */}
+                      <ChevronRight className="size-4 shrink-0 text-muted-foreground md:hidden" />
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </nav>
         )}
-      </div>
 
-      {loadError ? (
-        <p className="text-sm text-destructive">Could not load the list of countries. Try again later.</p>
-      ) : (
-        <>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search countries"
-              aria-label="Search countries"
-              className="pl-9"
-            />
-          </div>
-          <ul className="max-h-64 overflow-y-auto rounded-md border" aria-label="Countries">
-            {matches.map(({ countryCode, name }) => {
-              const checked = chosen.includes(countryCode);
-              return (
-                <li key={countryCode}>
-                  <label
-                    className={cn(
-                      "flex cursor-pointer items-center gap-3 px-3 py-2 text-sm hover:bg-muted",
-                      !checked && full && "cursor-not-allowed opacity-50 hover:bg-transparent"
-                    )}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={checked}
-                      disabled={!checked && full}
-                      onChange={() => toggle(countryCode)}
-                      className="size-4 accent-leaf"
-                    />
-                    <span className="flex-1">{name}</span>
-                    <span className="text-xs text-muted-foreground">{countryCode}</span>
-                  </label>
-                </li>
-              );
-            })}
-            {countries.length > 0 && matches.length === 0 && (
-              <li className="px-3 py-2 text-sm text-muted-foreground">No matching countries.</li>
+        {current && (
+          <div className="min-w-0 space-y-3">
+            {!isWide && (
+              <Button variant="ghost" size="sm" className="-ml-2" onClick={() => open(null)}>
+                <ArrowLeft className="size-4 mr-1" /> All settings
+              </Button>
             )}
-          </ul>
-        </>
-      )}
-
-      <div className="flex justify-end">
-        <Button onClick={handleSave} disabled={!dirty || saving}>
-          {saving ? "Saving…" : "Save"}
-        </Button>
+            <current.content />
+          </div>
+        )}
       </div>
     </div>
   );
