@@ -7,6 +7,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { CardHeading } from "./CardHeading";
 import {
   Activity,
+  CalendarCog,
+  CalendarPlus,
   CheckCircle2,
   ClipboardList,
   NotebookPen,
@@ -15,6 +17,8 @@ import {
 } from "lucide-react";
 import { formatRelative, taskActivity, type Task } from "@/lib/tasks";
 import { noteActivity, noteHref, type Note } from "@/lib/notes";
+import { eventActivity, type CalendarEvent } from "@/lib/calendar";
+import { SUBSCRIPTION_COLORS } from "@/lib/subscriptions";
 import { useFormat } from "@/components/SettingsProvider";
 
 const MAX_ITEMS = 10;
@@ -29,8 +33,9 @@ interface ActivityRow {
   chipClass: string;
 }
 
-// Tasks and notes events merged, newest first
-function recentActivity(tasks: Task[], notes: Note[]): ActivityRow[] {
+// Tasks, notes and events activity merged, newest first. Each tool has its
+// own tone: tasks leaf, notes bark, events sky.
+function recentActivity(tasks: Task[], notes: Note[], events: CalendarEvent[]): ActivityRow[] {
   const taskRows = taskActivity(tasks, MAX_ITEMS).map((a) => ({
     id: `task-${a.id}`,
     label: `${a.kind === "completed" ? "Completed" : "Created"} '${a.title}'`,
@@ -49,14 +54,32 @@ function recentActivity(tasks: Task[], notes: Note[]): ActivityRow[] {
     iconClass: "text-bark",
     chipClass: "bg-bark-soft text-bark",
   }));
-  return [...taskRows, ...noteRows]
+  const eventRows = eventActivity(events, MAX_ITEMS).map((a) => ({
+    id: `event-${a.id}`,
+    label: `${a.kind === "edited" ? "Edited event" : "Added event"} '${a.title}'`,
+    at: a.at,
+    href: "/calendar",
+    icon: a.kind === "edited" ? CalendarCog : CalendarPlus,
+    iconClass: "text-sky-600 dark:text-sky-400",
+    chipClass: SUBSCRIPTION_COLORS.sky.chip,
+  }));
+  return [...taskRows, ...noteRows, ...eventRows]
     .sort((a, b) => (a.at < b.at ? 1 : -1))
     .slice(0, MAX_ITEMS);
 }
 
-// Recent task and note activity
-export function RecentActivityCard({ tasks, notes }: { tasks: Task[]; notes: Note[] }) {
-  const activities = recentActivity(tasks, notes);
+// Recent activity across tasks, notes and events. `events` are the user's own
+// most recently changed events (not occurrences or subscriptions).
+export function RecentActivityCard({
+  tasks,
+  notes,
+  events,
+}: {
+  tasks: Task[];
+  notes: Note[];
+  events: CalendarEvent[];
+}) {
+  const activities = recentActivity(tasks, notes, events);
   const format = useFormat();
 
   return (

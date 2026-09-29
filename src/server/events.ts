@@ -1,7 +1,7 @@
 // src/server/events.ts
 // Calendar event data access. Every function is scoped to the given user.
 
-import { and, eq, gte, isNotNull, lt, lte, or } from "drizzle-orm";
+import { and, desc, eq, gte, isNotNull, lt, lte, or } from "drizzle-orm";
 import type { PgUpdateSetSource } from "drizzle-orm/pg-core";
 import { z } from "zod";
 import { db } from "@/db";
@@ -146,6 +146,17 @@ export async function listEvents(userId: string, { from, to }: z.infer<typeof li
         )
       )
     );
+}
+
+// The user's most recently added or edited events, whatever their date (for
+// the dashboard's Recent activity)
+export async function recentEvents(userId: string, limit = 10) {
+  return db
+    .select()
+    .from(events)
+    .where(eq(events.userId, userId))
+    .orderBy(desc(events.updatedAt))
+    .limit(limit);
 }
 
 // Returns null when `seriesId` is not one of the user's events

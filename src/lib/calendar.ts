@@ -320,3 +320,26 @@ export function seriesTimingFrom(
     exdates,
   };
 }
+
+export interface EventActivity {
+  id: string;
+  kind: "created" | "edited";
+  title: string;
+  at: string; // ISO timestamp
+}
+
+// Edits within this long of creation count as part of creating the event
+const EVENT_EDIT_GRACE_MS = 60_000;
+
+// Recent event activity, newest first: one "created" per event plus its latest
+// edit (like noteActivity). Deleted events do not appear.
+export function eventActivity(events: CalendarEvent[], limit = 10): EventActivity[] {
+  const activity: EventActivity[] = [];
+  for (const event of events) {
+    activity.push({ id: `${event.id}-created`, kind: "created", title: event.title, at: event.createdAt });
+    if (Date.parse(event.updatedAt) - Date.parse(event.createdAt) > EVENT_EDIT_GRACE_MS) {
+      activity.push({ id: `${event.id}-edited`, kind: "edited", title: event.title, at: event.updatedAt });
+    }
+  }
+  return activity.sort((a, b) => (a.at < b.at ? 1 : -1)).slice(0, limit);
+}

@@ -8,7 +8,9 @@ tracks what is done, what is planned next, and ideas that were considered.
 **Done**
 - Personal task list with due dates, reminders, priority and status
 - Tags (replaced projects), tag and date filters, side panel for editing
-- Dashboard cards: reminders, deadlines, this week, recent activity
+- Dashboard: welcome summary with quick add, today, reminders, at a glance
+  (tasks, notes, calendar), up next (7-day agenda), recent notes, recent
+  activity across tasks, notes and events
 - Board view: To do / In progress / Done columns, drag a card to change its status
 
 ## Notes
@@ -25,8 +27,8 @@ tracks what is done, what is planned next, and ideas that were considered.
   and paste to upload. Needs a storage decision first (e.g. Vercel Blob), an
   attachments table, a size limit, and cleanup when a note is deleted.
 - **Integration**: tags on notes, shared with tasks (and counted in the
-  dashboard's Overview); a Recent notes dashboard card; server-side full-text
-  search once there are enough notes to need it.
+  dashboard's At a glance); server-side full-text search once there are
+  enough notes to need it.
 - **Slash menu**: type `/` on an empty line to insert headings, lists,
   checklists, tables and so on.
 
