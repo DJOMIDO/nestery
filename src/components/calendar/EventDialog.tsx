@@ -206,41 +206,51 @@ function EventForm({
         All day
       </label>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
+      {/* Phones: Starts and Ends on their own rows, date and time side by side.
+          Wider: two columns, date above time. */}
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="min-w-0 space-y-2">
           <Label htmlFor="event-start-date">Starts</Label>
-          <Input
-            id="event-start-date"
-            type="date"
-            value={startDate}
-            onChange={(e) => changeStartDate(e.target.value)}
-          />
-          {!allDay && (
+          <div className="flex gap-2 sm:flex-col">
             <Input
-              type="time"
-              value={startTime}
-              onChange={(e) => setStartTime(e.target.value)}
-              aria-label="Start time"
+              id="event-start-date"
+              type="date"
+              value={startDate}
+              onChange={(e) => changeStartDate(e.target.value)}
+              className="flex-1"
             />
-          )}
+            {!allDay && (
+              <Input
+                type="time"
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
+                aria-label="Start time"
+                className="w-28 shrink-0 sm:w-full"
+              />
+            )}
+          </div>
         </div>
-        <div className="space-y-2">
+        <div className="min-w-0 space-y-2">
           <Label htmlFor="event-end-date">Ends</Label>
-          <Input
-            id="event-end-date"
-            type="date"
-            value={endDate}
-            min={startDate}
-            onChange={(e) => setEndDate(e.target.value)}
-          />
-          {!allDay && (
+          <div className="flex gap-2 sm:flex-col">
             <Input
-              type="time"
-              value={endTime}
-              onChange={(e) => setEndTime(e.target.value)}
-              aria-label="End time"
+              id="event-end-date"
+              type="date"
+              value={endDate}
+              min={startDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="flex-1"
             />
-          )}
+            {!allDay && (
+              <Input
+                type="time"
+                value={endTime}
+                onChange={(e) => setEndTime(e.target.value)}
+                aria-label="End time"
+                className="w-28 shrink-0 sm:w-full"
+              />
+            )}
+          </div>
         </div>
       </div>
 

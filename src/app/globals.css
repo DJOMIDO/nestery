@@ -132,6 +132,22 @@
 }
 
 @layer base {
+  /* iOS Safari draws date/time inputs as native controls with their own
+     minimum width, which ignores the column they sit in and overlaps the next
+     one. Without the native appearance they size like other inputs (the
+     native picker still opens). Scoped to iOS, which has -webkit-touch-callout. */
+  @supports (-webkit-touch-callout: none) {
+    input[type="date"],
+    input[type="time"],
+    input[type="datetime-local"] {
+      -webkit-appearance: none;
+      appearance: none;
+      min-width: 0;
+    }
+    input::-webkit-date-and-time-value {
+      text-align: left;
+    }
+  }
   * {
     @apply border-border outline-ring/50;
   }

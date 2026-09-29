@@ -153,8 +153,9 @@ export function TaskForm({
           </Select>
         </div>
       </div>
-      <div className="grid grid-cols-2 gap-4">
-        <div>
+      {/* Stacked on phones: datetime inputs are too wide to share a row */}
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="min-w-0">
           <Label htmlFor={id("due")}>Due Date</Label>
           <Input
             id={id("due")}
@@ -164,7 +165,7 @@ export function TaskForm({
             onChange={(e) => setDueDate(e.target.value)}
           />
         </div>
-        <div>
+        <div className="min-w-0">
           <Label htmlFor={id("remind")}>Remind At</Label>
           <Input
             id={id("remind")}
