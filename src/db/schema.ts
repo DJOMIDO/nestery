@@ -10,6 +10,7 @@ import {
   smallint,
   text,
   timestamp,
+  uniqueIndex,
   uuid,
   type AnyPgColumn,
 } from "drizzle-orm/pg-core";
@@ -169,6 +170,8 @@ export const events = pgTable(
     // An occurrence edited on its own becomes an event pointing at its series,
     // and goes away with it
     seriesId: uuid().references((): AnyPgColumn => events.id, { onDelete: "cascade" }),
+    // UID from an imported .ics file, so importing it again skips this event
+    icsUid: text(),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp({ withTimezone: true })
       .notNull()
@@ -178,6 +181,8 @@ export const events = pgTable(
   (t) => [
     index("events_user_starts_at_idx").on(t.userId, t.startsAt),
     index("events_user_start_date_idx").on(t.userId, t.startDate),
+    // NULLs never collide, so only imported events are constrained
+    uniqueIndex("events_user_ics_uid_idx").on(t.userId, t.icsUid),
   ]
 );
 
@@ -194,6 +199,11 @@ export const userSettings = pgTable("user_settings", {
   hourCycle: text(),
   // 1 = Monday, 0 = Sunday
   weekStart: smallint().notNull().default(1),
+  // The browser's IANA time zone, kept up to date by the app; the calendar
+  // feed uses it to place repeating events on the right wall-clock time
+  timeZone: text(),
+  // Secret for the calendar feed URL (/api/calendar/feed/<token>); null = off
+  feedToken: text().unique(),
   updatedAt: timestamp({ withTimezone: true })
     .notNull()
     .defaultNow()

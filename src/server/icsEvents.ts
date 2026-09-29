@@ -3,6 +3,7 @@
 // (including exceptions) for a date range.
 
 import ICAL from "ical.js";
+import { wallTimeToDate } from "@/server/timeZones";
 
 export interface FeedEvent {
   uid: string;
@@ -21,29 +22,6 @@ const DAY_MS = 86_400_000;
 // A feed with a runaway rule must not stall the request
 const MAX_OCCURRENCES_PER_EVENT = 2000;
 
-// Wall-clock time in an IANA zone -> the instant it names
-function zonedToDate(t: ICAL.Time, timeZone: string) {
-  const asUtc = Date.UTC(t.year, t.month - 1, t.day, t.hour, t.minute, t.second);
-  try {
-    // The zone's offset at (about) that moment, found by formatting in the zone
-    const parts = new Intl.DateTimeFormat("en-US", {
-      timeZone,
-      hourCycle: "h23",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-    }).formatToParts(new Date(asUtc));
-    const get = (type: string) => Number(parts.find((p) => p.type === type)?.value);
-    const shown = Date.UTC(get("year"), get("month") - 1, get("day"), get("hour"), get("minute"), get("second"));
-    return new Date(asUtc - (shown - asUtc));
-  } catch {
-    return new Date(asUtc); // unknown zone name: treat as UTC
-  }
-}
-
 // ICAL.Time -> Date. Zones defined in the feed and UTC are handled by ical.js;
 // a TZID the feed does not define is looked up by name; floating times are
 // read in the viewer's own time zone.
@@ -51,13 +29,38 @@ function toDate(t: ICAL.Time, viewerZone: string) {
   const zone = t.zone?.tzid;
   if (zone === "UTC" || (zone && zone !== "floating")) return t.toJSDate();
   const tzid = (t as unknown as { timezone?: string }).timezone;
-  return zonedToDate(t, tzid && tzid !== "floating" ? tzid : viewerZone);
+  return wallTimeToDate(t, tzid && tzid !== "floating" ? tzid : viewerZone);
 }
 
 const dateKey = (t: ICAL.Time) =>
   `${String(t.year).padStart(4, "0")}-${String(t.month).padStart(2, "0")}-${String(t.day).padStart(2, "0")}`;
 
-function parseCalendar(ics: string) {
+export type IcsTiming =
+  | { allDay: true; startDate: string; endDate: string; startsAt: null; endsAt: null }
+  | { allDay: false; startsAt: string; endsAt: string; startDate: null; endDate: null };
+
+// DTSTART/DTEND -> Nestery timing. All-day events get an inclusive end date
+// (DTEND is exclusive in iCalendar); timed ones become instants.
+export function readTiming(start: ICAL.Time, end: ICAL.Time | null, timeZone: string): IcsTiming {
+  if (start.isDate) {
+    const endExclusive = end && end.compare(start) > 0 ? end.clone() : start.clone();
+    if (!end || end.compare(start) <= 0) endExclusive.adjust(1, 0, 0, 0);
+    endExclusive.adjust(-1, 0, 0, 0);
+    return { allDay: true, startDate: dateKey(start), endDate: dateKey(endExclusive), startsAt: null, endsAt: null };
+  }
+  const s = toDate(start, timeZone);
+  const e = end ? toDate(end, timeZone) : s;
+  return { allDay: false, startsAt: s.toISOString(), endsAt: (e < s ? s : e).toISOString(), startDate: null, endDate: null };
+}
+
+// The local day an ICAL.Time falls on (for EXDATE and RECURRENCE-ID)
+export function localDateOf(t: ICAL.Time, timeZone: string) {
+  if (t.isDate) return dateKey(t);
+  const d = toDate(t, timeZone);
+  return new Intl.DateTimeFormat("en-CA", { timeZone, year: "numeric", month: "2-digit", day: "2-digit" }).format(d);
+}
+
+export function parseCalendar(ics: string) {
   const calendar = new ICAL.Component(ICAL.parse(ics));
   for (const vtimezone of calendar.getAllSubcomponents("vtimezone")) {
     ICAL.TimezoneService.register(vtimezone);
@@ -107,28 +110,11 @@ export function feedEvents(ics: string, { from, to, timeZone }: { from: string; 
       notes: item.description?.trim() || null,
       location: item.location?.trim() || null,
     };
-    if (start.isDate) {
-      // DTEND of an all-day event is exclusive
-      const endExclusive = end && end.compare(start) > 0 ? end.clone() : start.clone();
-      if (!end || end.compare(start) <= 0) endExclusive.adjust(1, 0, 0, 0);
-      endExclusive.adjust(-1, 0, 0, 0);
-      const startDate = dateKey(start);
-      const endDate = dateKey(endExclusive);
-      if (startDate > to || endDate < from) return;
-      results.push({ ...base, allDay: true, startsAt: null, endsAt: null, startDate, endDate });
-    } else {
-      const s = toDate(start, timeZone);
-      const e = end ? toDate(end, timeZone) : s;
-      if (s.getTime() >= rangeEnd || e.getTime() < rangeStart) return;
-      results.push({
-        ...base,
-        allDay: false,
-        startsAt: s.toISOString(),
-        endsAt: (e < s ? s : e).toISOString(),
-        startDate: null,
-        endDate: null,
-      });
-    }
+    const timing = readTiming(start, end, timeZone);
+    const outside = timing.allDay
+      ? timing.startDate > to || timing.endDate < from
+      : Date.parse(timing.startsAt) >= rangeEnd || Date.parse(timing.endsAt) < rangeStart;
+    if (!outside) results.push({ ...base, ...timing });
   };
 
   for (const [key, event] of series) {
