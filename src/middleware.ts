@@ -5,7 +5,7 @@ import { getSessionCookie } from "better-auth/cookies";
 
 // Pages reachable without signing in. Every other page requires a session,
 // so new tool pages are protected by default.
-const PUBLIC_PATHS = ["/", "/home", "/login", "/signup"];
+const PUBLIC_PATHS = ["/", "/home", "/login", "/signup", "/forgot-password", "/reset-password"];
 
 // Optimistic check on the session cookie only; API routes validate the
 // session on the server themselves.
