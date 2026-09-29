@@ -1,9 +1,9 @@
 // src/hooks/useHolidays.ts
 
 import { useEffect, useState } from "react";
+import { request } from "@/lib/api";
 import type { Holiday } from "@/lib/calendar";
-
-const API = "https://date.nager.at/api/v3";
+import { REGION_CODES, regionName } from "@/lib/regions";
 
 // One request per country and year for the whole session
 const cache = new Map<string, Promise<Holiday[]>>();
@@ -12,25 +12,17 @@ function fetchHolidays(country: string, year: number) {
   const key = `${country}-${year}`;
   let pending = cache.get(key);
   if (!pending) {
-    pending = fetch(`${API}/PublicHolidays/${year}/${country}`)
-      .then((res) => (res.ok ? (res.json() as Promise<(Holiday & { global: boolean })[]>) : []))
-      // Nationwide holidays only; regional ones (e.g. Alsace, German states) would clutter the calendar
-      .then((list) =>
-        list
-          .filter((h) => h.global)
-          .map(({ date, localName, name }) => ({ date, localName, name, countryCode: country }))
-      )
-      .catch(() => {
-        cache.delete(key); // retry next time
-        return [];
-      });
+    pending = request<Holiday[]>(`/api/holidays?countries=${country}&years=${year}`).catch(() => {
+      cache.delete(key); // retry next time
+      return [];
+    });
     cache.set(key, pending);
   }
   return pending;
 }
 
-// Public holidays for the given countries and years, sorted by date.
-// Failures (unknown country, network) just leave those holidays out.
+// Nationwide public holidays for the given countries/regions and years,
+// sorted by date. Failures just leave those holidays out.
 export function useHolidays(countries: string[], years: number[]) {
   const [holidays, setHolidays] = useState<Holiday[]>([]);
   const key = `${countries.join(",")}|${years.join(",")}`;
@@ -51,15 +43,17 @@ export function useHolidays(countries: string[], years: number[]) {
   return holidays;
 }
 
-export interface Country {
-  countryCode: string;
+export interface Region {
+  code: string;
   name: string;
+  // Whether holiday data exists for it
+  available: boolean;
 }
 
-// Countries that have holiday data, for the Settings picker
-export async function fetchHolidayCountries(): Promise<Country[]> {
-  const res = await fetch(`${API}/AvailableCountries`);
-  if (!res.ok) throw new Error("Could not load the list of countries");
-  const list = (await res.json()) as Country[];
-  return list.sort((a, b) => a.name.localeCompare(b.name));
+// Every country and region, sorted by name, marking the ones with holiday data
+export async function fetchHolidayRegions(): Promise<Region[]> {
+  const withData = new Set(await request<string[]>("/api/holidays/regions"));
+  return REGION_CODES.map((code) => ({ code, name: regionName(code), available: withData.has(code) })).sort(
+    (a, b) => a.name.localeCompare(b.name)
+  );
 }

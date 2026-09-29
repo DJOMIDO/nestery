@@ -24,7 +24,7 @@ export function SubscriptionSettings() {
   const nextColor = SUBSCRIPTION_COLOR_KEYS[subscriptions.length % SUBSCRIPTION_COLOR_KEYS.length];
 
   return (
-    <section id="calendars" className="scroll-mt-6 space-y-4 rounded-lg border bg-card p-5">
+    <section className="space-y-4 rounded-lg border bg-card p-5">
       <div>
         <h2 className="font-semibold">Calendar subscriptions</h2>
         <p className="text-sm text-muted-foreground">
