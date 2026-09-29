@@ -172,3 +172,14 @@ export function NesteryMark({ className }: { className?: string }) {
     </svg>
   );
 }
+
+export type ShapeName = keyof typeof SHAPES;
+
+// One shape on its own, e.g. as a corner accent
+export function NatureShape({ name, color, className }: { name: ShapeName; color: string; className?: string }) {
+  return (
+    <svg viewBox={`0 0 ${SIZE} ${SIZE}`} aria-hidden focusable={false} className={className}>
+      <path d={SHAPES[name]} fill={color} />
+    </svg>
+  );
+}
