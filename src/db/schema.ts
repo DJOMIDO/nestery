@@ -1,7 +1,9 @@
 // src/db/schema.ts
 
 import {
+  bigint,
   boolean,
+  integer,
   date,
   index,
   jsonb,
@@ -94,6 +96,15 @@ export const verification = pgTable(
   },
   (t) => [index("verification_identifier_idx").on(t.identifier)]
 );
+
+// Login attempt counters for Better Auth's rate limiting. Kept in the database
+// because serverless instances don't share memory.
+export const rateLimit = pgTable("rate_limit", {
+  id: text().primaryKey(),
+  key: text().notNull().unique(),
+  count: integer().notNull(),
+  lastRequest: bigint({ mode: "number" }).notNull(),
+});
 
 // ---------------------------------------------------------------------------
 // App tables

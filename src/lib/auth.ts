@@ -10,6 +10,10 @@ import * as schema from "@/db/schema";
 const githubClientId = process.env.GITHUB_CLIENT_ID;
 const githubClientSecret = process.env.GITHUB_CLIENT_SECRET;
 
+// Social sign-in providers that are configured (both env vars set). The UI
+// only offers these, so an unconfigured provider never shows a dead button.
+export const socialProviderIds: string[] = githubClientId && githubClientSecret ? ["github"] : [];
+
 // On Vercel, fall back to the deployment's own URL so preview and production
 // deployments work without setting BETTER_AUTH_URL.
 const vercelHost =
@@ -33,7 +37,34 @@ export const auth = betterAuth({
   database: drizzleAdapter(db, { provider: "pg", schema }),
   emailAndPassword: {
     enabled: true,
-    minPasswordLength: 6,
+    // Applies to new passwords only; sign-in never checks the minimum, so
+    // older, shorter passwords keep working
+    minPasswordLength: 8,
+  },
+  user: {
+    // Settings > Account; the user's tasks, notes, events etc. cascade
+    deleteUser: { enabled: true },
+  },
+  account: {
+    accountLinking: {
+      enabled: true,
+      // Linking is started by a signed-in user from Settings, so their GitHub
+      // email may differ from the one they registered with
+      allowDifferentEmails: true,
+    },
+  },
+  // Counters live in the database: serverless instances don't share memory.
+  // Enabled in production (Better Auth's default).
+  rateLimit: {
+    storage: "database",
+    window: 60,
+    max: 100,
+    customRules: {
+      "/sign-in/email": { window: 60, max: 5 },
+      "/sign-up/email": { window: 60, max: 3 },
+      "/change-password": { window: 60, max: 5 },
+      "/delete-user": { window: 60, max: 5 },
+    },
   },
   socialProviders:
     githubClientId && githubClientSecret

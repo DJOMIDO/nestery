@@ -10,11 +10,13 @@ import {
   Clock,
   PartyPopper,
   Rss,
+  UserRound,
   type LucideIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CalendarTransferSettings } from "@/components/calendar/CalendarTransferSettings";
 import { SubscriptionSettings } from "@/components/calendar/SubscriptionSettings";
+import { AccountSettings } from "@/components/settings/AccountSettings";
 import { DateTimeSettings } from "@/components/settings/DateTimeSettings";
 import { HolidaySettings } from "@/components/settings/HolidaySettings";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
@@ -30,6 +32,13 @@ interface Section {
 
 // The categories in the left-hand list; the chosen one shows on the right
 const SECTIONS: Section[] = [
+  {
+    id: "account",
+    label: "Account",
+    description: "Profile, password, sign-in, devices",
+    icon: UserRound,
+    content: AccountSettings,
+  },
   {
     id: "date-time",
     label: "Date & time",

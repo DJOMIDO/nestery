@@ -61,6 +61,22 @@ tracks what is done, what is planned next, and ideas that were considered.
 **Planned**
 - "This and following occurrences" when editing a repeating event.
 
+## Account
+
+**Done**
+- Email and password sign-up and sign-in (Better Auth, self-hosted; data in
+  the app's own tables); GitHub sign-in when configured, with the button
+  hidden otherwise
+- Rate limits on sign-in, sign-up, password change and account deletion,
+  stored in the database; 8-character minimum for new passwords
+- Settings > Account: change name and password, connect or disconnect
+  GitHub, see and sign out devices, delete the account and all its data
+
+**Planned**
+- Emails with Resend: forgot / reset password, email verification (existing
+  accounts marked verified first), changing the email address
+- Google sign-in
+
 ## Ideas
 
 Tools worth borrowing from Nextcloud, in rough order of priority:
