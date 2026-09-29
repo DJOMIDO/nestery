@@ -58,14 +58,29 @@
   --bark-soft: oklch(0.935 0.022 80);
   --forest: oklch(0.42 0.055 158);
   --moss: oklch(0.56 0.065 128);
+  /* Toasts: solid fills so they stand out from the page. Plain toasts are
+     inverted: deep forest ink on the light theme, light on the dark one. */
+  --toast-plain-bg: oklch(0.28 0.035 160);
+  --toast-plain-text: var(--background);
+  --toast-success-bg: oklch(0.52 0.1 145);
+  --toast-success-text: oklch(0.99 0 0);
+  --toast-error-bg: oklch(0.55 0.19 25);
+  --toast-error-text: oklch(0.99 0 0);
+  --toast-warning-bg: oklch(0.8 0.15 80);
+  --toast-warning-text: oklch(0.3 0.06 60);
+  /* Amber is about as light as the page, so it gets a darker outline */
+  --toast-warning-border: oklch(0.62 0.13 65);
+  --toast-info-bg: oklch(0.52 0.13 245);
+  --toast-info-text: oklch(0.99 0 0);
   --background: oklch(0.97 0.008 110);
   --foreground: oklch(0.141 0.005 155);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.141 0.005 155);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.141 0.005 155);
-  --primary: oklch(0.21 0.006 155);
-  --primary-foreground: oklch(0.985 0 0);
+  /* Primary actions (default buttons, selection) in the forest palette */
+  --primary: var(--forest);
+  --primary-foreground: oklch(0.99 0 0);
   --secondary: oklch(0.955 0.008 110);
   --secondary-foreground: oklch(0.21 0.006 155);
   --muted: oklch(0.955 0.008 110);
@@ -83,7 +98,7 @@
   --chart-5: oklch(0.769 0.188 70.08);
   --sidebar: oklch(0.985 0.005 110);
   --sidebar-foreground: oklch(0.141 0.005 155);
-  --sidebar-primary: oklch(0.21 0.006 155);
+  --sidebar-primary: var(--forest);
   --sidebar-primary-foreground: oklch(0.985 0 0);
   --sidebar-accent: oklch(0.955 0.008 110);
   --sidebar-accent-foreground: oklch(0.21 0.006 155);
@@ -98,14 +113,25 @@
   --bark-soft: oklch(0.33 0.028 60);
   --forest: oklch(0.34 0.045 158);
   --moss: oklch(0.42 0.05 128);
+  --toast-plain-bg: var(--foreground);
+  --toast-plain-text: var(--background);
+  --toast-success-bg: oklch(0.52 0.09 152);
+  --toast-success-text: oklch(0.99 0 0);
+  --toast-error-bg: oklch(0.58 0.18 25);
+  --toast-error-text: oklch(0.99 0 0);
+  --toast-warning-bg: oklch(0.78 0.14 80);
+  --toast-warning-text: oklch(0.25 0.05 60);
+  --toast-warning-border: oklch(0.78 0.14 80);
+  --toast-info-bg: oklch(0.56 0.12 245);
+  --toast-info-text: oklch(0.99 0 0);
   --background: oklch(0.16 0.01 155);
   --foreground: oklch(0.965 0.006 130);
   --card: oklch(0.21 0.012 155);
   --card-foreground: oklch(0.965 0.006 130);
   --popover: oklch(0.21 0.012 155);
   --popover-foreground: oklch(0.965 0.006 130);
-  --primary: oklch(0.92 0.01 140);
-  --primary-foreground: oklch(0.21 0.012 155);
+  --primary: var(--leaf);
+  --primary-foreground: oklch(0.16 0.01 155);
   --secondary: oklch(0.27 0.012 155);
   --secondary-foreground: oklch(0.965 0.006 130);
   --muted: oklch(0.27 0.012 155);

@@ -69,7 +69,7 @@ export default function LoginPage() {
           )}
         </div>
 
-        <Button type="submit" className="w-full bg-forest text-white hover:bg-forest/90" disabled={isSubmitting}>
+        <Button type="submit" className="w-full" disabled={isSubmitting}>
           {isSubmitting ? "Signing in..." : "Sign in"}
         </Button>
       </form>
