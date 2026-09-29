@@ -20,8 +20,10 @@ export interface DropData {
   timed: boolean;
 }
 
-// Events and tasks can be rescheduled; holidays and reminders stay put
-export const canDrag = (item: CalendarItem) => item.kind === "event" || item.kind === "task";
+// Your own events and tasks can be rescheduled; holidays, reminders and
+// events from subscribed calendars stay put
+export const canDrag = (item: CalendarItem) =>
+  (item.kind === "event" && !item.event.source) || item.kind === "task";
 
 interface DraggableItemProps {
   item: CalendarItem;

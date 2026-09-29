@@ -3,6 +3,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CalendarChip } from "@/components/calendar/CalendarItemView";
+import { SUBSCRIPTION_COLORS } from "@/lib/subscriptions";
 import { DayDrop, DraggableItem, ResizeHandle } from "@/components/calendar/dnd";
 import { useFormat } from "@/components/SettingsProvider";
 import {
@@ -177,7 +178,12 @@ export function WeekView({ days, items, events, today, selected, onSelect, onOpe
                     item={item}
                     day={day}
                     onOpen={onOpen}
-                    className="absolute overflow-hidden rounded-md border border-leaf/30 bg-leaf-soft px-1.5 py-0.5 text-[11px] leading-tight text-leaf shadow-xs"
+                    className={cn(
+                      "absolute overflow-hidden rounded-md border px-1.5 py-0.5 text-[11px] leading-tight shadow-xs",
+                      event.source
+                        ? cn(SUBSCRIPTION_COLORS[event.source.color].chip, "border-black/5 dark:border-white/10")
+                        : "border-leaf/30 bg-leaf-soft text-leaf"
+                    )}
                     style={{
                       top: segment.start * PX_PER_MINUTE,
                       height,
@@ -191,7 +197,7 @@ export function WeekView({ days, items, events, today, selected, onSelect, onOpe
                         {format.time(event.startsAt!)} – {format.time(event.endsAt!)}
                       </p>
                     )}
-                    {endsHere && <ResizeHandle event={event} day={day} />}
+                    {endsHere && !event.source && <ResizeHandle event={event} day={day} />}
                   </DraggableItem>
                 );
               })}

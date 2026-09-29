@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/select";
 import { fetchHolidayCountries, type Country } from "@/hooks/useHolidays";
 import { useSettings, type SettingsInput } from "@/components/SettingsProvider";
+import { SubscriptionSettings } from "@/components/calendar/SubscriptionSettings";
 import { MAX_HOLIDAY_COUNTRIES } from "@/lib/calendar";
 import {
   createFormatter,
@@ -43,6 +44,8 @@ export default function SettingsPage() {
         <div className="border-t" />
         <HolidaySettings />
       </section>
+
+      <SubscriptionSettings />
     </div>
   );
 }

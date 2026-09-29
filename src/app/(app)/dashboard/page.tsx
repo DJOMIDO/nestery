@@ -1,7 +1,7 @@
 // src/app/(app)/dashboard/page.tsx
 "use client";
 
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { WelcomeCard } from "@/components/dashboard/WelcomeCard";
 import { TodayCard } from "@/components/dashboard/TodayCard";
@@ -16,6 +16,7 @@ import { EventDialog } from "@/components/calendar/EventDialog";
 import { useTasks } from "@/hooks/useTasks";
 import { useNotes } from "@/hooks/useNotes";
 import { useEvents } from "@/hooks/useEvents";
+import { useSubscriptionEvents } from "@/hooks/useSubscriptions";
 import { toDateKey } from "@/lib/tasks";
 import { noteHref } from "@/lib/notes";
 
@@ -25,6 +26,9 @@ export default function DashboardPage() {
   const { notes, createNote } = useNotes();
   const [today] = useState(() => toDateKey(new Date()));
   const { occurrences, createEvent } = useEvents(today, today);
+  // Subscribed calendars (e.g. a class timetable) show on the Today card too
+  const subscribedEvents = useSubscriptionEvents(today, today);
+  const todaysEvents = useMemo(() => [...occurrences, ...subscribedEvents], [occurrences, subscribedEvents]);
   const [isNewTaskOpen, setIsNewTaskOpen] = useState(false);
   const [isNewEventOpen, setIsNewEventOpen] = useState(false);
 
@@ -40,7 +44,7 @@ export default function DashboardPage() {
       {/* Top row */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:shrink-0">
         <WelcomeCard />
-        <TodayCard tasks={tasks} events={occurrences} />
+        <TodayCard tasks={tasks} events={todaysEvents} />
         <ReminderCard tasks={tasks} />
       </div>
 

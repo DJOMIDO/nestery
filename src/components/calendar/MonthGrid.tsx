@@ -1,7 +1,7 @@
 // src/components/calendar/MonthGrid.tsx
 "use client";
 
-import { CalendarChip, itemDot } from "@/components/calendar/CalendarItemView";
+import { CalendarChip, dotOf } from "@/components/calendar/CalendarItemView";
 import { DayDrop, DraggableItem } from "@/components/calendar/dnd";
 import { useFormat } from "@/components/SettingsProvider";
 import type { CalendarItem } from "@/lib/calendar";
@@ -85,7 +85,7 @@ export function MonthGrid({ month, days, items, today, selected, onSelect, onOpe
               {/* Narrow: dots */}
               <span className="flex flex-wrap gap-0.5 px-0.5 sm:hidden">
                 {dayItems.slice(0, 4).map((item) => (
-                  <span key={item.id} className={cn("size-1.5 rounded-full", itemDot[item.kind])} />
+                  <span key={item.id} className={cn("size-1.5 rounded-full", dotOf(item))} />
                 ))}
               </span>
             </DayDrop>

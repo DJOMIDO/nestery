@@ -6,6 +6,7 @@ import { useFormat } from "@/components/SettingsProvider";
 import { eventDays, type CalendarEvent, type CalendarItem } from "@/lib/calendar";
 import type { Formatter } from "@/lib/format";
 import { describeRule, parseRRule } from "@/lib/recurrence";
+import { SUBSCRIPTION_COLORS } from "@/lib/subscriptions";
 import { toDateKey } from "@/lib/tasks";
 import { cn } from "@/lib/utils";
 
@@ -52,6 +53,17 @@ export const itemDot: Record<CalendarItem["kind"], string> = {
   reminder: "bg-moss",
 };
 
+// Subscribed-calendar events take their calendar's color
+export const toneOf = (item: CalendarItem) =>
+  item.kind === "event" && item.event.source
+    ? SUBSCRIPTION_COLORS[item.event.source.color].chip
+    : itemTone[item.kind];
+
+export const dotOf = (item: CalendarItem) =>
+  item.kind === "event" && item.event.source
+    ? SUBSCRIPTION_COLORS[item.event.source.color].dot
+    : itemDot[item.kind];
+
 // One-line chip for a month grid cell
 export function CalendarChip({ item }: { item: CalendarItem }) {
   const format = useFormat();
@@ -61,7 +73,7 @@ export function CalendarChip({ item }: { item: CalendarItem }) {
     <span
       className={cn(
         "flex items-center gap-1 truncate rounded px-1.5 py-0.5 text-[11px] leading-tight",
-        itemTone[item.kind],
+        toneOf(item),
         done && "line-through opacity-60",
         isOverdue(item) && "text-rose-600"
       )}
@@ -82,7 +94,7 @@ export function CalendarRow({ item }: { item: CalendarItem }) {
   const done = item.kind === "task" && item.task.status === "done";
   return (
     <div className="flex items-start gap-3">
-      <span className={cn("mt-0.5 rounded-md p-1.5", itemTone[item.kind], item.kind === "reminder" && "bg-muted")}>
+      <span className={cn("mt-0.5 rounded-md p-1.5", toneOf(item), item.kind === "reminder" && "bg-muted")}>
         <Icon className="size-4" />
       </span>
       <div className="min-w-0 flex-1">
@@ -104,7 +116,13 @@ function rowContent(item: CalendarItem, format: Formatter) {
       return {
         icon: CalendarClock,
         title: item.event.title,
-        detail: [eventWhen(item.event, format), repeatText(item.event, format), item.event.notes]
+        detail: [
+          eventWhen(item.event, format),
+          repeatText(item.event, format),
+          item.event.source?.location,
+          item.event.source?.name,
+          item.event.source ? null : item.event.notes,
+        ]
           .filter(Boolean)
           .join(" · "),
       };
