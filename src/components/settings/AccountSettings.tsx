@@ -116,12 +116,29 @@ function ProfileCard({ name, email }: { name: string; email: string }) {
         </div>
         <div className="space-y-2">
           <Label htmlFor="account-email">Email</Label>
+          {/* Read-only (not disabled, which looks broken); changing goes through
+              email confirmation, started with the button */}
           <div className="flex gap-2">
-            <Input id="account-email" value={email} readOnly disabled />
-            <Button type="button" variant="outline" onClick={() => setChangingEmail((v) => !v)}>
-              Change
+            <Input
+              id="account-email"
+              value={email}
+              readOnly
+              aria-describedby="account-email-hint"
+              className="bg-muted/40 text-foreground focus-visible:ring-0"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setChangingEmail((v) => !v)}
+              aria-expanded={changingEmail}
+              className="shrink-0"
+            >
+              {changingEmail ? "Cancel" : "Change email"}
             </Button>
           </div>
+          <p id="account-email-hint" className="text-xs text-muted-foreground">
+            Changing it needs a confirmation from your current and your new address.
+          </p>
         </div>
         <div className="flex justify-end sm:col-span-2">
           <Button type="submit" disabled={saving || trimmed === name || trimmed.length < 2}>
