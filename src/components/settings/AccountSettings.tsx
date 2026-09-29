@@ -88,6 +88,7 @@ function Card({ title, description, children }: { title: string; description?: s
 
 function ProfileCard({ name, email }: { name: string; email: string }) {
   const [value, setValue] = useState(name);
+  const [changingEmail, setChangingEmail] = useState(false);
   const [saving, setSaving] = useState(false);
   const trimmed = value.trim();
 
@@ -115,7 +116,12 @@ function ProfileCard({ name, email }: { name: string; email: string }) {
         </div>
         <div className="space-y-2">
           <Label htmlFor="account-email">Email</Label>
-          <Input id="account-email" value={email} readOnly disabled />
+          <div className="flex gap-2">
+            <Input id="account-email" value={email} readOnly disabled />
+            <Button type="button" variant="outline" onClick={() => setChangingEmail((v) => !v)}>
+              Change
+            </Button>
+          </div>
         </div>
         <div className="flex justify-end sm:col-span-2">
           <Button type="submit" disabled={saving || trimmed === name || trimmed.length < 2}>
@@ -123,7 +129,76 @@ function ProfileCard({ name, email }: { name: string; email: string }) {
           </Button>
         </div>
       </form>
+      {changingEmail && <ChangeEmailForm currentEmail={email} onDone={() => setChangingEmail(false)} />}
     </Card>
+  );
+}
+
+// The current address approves the change by email, then the new one is
+// confirmed; only then does the account's email change
+function ChangeEmailForm({ currentEmail, onDone }: { currentEmail: string; onDone: () => void }) {
+  const [newEmail, setNewEmail] = useState("");
+  const [sent, setSent] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [sending, setSending] = useState(false);
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const address = newEmail.trim();
+    if (!/^\S+@\S+\.\S+$/.test(address)) return setError("Enter a valid email address");
+    if (address.toLowerCase() === currentEmail.toLowerCase()) return setError("That's already your email");
+    setError(null);
+    setSending(true);
+    try {
+      await call(authClient.changeEmail({ newEmail: address, callbackURL: "/settings?section=account" }));
+      setSent(true);
+    } catch (err) {
+      setError(errorMessage(err));
+    } finally {
+      setSending(false);
+    }
+  };
+
+  if (sent) {
+    return (
+      <div className="space-y-3 rounded-md border bg-leaf-soft/50 p-3 text-sm">
+        <p>
+          Check <strong>{currentEmail}</strong> and approve the change. We&apos;ll then send a link to{" "}
+          <strong>{newEmail.trim()}</strong>; your email changes once you open it.
+        </p>
+        <Button variant="outline" size="sm" onClick={onDone}>
+          Done
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <form onSubmit={submit} className="space-y-3 rounded-md border p-3">
+      <div className="space-y-2 sm:max-w-sm">
+        <Label htmlFor="new-email">New email</Label>
+        <Input
+          id="new-email"
+          type="email"
+          autoComplete="email"
+          value={newEmail}
+          onChange={(e) => setNewEmail(e.target.value)}
+        />
+      </div>
+      {error && (
+        <p role="alert" className="text-sm text-destructive">
+          {error}
+        </p>
+      )}
+      <div className="flex justify-end gap-2">
+        <Button type="button" variant="ghost" size="sm" onClick={onDone} disabled={sending}>
+          Cancel
+        </Button>
+        <Button type="submit" size="sm" disabled={sending || !newEmail.trim()}>
+          {sending ? "Sending…" : "Send confirmation"}
+        </Button>
+      </div>
+    </form>
   );
 }
 

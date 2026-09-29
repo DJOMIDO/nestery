@@ -2,6 +2,7 @@
 
 "use client";
 
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -14,7 +15,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { signInSchema } from "@/lib/authSchema";
-import { signInWithEmail, signInWithGitHub } from "@/lib/auth-client";
+import { AuthError, resendVerificationEmail, signInWithEmail, signInWithGitHub } from "@/lib/auth-client";
 import { GithubLoginButton } from "@/components/GithubLoginButton";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { useSocialProviders } from "@/components/auth/SocialProviders";
@@ -25,6 +26,10 @@ export default function LoginPage() {
   const providers = useSocialProviders();
   const router = useRouter();
 
+  // Set when the account's email isn't confirmed yet (a new link was sent)
+  const [unverified, setUnverified] = useState<string | null>(null);
+  const [resending, setResending] = useState(false);
+
   const {
     register,
     handleSubmit,
@@ -34,16 +39,33 @@ export default function LoginPage() {
   });
 
   const onSubmit = async (data: LoginFormData) => {
+    setUnverified(null);
     try {
       await signInWithEmail(data.email, data.password);
       toast.success("Logged in successfully");
       router.push("/dashboard");
     } catch (error: unknown) {
-      if (error instanceof Error) {
+      if (error instanceof AuthError && error.code === "EMAIL_NOT_VERIFIED") {
+        // Better Auth has just sent a fresh confirmation link
+        setUnverified(data.email);
+      } else if (error instanceof Error) {
         toast.error(error.message);
       } else {
         toast.error("An unexpected error occurred.");
       }
+    }
+  };
+
+  const resend = async () => {
+    if (!unverified) return;
+    setResending(true);
+    try {
+      await resendVerificationEmail(unverified);
+      toast.success("Sent another confirmation link");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not send the email");
+    } finally {
+      setResending(false);
     }
   };
 
@@ -64,12 +86,28 @@ export default function LoginPage() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="password">Password</Label>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="password">Password</Label>
+            <Link href="/forgot-password" className="text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline">
+              Forgot password?
+            </Link>
+          </div>
           <Input id="password" type="password" {...register("password")} placeholder="••••••••" />
           {errors.password && (
             <p className="text-red-500 text-sm">{errors.password.message}</p>
           )}
         </div>
+
+        {unverified && (
+          <div role="alert" className="space-y-2 rounded-md border bg-leaf-soft/60 p-3 text-sm">
+            <p>
+              Please confirm your email first. We&apos;ve sent a new link to <strong>{unverified}</strong>.
+            </p>
+            <Button type="button" variant="outline" size="sm" onClick={resend} disabled={resending}>
+              {resending ? "Sending…" : "Send it again"}
+            </Button>
+          </div>
+        )}
 
         <Button type="submit" className="w-full" disabled={isSubmitting}>
           {isSubmitting ? "Signing in..." : "Sign in"}

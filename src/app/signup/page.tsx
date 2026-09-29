@@ -2,12 +2,13 @@
 
 "use client";
 
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 
 import { signUpSchema } from "@/lib/authSchema";
-import { signUpWithEmail, signInWithGitHub } from "@/lib/auth-client";
+import { resendVerificationEmail, signUpWithEmail, signInWithGitHub } from "@/lib/auth-client";
 
 import { GithubLoginButton } from "@/components/GithubLoginButton";
 import { AuthShell } from "@/components/auth/AuthShell";
@@ -34,9 +35,18 @@ export default function SignupPage() {
     resolver: zodResolver(signUpSchema),
   });
 
+  // Set when the account needs its email confirmed before signing in
+  const [sentTo, setSentTo] = useState<string | null>(null);
+  const [resending, setResending] = useState(false);
+
   const onSubmit = async (data: FormData) => {
     try {
-      await signUpWithEmail(data.email, data.password, data.username);
+      const result = await signUpWithEmail(data.email, data.password, data.username);
+      // No session yet: the confirmation link in the email signs them in
+      if (!result?.token) {
+        setSentTo(data.email);
+        return;
+      }
       toast.success("Account created successfully");
       router.push("/dashboard");
     } catch (err: unknown) {
@@ -47,6 +57,48 @@ export default function SignupPage() {
       }
     }
   };
+
+  const resend = async () => {
+    if (!sentTo) return;
+    setResending(true);
+    try {
+      await resendVerificationEmail(sentTo);
+      toast.success("Sent another confirmation link");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not send the email");
+    } finally {
+      setResending(false);
+    }
+  };
+
+  if (sentTo) {
+    return (
+      <AuthShell
+        seed={23}
+        tagline="Make yourself at home."
+        title="Check your inbox"
+        subtitle="One more step to finish creating your account."
+      >
+        <div className="space-y-4 text-sm">
+          <p>
+            We&apos;ve sent a confirmation link to <strong>{sentTo}</strong>. Open it to confirm your email and
+            you&apos;ll be signed in.
+          </p>
+          <p className="text-muted-foreground">
+            Nothing there after a few minutes? Check your spam folder, or send the link again.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" onClick={resend} disabled={resending}>
+              {resending ? "Sending…" : "Send it again"}
+            </Button>
+            <Button variant="ghost" asChild>
+              <Link href="/login">Back to sign in</Link>
+            </Button>
+          </div>
+        </div>
+      </AuthShell>
+    );
+  }
 
   return (
     <AuthShell

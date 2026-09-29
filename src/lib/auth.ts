@@ -6,12 +6,16 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
 import { db } from "@/db";
 import * as schema from "@/db/schema";
+import { emailEnabled, sendEmail } from "@/server/email";
+import { confirmEmailChange, resetPasswordEmail, verifyEmail } from "@/server/emailTemplates";
 
 const githubClientId = process.env.GITHUB_CLIENT_ID;
 const githubClientSecret = process.env.GITHUB_CLIENT_SECRET;
 
 // Social sign-in providers that are configured (both env vars set). The UI
 // only offers these, so an unconfigured provider never shows a dead button.
+export { emailEnabled };
+
 export const socialProviderIds: string[] = githubClientId && githubClientSecret ? ["github"] : [];
 
 // On Vercel, fall back to the deployment's own URL so preview and production
@@ -40,10 +44,34 @@ export const auth = betterAuth({
     // Applies to new passwords only; sign-in never checks the minimum, so
     // older, shorter passwords keep working
     minPasswordLength: 8,
+    // Only when emails can actually be delivered (SMTP configured)
+    requireEmailVerification: emailEnabled,
+    sendResetPassword: async ({ user, url }) => {
+      await sendEmail(resetPasswordEmail(user.email, user.name, url));
+    },
+    resetPasswordTokenExpiresIn: 60 * 60,
+    revokeSessionsOnPasswordReset: true,
+  },
+  emailVerification: {
+    sendOnSignUp: true,
+    // Signing in with an unverified email sends a fresh link
+    sendOnSignIn: true,
+    autoSignInAfterVerification: true,
+    expiresIn: 60 * 60 * 24,
+    sendVerificationEmail: async ({ user, url }) => {
+      await sendEmail(verifyEmail(user.email, user.name, url));
+    },
   },
   user: {
     // Settings > Account; the user's tasks, notes, events etc. cascade
     deleteUser: { enabled: true },
+    // The current address approves first, then the new one is verified
+    changeEmail: {
+      enabled: true,
+      sendChangeEmailConfirmation: async ({ user, newEmail, url }) => {
+        await sendEmail(confirmEmailChange(user.email, user.name, newEmail, url));
+      },
+    },
   },
   account: {
     accountLinking: {
@@ -64,6 +92,10 @@ export const auth = betterAuth({
       "/sign-up/email": { window: 60, max: 3 },
       "/change-password": { window: 60, max: 5 },
       "/delete-user": { window: 60, max: 5 },
+      // Each of these sends an email
+      "/request-password-reset": { window: 60, max: 3 },
+      "/send-verification-email": { window: 60, max: 3 },
+      "/change-email": { window: 60, max: 3 },
     },
   },
   socialProviders:

@@ -71,10 +71,12 @@ tracks what is done, what is planned next, and ideas that were considered.
   stored in the database; 8-character minimum for new passwords
 - Settings > Account: change name and password, connect or disconnect
   GitHub, see and sign out devices, delete the account and all its data
+- Emails over SMTP (a Gmail app password works without a domain): forgot /
+  reset password, email verification required to sign in when SMTP is set
+  up (existing accounts were marked verified), changing the email address
+  (approved from the old address, confirmed from the new one)
 
 **Planned**
-- Emails with Resend: forgot / reset password, email verification (existing
-  accounts marked verified first), changing the email address
 - Google sign-in
 
 ## Ideas
