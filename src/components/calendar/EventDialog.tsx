@@ -183,7 +183,7 @@ function EventForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="min-w-0 space-y-4">
       <div className="space-y-2">
         <Label htmlFor="event-title">Title</Label>
         <Input
@@ -269,6 +269,7 @@ function EventForm({
           onChange={(e) => setNotes(e.target.value)}
           placeholder="Location, details…"
           rows={3}
+          className="max-h-60 overflow-y-auto wrap-anywhere"
         />
       </div>
 
