@@ -104,7 +104,9 @@ export function CalendarRow({ item }: { item: CalendarItem }) {
             <Repeat className="size-3.5 shrink-0 text-muted-foreground" aria-label="Repeats" />
           )}
         </p>
-        <p className={cn("text-xs text-muted-foreground", isOverdue(item) && "text-rose-600")}>{detail}</p>
+        <p className={cn("line-clamp-2 text-xs text-muted-foreground wrap-anywhere", isOverdue(item) && "text-rose-600")}>
+          {detail}
+        </p>
       </div>
     </div>
   );
@@ -121,7 +123,7 @@ function rowContent(item: CalendarItem, format: Formatter) {
           repeatText(item.event, format),
           item.event.source?.location,
           item.event.source?.name,
-          item.event.source ? null : item.event.notes,
+          item.event.source ? null : firstLine(item.event.notes),
         ]
           .filter(Boolean)
           .join(" · "),
@@ -144,6 +146,12 @@ function rowContent(item: CalendarItem, format: Formatter) {
     case "reminder":
       return { icon: Bell, title: item.task.title, detail: `Reminder at ${format.time(item.time)}` };
   }
+}
+
+// A row shows only the first non-blank line of the notes; imported (ICS)
+// notes can be long blocks of links that belong in the event dialog
+function firstLine(notes: string | null | undefined) {
+  return notes?.split("\n").map((line) => line.replace(/\s+/g, " ").trim()).find(Boolean) ?? null;
 }
 
 // "Every week on Mon", or null for events that do not repeat

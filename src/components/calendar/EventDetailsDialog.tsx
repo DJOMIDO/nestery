@@ -40,7 +40,7 @@ export function EventDetailsDialog({ event, open, onOpenChange }: EventDetailsDi
               </DialogDescription>
             </DialogHeader>
 
-            <div className="space-y-2 text-sm">
+            <div className="min-w-0 space-y-2 text-sm">
               <p className="flex items-start gap-2">
                 <CalendarClock className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
                 <span>
@@ -51,11 +51,11 @@ export function EventDetailsDialog({ event, open, onOpenChange }: EventDetailsDi
               {source.location && (
                 <p className="flex items-start gap-2">
                   <MapPin className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
-                  <span className="break-words">{source.location}</span>
+                  <span className="min-w-0 wrap-anywhere">{source.location}</span>
                 </p>
               )}
               {event.notes && (
-                <p className="max-h-48 overflow-y-auto whitespace-pre-wrap break-words rounded-md bg-muted/50 p-3 text-muted-foreground">
+                <p className="max-h-48 overflow-y-auto whitespace-pre-wrap wrap-anywhere rounded-md bg-muted/50 p-3 text-muted-foreground">
                   {event.notes}
                 </p>
               )}
