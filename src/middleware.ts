@@ -20,6 +20,7 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  // Skip API routes, Next.js internals and static files.
-  matcher: ["/((?!api|_next/static|_next/image|images|favicon.ico).*)"],
+  // Skip API routes, Next.js internals and static files (including the app
+  // icons, which the login and landing pages need too).
+  matcher: ["/((?!api|_next/static|_next/image|images|favicon.ico|icon.svg|apple-icon.png).*)"],
 };
