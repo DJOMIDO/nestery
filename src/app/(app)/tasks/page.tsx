@@ -212,8 +212,8 @@ export default function TasksPage() {
   return (
     // On large screens both columns fill the viewport; the list scrolls on its own
     <div className="grid grid-cols-1 lg:grid-cols-2 lg:grid-rows-1 gap-6 lg:h-full">
-      {/* Left: task list */}
-      <div className="space-y-6 min-w-0 lg:min-h-0 lg:overflow-y-auto lg:pr-2">
+      {/* Left: task list. -ml-1 pl-1 keeps focus rings from being clipped by the scroll area */}
+      <div className="space-y-6 min-w-0 lg:min-h-0 lg:overflow-y-auto lg:-ml-1 lg:pl-1 lg:pr-2">
         {header}
 
         <form onSubmit={handleQuickAdd} className="flex gap-2">
@@ -233,7 +233,7 @@ export default function TasksPage() {
         {loading ? (
           <p className="text-sm text-muted-foreground">Loading tasks…</p>
         ) : filtered.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
+          <p className="py-12 text-center text-sm text-muted-foreground">
             {hasFilter ? "No tasks match these filters." : "No tasks yet. Add your first one above."}
           </p>
         ) : (

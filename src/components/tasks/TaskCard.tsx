@@ -14,6 +14,8 @@ interface TaskCardProps {
   onOpen: (task: Task) => void;
   onDelete: (task: Task) => void;
   onTagClick: (tag: string) => void;
+  // Briefly outlined after being added, to show where it landed
+  highlighted?: boolean;
 }
 
 // Longer descriptions are cut here and also clamped to two lines by CSS,
@@ -27,7 +29,7 @@ function descriptionPreview(description: string) {
 
 // A board card. Drag it to another column to change the task's status;
 // click (or Enter) opens it for editing.
-export function TaskCard({ task, onOpen, onDelete, onTagClick }: TaskCardProps) {
+export function TaskCard({ task, onOpen, onDelete, onTagClick, highlighted }: TaskCardProps) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: task.id });
 
   return (
@@ -35,6 +37,7 @@ export function TaskCard({ task, onOpen, onDelete, onTagClick }: TaskCardProps) 
       ref={setNodeRef}
       {...attributes}
       {...listeners}
+      data-task-id={task.id}
       aria-roledescription="Draggable task"
       aria-label={task.title}
       onClick={() => onOpen(task)}
@@ -44,7 +47,8 @@ export function TaskCard({ task, onOpen, onDelete, onTagClick }: TaskCardProps) 
         listeners?.onKeyDown?.(e);
       }}
       className={cn(
-        "group cursor-grab touch-manipulation rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        "group cursor-grab touch-manipulation rounded-md outline-none transition-shadow duration-500 focus-visible:ring-2 focus-visible:ring-ring",
+        highlighted && "ring-2 ring-leaf",
         // The DragOverlay shows the moving copy; leave a faded placeholder behind
         isDragging && "opacity-40"
       )}

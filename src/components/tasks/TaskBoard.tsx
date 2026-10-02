@@ -26,7 +26,7 @@ import {
 interface TaskBoardProps {
   tasks: Task[];
   onMove: (task: Task, status: TaskStatus) => void;
-  onAdd: (title: string, status: TaskStatus) => Promise<unknown>;
+  onAdd: (title: string, status: TaskStatus) => Promise<Task | null>;
   onOpen: (task: Task) => void;
   onDelete: (task: Task) => void;
   onTagClick: (tag: string) => void;
