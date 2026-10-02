@@ -2,16 +2,17 @@
 
 "use client";
 
-import { useMemo } from "react";
+import { Fragment, useMemo } from "react";
 import Link from "next/link";
-import { AlarmClock, CalendarRange } from "lucide-react";
+import { AlarmClock, CalendarRange, Link2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { CardHeading } from "./CardHeading";
-import { CalendarRow } from "@/components/calendar/CalendarItemView";
+import { CalendarRow, eventWhen } from "@/components/calendar/CalendarItemView";
+import { EventLinkList, linkedEvents } from "@/components/calendar/EventLinkList";
 import { useFormat, useHolidayCountries } from "@/components/SettingsProvider";
 import { useHolidays } from "@/hooks/useHolidays";
 import { itemsByDay, type CalendarEvent, type CalendarItem } from "@/lib/calendar";
-import { addDays, compareTasks, type Task } from "@/lib/tasks";
+import { addDays, compareTasks, toDateKey, type Task } from "@/lib/tasks";
 
 const DAYS = 7;
 
@@ -51,12 +52,30 @@ export function UpNextCard({ tasks, events, today }: UpNextProps) {
     }))
     .filter((s) => s.items.length > 0);
 
+  // Events with a join (or other) link, in agenda order; a multi-day event once
+  const linked = linkedEvents(
+    sections.flatMap(({ items }) => items.flatMap((item) => (item.kind === "event" ? [item.event] : [])))
+  );
+  const linkWhen = (event: CalendarEvent) => {
+    const day = event.allDay ? event.startDate! : toDateKey(new Date(event.startsAt!));
+    return `${day < today ? "Today" : dayLabel(day)} · ${eventWhen(event, format)}`;
+  };
+  const linksSection = linked.length > 0 && (
+    <section>
+      <h3 className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+        <Link2 className="size-3.5" /> Links
+      </h3>
+      <EventLinkList items={linked} whenOf={linkWhen} />
+    </section>
+  );
+
   return (
     <Card className="w-full h-full rounded-lg shadow-sm bg-card hover:shadow-md">
       <CardContent className="p-4 flex flex-col min-h-0 flex-1">
         <CardHeading title="Up next" icon={CalendarRange} />
 
-        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto">
+        {/* -mx-1 px-1 makes room for the lists' -mx-1, so they don't scroll sideways */}
+        <div className="-mx-1 min-h-0 flex-1 space-y-4 overflow-y-auto px-1">
           {overdue.length > 0 && (
             <section>
               <h3 className="mb-1 flex items-center gap-1.5 text-xs font-semibold text-rose-600">
@@ -74,28 +93,34 @@ export function UpNextCard({ tasks, events, today }: UpNextProps) {
             </section>
           )}
 
+          {/* Links follow Today, or come first when nothing is on today */}
+          {sections[0]?.day !== today && linksSection}
+
           {sections.map(({ day, items }) => (
-            <section key={day}>
-              <h3 className="mb-1 text-xs font-semibold text-muted-foreground">{dayLabel(day)}</h3>
-              <ul className="-mx-1">
-                {items.map((item) => {
-                  const href = hrefOf(item);
-                  return (
-                    <li key={item.id}>
-                      {href ? (
-                        <AgendaLink href={href}>
-                          <CalendarRow item={item} />
-                        </AgendaLink>
-                      ) : (
-                        <div className="px-1 py-1.5">
-                          <CalendarRow item={item} />
-                        </div>
-                      )}
-                    </li>
-                  );
-                })}
-              </ul>
-            </section>
+            <Fragment key={day}>
+              <section>
+                <h3 className="mb-1 text-xs font-semibold text-muted-foreground">{dayLabel(day)}</h3>
+                <ul className="-mx-1">
+                  {items.map((item) => {
+                    const href = hrefOf(item);
+                    return (
+                      <li key={item.id}>
+                        {href ? (
+                          <AgendaLink href={href}>
+                            <CalendarRow item={item} />
+                          </AgendaLink>
+                        ) : (
+                          <div className="px-1 py-1.5">
+                            <CalendarRow item={item} />
+                          </div>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </section>
+              {day === today && linksSection}
+            </Fragment>
           ))}
 
           {overdue.length === 0 && sections.length === 0 && (
