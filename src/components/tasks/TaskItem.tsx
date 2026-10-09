@@ -72,7 +72,9 @@ export function TaskItem({
           <Badge className={cn("border-transparent capitalize", priorityStyles[task.priority])}>
             {task.priority}
           </Badge>
-          {task.status === "in_progress" && <Badge variant="outline">{TASK_STATUS_LABELS.in_progress}</Badge>}
+          {(task.status === "in_progress" || task.status === "waiting") && (
+            <Badge variant="outline">{TASK_STATUS_LABELS[task.status]}</Badge>
+          )}
           {task.dueDate && (
             <span className={cn("flex items-center gap-1", overdue && "text-rose-600")}>
               <CalendarDays className="w-3.5 h-3.5" />

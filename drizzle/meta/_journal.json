@@ -85,6 +85,13 @@
       "when": 1790709616274,
       "tag": "0011_mark_existing_users_verified",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1791589005723,
+      "tag": "0012_empty_apocalypse",
+      "breakpoints": true
     }
   ]
 }
