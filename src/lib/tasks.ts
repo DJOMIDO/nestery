@@ -2,7 +2,7 @@
 // Task types and date helpers shared by the server, pages and dashboard.
 // Keep this file free of server-only imports so client components can use it.
 
-export const TASK_STATUSES = ["todo", "in_progress", "done"] as const;
+export const TASK_STATUSES = ["todo", "in_progress", "waiting", "done"] as const;
 export const TASK_PRIORITIES = ["low", "medium", "high"] as const;
 
 export type TaskStatus = (typeof TASK_STATUSES)[number];
@@ -10,6 +10,7 @@ export type TaskStatus = (typeof TASK_STATUSES)[number];
 export const TASK_STATUS_LABELS: Record<TaskStatus, string> = {
   todo: "To do",
   in_progress: "In progress",
+  waiting: "Waiting",
   done: "Done",
 };
 export type TaskPriority = (typeof TASK_PRIORITIES)[number];
@@ -71,10 +72,11 @@ export function compareTasks(a: Task, b: Task) {
 // Tasks by status for the board. Open columns use compareTasks; Done shows
 // the most recently completed first.
 export function boardColumns(tasks: Task[]): Record<TaskStatus, Task[]> {
-  const columns: Record<TaskStatus, Task[]> = { todo: [], in_progress: [], done: [] };
+  const columns: Record<TaskStatus, Task[]> = { todo: [], in_progress: [], waiting: [], done: [] };
   for (const task of tasks) columns[task.status].push(task);
   columns.todo.sort(compareTasks);
   columns.in_progress.sort(compareTasks);
+  columns.waiting.sort(compareTasks);
   columns.done.sort((a, b) => (b.completedAt ?? "").localeCompare(a.completedAt ?? ""));
   return columns;
 }
