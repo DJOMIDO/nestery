@@ -14,6 +14,7 @@ import {
   type HourCycle,
   type WeekStart,
 } from "@/lib/format";
+import { weatherPlaceSchema } from "@/lib/weather";
 import { isTimeZone } from "@/server/timeZones";
 
 const localeValues = DATE_LOCALES.map((l) => l.value) as [DateLocale, ...DateLocale[]];
@@ -29,6 +30,7 @@ export const updateSettingsInput = z
     hourCycle: z.enum(["h12", "h23"]).nullable(),
     weekStart: z.union([z.literal(0), z.literal(1)]),
     timeZone: z.string().max(64).refine(isTimeZone, "Unknown time zone"),
+    weatherPlace: weatherPlaceSchema.nullable(),
   })
   .partial()
   .refine((v) => Object.keys(v).length > 0, "Nothing to update");
@@ -44,6 +46,7 @@ export async function getSettings(userId: string) {
     hourCycle: (row?.hourCycle ?? DEFAULT_DATE_TIME.hourCycle) as HourCycle | null,
     weekStart: (row?.weekStart ?? DEFAULT_DATE_TIME.weekStart) as WeekStart,
     timeZone: row?.timeZone ?? null,
+    weatherPlace: row?.weatherPlace ?? null,
     // Only ever sent to the user it belongs to
     feedToken: row?.feedToken ?? null,
     saved: !!row,

@@ -8,6 +8,7 @@ import {
   ArrowLeftRight,
   ChevronRight,
   Clock,
+  CloudSun,
   PartyPopper,
   Rss,
   UserRound,
@@ -19,6 +20,7 @@ import { SubscriptionSettings } from "@/components/calendar/SubscriptionSettings
 import { AccountSettings } from "@/components/settings/AccountSettings";
 import { DateTimeSettings } from "@/components/settings/DateTimeSettings";
 import { HolidaySettings } from "@/components/settings/HolidaySettings";
+import { WeatherSettings } from "@/components/settings/WeatherSettings";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { cn } from "@/lib/utils";
 
@@ -52,6 +54,13 @@ const SECTIONS: Section[] = [
     description: "Countries and regions on your calendar",
     icon: PartyPopper,
     content: HolidaySettings,
+  },
+  {
+    id: "weather",
+    label: "Weather",
+    description: "Place for the dashboard's weather",
+    icon: CloudSun,
+    content: WeatherSettings,
   },
   {
     id: "calendars",
