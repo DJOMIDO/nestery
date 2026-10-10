@@ -35,7 +35,8 @@ export interface ProviderTurn {
 
 export interface ChatProvider {
   userMessage(text: string): unknown;
-  toolResultsMessage(results: ToolResult[]): unknown;
+  // Messages answering one turn's tool calls
+  toolResults(results: ToolResult[]): unknown[];
   // Rejects history that cannot have come from this provider
   isHistory(history: unknown[]): boolean;
   // One model call over the conversation so far; text is streamed to onText

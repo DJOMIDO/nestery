@@ -8,6 +8,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowUp, Loader2, RotateCcw, Sparkles, Square, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { AssistantMarkdown } from "@/components/assistant/AssistantMarkdown";
 import { ProposalCard, type ProposalState } from "@/components/assistant/ProposalCard";
 import type { AssistantProposal, AssistantStatus, AssistantStreamEvent } from "@/lib/assistant";
 import { request } from "@/lib/api";
@@ -23,12 +24,18 @@ type ChatItem =
       proposals: { proposal: AssistantProposal; state: ProposalState }[];
       error: string | null;
       done: boolean;
+      // A tool ran since the last text: the next text starts a new paragraph
+      afterTool: boolean;
     };
+
+// Models often send blank lines around their text (e.g. after thinking)
+const tidy = (text: string) => text.replace(/^\s+|\s+$/g, "").replace(/\n{3,}/g, "\n\n");
 
 const EXAMPLES = [
   "What's left on my list this week?",
   "What's on my calendar tomorrow?",
   "Will it rain this weekend?",
+  "What's in my notes?",
 ];
 
 export function AssistantPanel({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -73,10 +80,14 @@ export function AssistantPanel({ open, onClose }: { open: boolean; onClose: () =
   const handleEvent = (event: AssistantStreamEvent) => {
     switch (event.type) {
       case "text":
-        updateLast((item) => ({ text: item.text + event.text, status: null }));
+        updateLast((item) => ({
+          text: item.text + (item.afterTool && item.text.trim() ? "\n\n" : "") + event.text,
+          status: null,
+          afterTool: false,
+        }));
         break;
       case "status":
-        updateLast(() => ({ status: event.label }));
+        updateLast(() => ({ status: event.label, afterTool: true }));
         break;
       case "proposal":
         updateLast((item) => ({ proposals: [...item.proposals, { proposal: event.proposal, state: "pending" }] }));
@@ -101,7 +112,7 @@ export function AssistantPanel({ open, onClose }: { open: boolean; onClose: () =
     setItems((prev) => [
       ...prev,
       { role: "user", text: message },
-      { role: "assistant", text: "", status: "Thinking", proposals: [], error: null, done: false },
+      { role: "assistant", text: "", status: "Thinking", proposals: [], error: null, done: false, afterTool: false },
     ]);
 
     const controller = new AbortController();
@@ -155,6 +166,11 @@ export function AssistantPanel({ open, onClose }: { open: boolean; onClose: () =
     }
   };
 
+  // Following a link: on phones the panel covers the page, so it steps aside
+  const closeIfCovering = useCallback(() => {
+    if (!window.matchMedia("(min-width: 640px)").matches) onClose();
+  }, [onClose]);
+
   const reset = () => {
     abortRef.current?.abort();
     setItems([]);
@@ -199,7 +215,7 @@ export function AssistantPanel({ open, onClose }: { open: boolean; onClose: () =
         </Button>
       </header>
 
-      <div ref={listRef} className="flex-1 space-y-4 overflow-y-auto px-4 py-4" aria-live="polite">
+      <div ref={listRef} className="flex-1 overflow-y-auto px-4 py-4" aria-live="polite">
         {status && !status.available ? (
           <div className="space-y-2 text-sm text-muted-foreground">
             <p>The assistant needs an AI model to talk to.</p>
@@ -232,17 +248,19 @@ export function AssistantPanel({ open, onClose }: { open: boolean; onClose: () =
             </div>
           </div>
         ) : (
+          // A question sits close to its answer; turns are further apart
           items.map((item, i) =>
             item.role === "user" ? (
               <p
                 key={i}
-                className="ml-8 whitespace-pre-wrap break-words rounded-lg bg-leaf-soft px-3 py-2 text-sm text-foreground"
+                className="ml-auto mt-6 w-fit max-w-[85%] whitespace-pre-wrap break-words rounded-lg bg-leaf-soft px-3 py-2 text-sm text-foreground first:mt-0"
               >
                 {item.text}
               </p>
             ) : (
-              <div key={i} className="mr-4 space-y-2 text-sm">
-                {item.text && <p className="whitespace-pre-wrap break-words">{item.text}</p>}
+              // Replies are plain text; only proposals (to confirm, or saved) get a card
+              <div key={i} className="mt-3 space-y-2 text-sm">
+                {tidy(item.text) && <AssistantMarkdown text={tidy(item.text)} onNavigate={closeIfCovering} />}
                 {item.status && (
                   <p className="flex items-center gap-2 text-xs text-muted-foreground">
                     <Loader2 className="size-3.5 animate-spin" /> {item.status}…
@@ -291,7 +309,7 @@ export function AssistantPanel({ open, onClose }: { open: boolean; onClose: () =
             placeholder="Ask anything…"
             aria-label="Message"
             disabled={!status?.available}
-            className="max-h-40 min-h-8 flex-1 resize-none bg-transparent px-1 py-1.5 text-sm outline-none [field-sizing:content] disabled:opacity-50"
+            className="max-h-40 min-h-9 flex-1 resize-none bg-transparent px-2 py-2 text-sm leading-5 outline-none [field-sizing:content] disabled:opacity-50"
           />
           {busy ? (
             <Button type="button" size="icon" variant="outline" onClick={() => abortRef.current?.abort()} title="Stop">

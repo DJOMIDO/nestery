@@ -51,15 +51,18 @@ export function anthropicProvider({ apiKey, model }: { apiKey: string; model: st
   return {
     userMessage: (text): MessageParam => ({ role: "user", content: [{ type: "text", text }] }),
 
-    toolResultsMessage: (results): MessageParam => ({
-      role: "user",
-      content: results.map((r) => ({
-        type: "tool_result",
-        tool_use_id: r.id,
-        content: r.content,
-        ...(r.isError && { is_error: true }),
-      })),
-    }),
+    // All results in one message, as the API expects
+    toolResults: (results): MessageParam[] => [
+      {
+        role: "user",
+        content: results.map((r) => ({
+          type: "tool_result",
+          tool_use_id: r.id,
+          content: r.content,
+          ...(r.isError && { is_error: true }),
+        })),
+      },
+    ],
 
     isHistory: (history) =>
       history.every(

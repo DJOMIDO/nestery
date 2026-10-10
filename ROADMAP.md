@@ -114,9 +114,10 @@ a packing task for Thursday and list my visa notes".
   only serves allow-listed emails, with a daily limit. The agent loop talks
   to providers through a small adapter interface (Anthropic first).
 
-**Planned**
-- OpenAI-compatible adapter (OpenAI, Gemini, OpenRouter, DeepSeek, ...),
-  with a custom base URL checked like calendar feeds (public hosts only)
+- OpenAI-compatible providers: OpenAI, Google Gemini, OpenRouter, or any
+  base URL (DeepSeek, Groq, ...). Custom URLs are checked like calendar
+  feeds (public hosts only, no redirects); local servers such as LM Studio
+  work while developing.
 - Notes RAG: embed notes with pgvector in the same Neon database, answers
   cite the notes they come from and say so when nothing relevant is found.
   Reuses what was learned in [Archivist](https://github.com/DJOMIDO/archivist)
@@ -141,7 +142,7 @@ can be reused; existing journeys move over through a CSV export and import.
 ## Suggested order
 
 1. ~~Weather card~~ (done): the agent's first outside tool
-2. ~~Assistant v1~~ (done); OpenAI-compatible providers next
+2. ~~Assistant v1~~ and other providers (done)
 3. Notes RAG (after note attachments if attached PDFs should be searchable)
 4. Travel
 5. Cookbook

@@ -71,6 +71,7 @@ export async function POST(request: Request) {
           userId: user.id,
           timeZone,
           today,
+          dateTime: { dateLocale: settings.dateLocale, hourCycle: settings.hourCycle, weekStart: settings.weekStart },
           place: settings.weatherPlace,
           history: input.data.history,
           message: input.data.message,

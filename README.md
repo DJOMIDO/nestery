@@ -23,7 +23,7 @@ A workspace for personal and team collaboration, built with Next.js.
    - `BETTER_AUTH_URL`: `http://localhost:3000` for local development
    - `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` (optional): create a GitHub OAuth App with the callback URL `http://localhost:3000/api/auth/callback/github`
    - `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` (optional): in Google Cloud Console, create an OAuth client ID of type **Web application** with the authorized redirect URI `http://localhost:3000/api/auth/callback/google`
-   - `ASSISTANT_ENCRYPTION_KEY` (optional, enables the assistant): `openssl rand -base64 32`. Users' own API keys are stored encrypted with it; changing it means everyone has to add their key again. To try the assistant with your own Anthropic key without saving it, also set `ANTHROPIC_API_KEY` and add your email to `ASSISTANT_OWNER_EMAILS`.
+   - `ASSISTANT_ENCRYPTION_KEY` (optional, enables the assistant): `openssl rand -base64 32`. Users' own API keys are stored encrypted with it; changing it means everyone has to add their key again. To try the assistant with your own Anthropic key without saving it, also set `ANTHROPIC_API_KEY` and add your email to `ASSISTANT_OWNER_EMAILS`. To try it for free, run a local model in [LM Studio](https://lmstudio.ai/) and choose "Other (OpenAI-compatible)" with the base URL `http://localhost:1234/v1` (local addresses are only allowed in development).
 
 3. Create the database tables:
 
