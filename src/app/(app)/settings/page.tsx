@@ -11,6 +11,7 @@ import {
   CloudSun,
   PartyPopper,
   Rss,
+  Sparkles,
   UserRound,
   type LucideIcon,
 } from "lucide-react";
@@ -18,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { CalendarTransferSettings } from "@/components/calendar/CalendarTransferSettings";
 import { SubscriptionSettings } from "@/components/calendar/SubscriptionSettings";
 import { AccountSettings } from "@/components/settings/AccountSettings";
+import { AssistantSettings } from "@/components/settings/AssistantSettings";
 import { DateTimeSettings } from "@/components/settings/DateTimeSettings";
 import { HolidaySettings } from "@/components/settings/HolidaySettings";
 import { WeatherSettings } from "@/components/settings/WeatherSettings";
@@ -40,6 +42,13 @@ const SECTIONS: Section[] = [
     description: "Profile, password, sign-in, devices",
     icon: UserRound,
     content: AccountSettings,
+  },
+  {
+    id: "assistant",
+    label: "Assistant",
+    description: "AI model and your API key",
+    icon: Sparkles,
+    content: AssistantSettings,
   },
   {
     id: "date-time",

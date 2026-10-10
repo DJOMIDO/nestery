@@ -1,7 +1,7 @@
 // src/server/notes.ts
 // Note data access. Every function is scoped to the given user.
 
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, ilike, or, sql } from "drizzle-orm";
 import type { PgUpdateSetSource } from "drizzle-orm/pg-core";
 import { z } from "zod";
 import { db } from "@/db";
@@ -92,4 +92,22 @@ export async function deleteNote(userId: string, id: string) {
     .where(and(eq(notes.id, id), eq(notes.userId, userId)))
     .returning({ id: notes.id });
   return deleted.length > 0;
+}
+
+// Notes containing every word of `query` in the title or text (any case),
+// most recently edited first
+export async function searchNotes(userId: string, query: string, limit = 10) {
+  const words = query.trim().split(/\s+/).filter(Boolean).slice(0, 5);
+  const escape = (word: string) => `%${word.replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
+  return db
+    .select()
+    .from(notes)
+    .where(
+      and(
+        eq(notes.userId, userId),
+        ...words.map((word) => or(ilike(notes.title, escape(word)), ilike(notes.contentText, escape(word))))
+      )
+    )
+    .orderBy(desc(notes.updatedAt))
+    .limit(limit);
 }

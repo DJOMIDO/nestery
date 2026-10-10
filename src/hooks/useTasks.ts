@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { request } from "@/lib/api";
+import { onDataChanged } from "@/lib/dataChanged";
 import type { Task } from "@/lib/tasks";
 
 // Shape accepted by POST /api/tasks and PATCH /api/tasks/[id]
@@ -35,6 +36,9 @@ export function useTasks() {
   useEffect(() => {
     reload();
   }, [reload]);
+
+  // e.g. after the assistant created one
+  useEffect(() => onDataChanged("tasks", reload), [reload]);
 
   const createTask = useCallback(async (input: TaskInput) => {
     try {

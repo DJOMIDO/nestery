@@ -4,6 +4,7 @@
 
 import {
   weatherKind,
+  weatherLabel,
   type TodayWeather,
   type WeatherPlace,
 } from "@/lib/weather";
@@ -96,5 +97,49 @@ export async function searchPlaces(query: string): Promise<WeatherPlace[]> {
     detail: [r.admin1, r.country].filter(Boolean).join(", ") || null,
     latitude: r.latitude,
     longitude: r.longitude,
+  }));
+}
+
+interface DailyResponse {
+  daily: {
+    time: string[];
+    weather_code: number[];
+    temperature_2m_max: number[];
+    temperature_2m_min: number[];
+    precipitation_probability_max: (number | null)[];
+  };
+}
+
+export interface DailyForecast {
+  date: string;
+  conditions: string;
+  high: number;
+  low: number;
+  // Highest chance of precipitation that day, in %
+  precipitation: number | null;
+}
+
+// The next `days` days at `place` (today first), dated in `timeZone`
+export async function dailyForecast(
+  place: WeatherPlace,
+  timeZone: string | null,
+  days: number
+): Promise<DailyForecast[]> {
+  const url = new URL(FORECAST_URL);
+  url.search = new URLSearchParams({
+    latitude: place.latitude.toFixed(2),
+    longitude: place.longitude.toFixed(2),
+    daily: "weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max",
+    timezone: timeZone ?? "auto",
+    forecast_days: String(days),
+  }).toString();
+
+  const { daily } = await getJson<DailyResponse>(url, 60 * 60);
+  return daily.time.map((date, i) => ({
+    date,
+    conditions: weatherLabel(daily.weather_code[i]),
+    high: Math.round(daily.temperature_2m_max[i]),
+    low: Math.round(daily.temperature_2m_min[i]),
+    precipitation: daily.precipitation_probability_max[i],
   }));
 }

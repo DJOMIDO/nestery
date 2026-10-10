@@ -250,3 +250,37 @@ export const calendarSubscriptions = pgTable(
   },
   (t) => [index("calendar_subscriptions_user_id_idx").on(t.userId)]
 );
+
+// The assistant's model provider per user (Settings > Assistant). Kept apart
+// from user_settings, which is sent to the browser as a whole: the API key is
+// stored encrypted (src/server/secrets.ts) and never leaves the server.
+export const assistantSettings = pgTable("assistant_settings", {
+  userId: text()
+    .primaryKey()
+    .references(() => user.id, { onDelete: "cascade" }),
+  // A key of ASSISTANT_PROVIDERS in src/lib/assistant.ts
+  provider: text().notNull(),
+  model: text().notNull(),
+  // OpenAI-compatible providers only; null = the provider's default endpoint
+  baseUrl: text(),
+  apiKeyEncrypted: text(),
+  // Last characters of the key, to show which one is saved
+  apiKeyHint: text(),
+  updatedAt: timestamp({ withTimezone: true })
+    .notNull()
+    .defaultNow()
+    .$onUpdate(() => new Date()),
+});
+
+// Assistant requests per user and day, for the daily limit
+export const assistantUsage = pgTable(
+  "assistant_usage",
+  {
+    userId: text()
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    day: date().notNull(),
+    requests: integer().notNull().default(0),
+  },
+  (t) => [uniqueIndex("assistant_usage_user_day_idx").on(t.userId, t.day)]
+);
