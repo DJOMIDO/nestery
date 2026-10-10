@@ -2,6 +2,7 @@
 // Client-side auth helpers backed by Better Auth.
 
 import { createAuthClient } from "better-auth/react";
+import type { SocialProviderId } from "@/lib/socialProviders";
 
 export const authClient = createAuthClient();
 
@@ -37,10 +38,11 @@ export const signUpWithEmail = async (
 export const signInWithEmail = async (email: string, password: string) =>
   unwrap(await authClient.signIn.email({ email, password }));
 
-export const signInWithGitHub = async () =>
+// Also creates the account on first use, so sign-up uses it too
+export const signInWithSocial = async (provider: SocialProviderId) =>
   unwrap(
     await authClient.signIn.social({
-      provider: "github",
+      provider,
       callbackURL: "/dashboard",
     })
   );

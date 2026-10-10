@@ -15,15 +15,13 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { signInSchema } from "@/lib/authSchema";
-import { AuthError, resendVerificationEmail, signInWithEmail, signInWithGitHub } from "@/lib/auth-client";
-import { GithubLoginButton } from "@/components/GithubLoginButton";
+import { AuthError, resendVerificationEmail, signInWithEmail } from "@/lib/auth-client";
 import { AuthShell } from "@/components/auth/AuthShell";
-import { useSocialProviders } from "@/components/auth/SocialProviders";
+import { SocialLoginButtons } from "@/components/auth/SocialLoginButtons";
 
 type LoginFormData = z.infer<typeof signInSchema>;
 
 export default function LoginPage() {
-  const providers = useSocialProviders();
   const router = useRouter();
 
   // Set when the account's email isn't confirmed yet (a new link was sent)
@@ -114,13 +112,7 @@ export default function LoginPage() {
         </Button>
       </form>
 
-      {/* Only when GitHub sign-in is configured on the server */}
-      {providers.includes("github") && (
-        <div className="pt-4 border-t text-center space-y-3">
-          <p className="text-sm text-muted-foreground">Or continue with</p>
-          <GithubLoginButton onClick={signInWithGitHub} />
-        </div>
-      )}
+      <SocialLoginButtons />
 
       <div className="text-center text-sm">
         New to Nestery?{" "}

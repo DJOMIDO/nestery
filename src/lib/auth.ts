@@ -8,15 +8,29 @@ import { db } from "@/db";
 import * as schema from "@/db/schema";
 import { emailEnabled, sendEmail } from "@/server/email";
 import { confirmEmailChange, resetPasswordEmail, verifyEmail } from "@/server/emailTemplates";
+import { SOCIAL_PROVIDERS, type SocialProviderId } from "@/lib/socialProviders";
 
-const githubClientId = process.env.GITHUB_CLIENT_ID;
-const githubClientSecret = process.env.GITHUB_CLIENT_SECRET;
+export { emailEnabled };
+
+const credentials = (prefix: string) => {
+  const clientId = process.env[`${prefix}_CLIENT_ID`];
+  const clientSecret = process.env[`${prefix}_CLIENT_SECRET`];
+  return clientId && clientSecret ? { clientId, clientSecret } : null;
+};
+
+const github = credentials("GITHUB");
+const google = credentials("GOOGLE");
+
+const socialProviders = {
+  ...(github && { github }),
+  // select_account lets people with several Google accounts pick one
+  // instead of being signed in with whichever is active
+  ...(google && { google: { ...google, prompt: "select_account" as const } }),
+};
 
 // Social sign-in providers that are configured (both env vars set). The UI
 // only offers these, so an unconfigured provider never shows a dead button.
-export { emailEnabled };
-
-export const socialProviderIds: string[] = githubClientId && githubClientSecret ? ["github"] : [];
+export const socialProviderIds: SocialProviderId[] = SOCIAL_PROVIDERS.filter((id) => id in socialProviders);
 
 // On Vercel, fall back to the deployment's own URL so preview and production
 // deployments work without setting BETTER_AUTH_URL.
@@ -77,7 +91,7 @@ export const auth = betterAuth({
     accountLinking: {
       enabled: true,
       // Linking is started by a signed-in user from Settings, so their GitHub
-      // email may differ from the one they registered with
+      // or Google email may differ from the one they registered with
       allowDifferentEmails: true,
     },
   },
@@ -98,15 +112,7 @@ export const auth = betterAuth({
       "/change-email": { window: 60, max: 3 },
     },
   },
-  socialProviders:
-    githubClientId && githubClientSecret
-      ? {
-          github: {
-            clientId: githubClientId,
-            clientSecret: githubClientSecret,
-          },
-        }
-      : {},
+  socialProviders,
   // nextCookies must be the last plugin.
   plugins: [nextCookies()],
 });

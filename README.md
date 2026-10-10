@@ -7,7 +7,7 @@ A workspace for personal and team collaboration, built with Next.js.
 - **Next.js 15** (App Router), React 19, TypeScript
 - **Tailwind CSS v4** + **shadcn/ui**
 - **Postgres on [Neon](https://neon.tech)** with **[Drizzle ORM](https://orm.drizzle.team)**
-- **[Better Auth](https://www.better-auth.com)** for email/password and GitHub login
+- **[Better Auth](https://www.better-auth.com)** for email/password, GitHub and Google login
 
 ## Getting started
 
@@ -22,6 +22,7 @@ A workspace for personal and team collaboration, built with Next.js.
    - `BETTER_AUTH_SECRET`: generate with `openssl rand -base64 32`
    - `BETTER_AUTH_URL`: `http://localhost:3000` for local development
    - `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` (optional): create a GitHub OAuth App with the callback URL `http://localhost:3000/api/auth/callback/github`
+   - `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` (optional): in Google Cloud Console, create an OAuth client ID of type **Web application** with the authorized redirect URI `http://localhost:3000/api/auth/callback/google`
 
 3. Create the database tables:
 
@@ -43,6 +44,7 @@ A workspace for personal and team collaboration, built with Next.js.
    - `BETTER_AUTH_SECRET`: a random string (`openssl rand -base64 32`)
    - `BETTER_AUTH_URL` (optional): only needed with a custom domain. Otherwise the app uses the Vercel deployment URL, so production and preview deployments both work.
    - `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` (optional): the OAuth App callback URL must be `https://<your-domain>/api/auth/callback/github`
+   - `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` (optional): add `https://<your-domain>/api/auth/callback/google` to the OAuth client's authorized redirect URIs, and publish the OAuth consent screen (in testing mode only listed test users can sign in)
 3. Deploy. Vercel runs the `vercel-build` script (`scripts/vercel-build.sh`): it applies pending migrations (`drizzle-kit migrate`) and then runs `next build`. Migrations use `DATABASE_URL_UNPOOLED` when set (the Neon integration sets it), otherwise `DATABASE_URL`.
 
 Migrations run automatically **only for production deployments**. Preview deployments share the production database by default, and migrating it from an unmerged branch would break the live site. To run migrations on previews too, give the Preview environment its own `DATABASE_URL` (for example a Neon branch) and set `MIGRATE_PREVIEW=1` for Preview.
