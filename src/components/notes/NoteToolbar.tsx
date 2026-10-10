@@ -127,10 +127,27 @@ export function NoteToolbar({ editor, onEditLink, onAttach }: NoteToolbarProps) 
 
   let index = 0;
   return (
-    <div role="toolbar" aria-label="Formatting" className="flex flex-wrap items-center gap-0.5">
+    <div
+      role="toolbar"
+      aria-label="Formatting"
+      className={cn(
+        "flex items-center gap-0.5",
+        // Phones: one line that scrolls sideways, fading out on the right to
+        // show there's more; pr-8 lets the last buttons scroll clear of the fade
+        "overflow-x-auto py-0.5 pr-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+        "[mask-image:linear-gradient(to_right,black_calc(100%-2rem),transparent)]",
+        // Larger screens: wrap onto more lines as needed
+        "sm:flex-wrap sm:overflow-visible sm:py-0 sm:pr-0 sm:[mask-image:none]"
+      )}
+    >
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="sm" className="h-8 w-32 justify-between" aria-label={`Block type: ${block.label}`}>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 shrink-0 justify-between sm:w-32"
+            aria-label={`Block type: ${block.label}`}
+          >
             <span className="flex items-center gap-1.5 truncate">
               <block.icon className="w-4 h-4" />
               {block.label}
@@ -153,7 +170,7 @@ export function NoteToolbar({ editor, onEditLink, onAttach }: NoteToolbarProps) 
       </DropdownMenu>
 
       {GROUPS.map((group, g) => (
-        <div key={g} className="flex items-center gap-0.5">
+        <div key={g} className="flex shrink-0 items-center gap-0.5">
           <Divider />
           {group.map((action) => {
             const isActive = state.active[index++];
@@ -232,7 +249,7 @@ export function NoteToolbar({ editor, onEditLink, onAttach }: NoteToolbarProps) 
 }
 
 function Divider() {
-  return <div className="mx-1 h-5 w-px bg-border" aria-hidden />;
+  return <div className="mx-1 h-5 w-px shrink-0 bg-border" aria-hidden />;
 }
 
 function ToolbarButton({

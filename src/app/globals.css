@@ -2,6 +2,10 @@
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
+/* Screens that aren't phones: at least sm wide and taller than a phone held
+   sideways (those are under 32rem tall), so tablets count but phones in
+   landscape don't */
+@custom-variant not-phone (@media (min-width: 40rem) and (min-height: 32rem));
 
 @theme inline {
   --color-background: var(--background);
