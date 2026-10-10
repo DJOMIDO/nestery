@@ -332,6 +332,9 @@ export const journeys = pgTable(
     currency: text(),
     bookingRef: text(),
     notes: text(),
+    // Remind this many minutes before departure (needs a departure time);
+    // null = no reminder
+    remindBefore: integer(),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp({ withTimezone: true })
       .notNull()

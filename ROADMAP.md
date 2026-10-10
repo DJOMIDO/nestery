@@ -171,9 +171,13 @@ can be reused; existing journeys move over through a CSV export and import.
   journey per leg (outbound, return, connections, trains), checked like the
   form, and each is saved on confirmation. Personal details are left out.
 
+- Reminder before departure (30 min to 1 day; new flights default to 3
+  hours, trains to 1 hour): on the dashboard's Reminders card until the
+  journey leaves, and as an alert (VALARM) in the calendar feed, so a
+  phone subscribed to Nestery notifies (Apple Calendar: turn off "Remove
+  Alerts" for the subscription)
+
 **Planned**
-- An optional reminder before departure (shown on the Reminders card, not
-  stored as a task)
 - Phase 3: statistics and a route map
 
 ## Suggested order
@@ -185,6 +189,12 @@ can be reused; existing journeys move over through a CSV export and import.
 5. Cookbook
 
 ## Ideas
+
+- **Notifications**: reminders that reach the user when Nestery isn't open,
+  for tasks and journeys alike: email over the existing SMTP setup, checked
+  by a scheduled job (Vercel Cron) that records what was sent; perhaps
+  browser push later. Today reminders are shown in the app (and journeys'
+  as calendar-feed alerts).
 
 Tools worth borrowing from Nextcloud, in rough order of priority:
 

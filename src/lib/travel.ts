@@ -36,6 +36,8 @@ export interface Journey {
   currency: string | null;
   bookingRef: string | null;
   notes: string | null;
+  // Minutes before departure; null = no reminder
+  remindBefore: number | null;
   createdAt: string;
   updatedAt: string;
   // From the airport and airline lists, when the codes are known
@@ -86,6 +88,23 @@ export interface Airline {
   name: string;
 }
 
+// Reminder choices in the form, in minutes before departure
+export const REMINDER_OPTIONS: { minutes: number; label: string }[] = [
+  { minutes: 30, label: "30 minutes before" },
+  { minutes: 60, label: "1 hour before" },
+  { minutes: 120, label: "2 hours before" },
+  { minutes: 180, label: "3 hours before" },
+  { minutes: 1440, label: "1 day before" },
+];
+
+// For new journeys: time to get to the airport and through security, or to
+// the station
+export const DEFAULT_REMIND_BEFORE: Record<JourneyKind, number> = { flight: 180, train: 60 };
+
+export const reminderLabel = (minutes: number) =>
+  REMINDER_OPTIONS.find((o) => o.minutes === minutes)?.label ??
+  (minutes % 60 === 0 ? `${minutes / 60} hours before` : `${minutes} minutes before`);
+
 // CSV columns, the same as in the original travel tracker (noname-app), so
 // its files and its database tables import as they are
 export const CSV_COLUMNS: Record<JourneyKind, readonly string[]> = {
@@ -116,6 +135,7 @@ export function journeyFromCsv(kind: JourneyKind, row: Record<string, string>): 
     currency: v("currency")?.toUpperCase() ?? null,
     bookingRef: v("booking_ref"),
     notes: v("notes"),
+    remindBefore: DEFAULT_REMIND_BEFORE[kind],
   };
   return kind === "flight"
     ? {
@@ -225,4 +245,14 @@ export function journeyDuration(j: Parameters<typeof journeyTimes>[0]) {
   const h = Math.floor(minutes / 60);
   const m = minutes % 60;
   return h ? `${h}h ${String(m).padStart(2, "0")}m` : `${m}m`;
+}
+
+// When to remind about a journey, or null (no reminder or no departure time)
+export function journeyReminderAt(
+  j: Parameters<typeof journeyTimes>[0] & Pick<Journey, "remindBefore">,
+  fallbackZone?: string
+) {
+  if (j.remindBefore === null) return null;
+  const times = journeyTimes(j, fallbackZone);
+  return times ? new Date(times.start.getTime() - j.remindBefore * 60_000) : null;
 }

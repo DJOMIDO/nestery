@@ -128,6 +128,14 @@ export const journeyInput = z
       .transform((v) => v || null),
     bookingRef: optionalText(50),
     notes: optionalText(5000),
+    // Minutes before departure, up to a week; null or absent = no reminder
+    remindBefore: z
+      .number()
+      .int()
+      .min(0)
+      .max(7 * 24 * 60)
+      .nullish()
+      .transform((v) => v ?? null),
   })
   .superRefine((v, ctx) => {
     if (v.kind === "flight") {

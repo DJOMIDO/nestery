@@ -28,6 +28,8 @@ interface Occurrence {
   allDay: boolean;
   start: Date | string; // Date for timed events, YYYY-MM-DD for all-day
   end: Date | string; // exclusive for timed, inclusive YYYY-MM-DD for all-day
+  // An alert this many minutes before the start (journeys' reminders)
+  alarmMinutes?: number;
 }
 
 function shiftMonths(dateKey: string, months: number) {
@@ -86,6 +88,15 @@ function toVevent(occurrence: Occurrence, stamp: ICAL.Time) {
   } else {
     vevent.addPropertyWithValue("dtstart", utcValue(occurrence.start as Date));
     vevent.addPropertyWithValue("dtend", utcValue(occurrence.end as Date));
+    if (occurrence.alarmMinutes !== undefined) {
+      // Calendar apps that keep a subscription's alerts (in Apple Calendar,
+      // "Remove Alerts" turned off) notify at this time
+      const alarm = new ICAL.Component("valarm");
+      alarm.addPropertyWithValue("action", "DISPLAY");
+      alarm.addPropertyWithValue("description", occurrence.title);
+      alarm.addPropertyWithValue("trigger", ICAL.Duration.fromSeconds(-occurrence.alarmMinutes * 60));
+      vevent.addSubcomponent(alarm);
+    }
   }
   return vevent;
 }
@@ -152,6 +163,7 @@ export function feedFromRows(
       allDay: !times,
       start: times?.start ?? journey.departureDate,
       end: times?.end ?? journey.arrivalDate ?? journey.departureDate,
+      alarmMinutes: journey.remindBefore ?? undefined,
     });
   }
 

@@ -15,7 +15,9 @@ import type { Formatter } from "@/lib/format";
 import {
   journeyDuration,
   journeyLabel,
+  journeyReminderAt,
   journeyTimes,
+  reminderLabel,
   type Journey,
   type JourneyInput,
   type JourneyWeather,
@@ -80,6 +82,7 @@ export function JourneyDetailPanel({ journey: j, weather, onSave, onDelete, onCl
     ["Coach", j.coach],
     ["Booking", j.bookingRef],
     ["Price", j.price ? `${j.price}${j.currency ? ` ${j.currency}` : ""}` : null],
+    ["Reminder", reminderText(j, format)],
   ];
 
   return (
@@ -162,6 +165,13 @@ export function JourneyDetailPanel({ journey: j, weather, onSave, onDelete, onCl
       </div>
     </div>
   );
+}
+
+// "3 hours before (Oct 18, 2:40 PM)", on the viewer's clock
+function reminderText(j: Journey, format: Formatter) {
+  if (j.remindBefore === null) return null;
+  const at = journeyReminderAt(j);
+  return at ? `${reminderLabel(j.remindBefore)} (${format.dayTime(at)})` : `${reminderLabel(j.remindBefore)} (needs a departure time)`;
 }
 
 function End({
