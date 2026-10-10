@@ -171,7 +171,8 @@ function NotesView() {
           </div>
 
           {loading ? (
-            <ListSkeleton label="Loading notes" />
+            // Fits the column like the list it stands in for, which scrolls on its own
+            <ListSkeleton label="Loading notes" className="flex-1 min-h-0 overflow-hidden" />
           ) : visible.length === 0 ? (
             <p className="text-sm text-muted-foreground">
               {query ? "No notes match your search." : "No notes yet."}

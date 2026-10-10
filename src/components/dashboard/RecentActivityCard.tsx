@@ -96,7 +96,14 @@ export function RecentActivityCard({
       <CardContent className="p-4 flex flex-col min-h-0 flex-1">
         <CardHeading title="Recent Activity" icon={Activity} />
         {loading ? (
-          <ListSkeleton label="Loading activity" icon rows={4} rowClassName="px-2 py-2" />
+          // Fits the card like the list it stands in for; rows that don't fit are cut off
+          <ListSkeleton
+            label="Loading activity"
+            icon
+            rows={4}
+            className="min-h-0 overflow-hidden"
+            rowClassName="px-2 py-2"
+          />
         ) : activities.length === 0 ? (
           <p className="text-sm text-muted-foreground">Nothing in the last {WINDOW_DAYS} days.</p>
         ) : (
