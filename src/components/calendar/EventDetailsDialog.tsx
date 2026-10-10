@@ -12,6 +12,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { eventWhen } from "@/components/calendar/CalendarItemView";
+import { JourneyWeatherBadge } from "@/components/travel/JourneyWeatherBadge";
+import { useJourneyWeather } from "@/hooks/useJourneys";
 import { useFormat } from "@/components/SettingsProvider";
 import type { CalendarEvent } from "@/lib/calendar";
 import { SUBSCRIPTION_COLORS } from "@/lib/subscriptions";
@@ -28,6 +30,9 @@ interface EventDetailsDialogProps {
 export function EventDetailsDialog({ event, open, onOpenChange }: EventDetailsDialogProps) {
   const format = useFormat();
   const source = event?.source;
+  // Journeys: the forecast at the destination, loaded when one is opened
+  const journeyId = open ? source?.journeyId : undefined;
+  const weather = useJourneyWeather(journeyId ?? "", !!journeyId)[journeyId ?? ""];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -54,6 +59,14 @@ export function EventDetailsDialog({ event, open, onOpenChange }: EventDetailsDi
                 <p className="flex items-start gap-2">
                   <MapPin className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
                   <span className="min-w-0 wrap-anywhere">{source.location}</span>
+                </p>
+              )}
+              {weather && (
+                <p className="flex items-center gap-2 pl-6">
+                  <JourneyWeatherBadge weather={weather} />
+                  <span className="text-xs text-muted-foreground">
+                    {weather.conditions} in {weather.place} on arrival
+                  </span>
                 </p>
               )}
               {event.notes && (

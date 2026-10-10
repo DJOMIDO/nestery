@@ -157,9 +157,11 @@ can be reused; existing journeys move over through a CSV export and import.
   next and At a glance (next trip), in the calendar feed for other apps,
   and in the assistant (list_journeys). They are shown from the journeys
   table, not copied into events, so edits in Travel apply everywhere.
+- The destination's forecast on arrival for journeys in the next two weeks,
+  in the Travel list and the calendar's journey details (flights by the
+  airport's position, trains by their destination city)
 
 **Planned**
-- The destination's weather on upcoming journeys
 - An optional reminder before departure (shown on the Reminders card, not
   stored as a task)
 - Phase 3: statistics and a route map

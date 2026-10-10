@@ -14,7 +14,10 @@ import airportRows from "@/server/travel/data/airports.json";
 
 const AIRPORTS = new Map<string, Airport>(
   (airportRows as [string, string, string | null, string, number, number, string][]).map(
-    ([iata, name, city, country, , , timeZone]) => [iata, { iata, name, city, country, timeZone }]
+    ([iata, name, city, country, latitude, longitude, timeZone]) => [
+      iata,
+      { iata, name, city, country, latitude, longitude, timeZone },
+    ]
   )
 );
 

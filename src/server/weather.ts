@@ -112,6 +112,7 @@ interface DailyResponse {
 
 export interface DailyForecast {
   date: string;
+  code: number;
   conditions: string;
   high: number;
   low: number;
@@ -119,7 +120,8 @@ export interface DailyForecast {
   precipitation: number | null;
 }
 
-// The next `days` days at `place` (today first), dated in `timeZone`
+// The next `days` days at `place` (today first), dated in `timeZone` (null:
+// the place's own zone)
 export async function dailyForecast(
   place: WeatherPlace,
   timeZone: string | null,
@@ -137,6 +139,7 @@ export async function dailyForecast(
   const { daily } = await getJson<DailyResponse>(url, 60 * 60);
   return daily.time.map((date, i) => ({
     date,
+    code: daily.weather_code[i],
     conditions: weatherLabel(daily.weather_code[i]),
     high: Math.round(daily.temperature_2m_max[i]),
     low: Math.round(daily.temperature_2m_min[i]),
