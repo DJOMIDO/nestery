@@ -8,11 +8,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 
 import { signUpSchema } from "@/lib/authSchema";
-import { resendVerificationEmail, signUpWithEmail, signInWithGitHub } from "@/lib/auth-client";
+import { resendVerificationEmail, signUpWithEmail } from "@/lib/auth-client";
 
-import { GithubLoginButton } from "@/components/GithubLoginButton";
 import { AuthShell } from "@/components/auth/AuthShell";
-import { useSocialProviders } from "@/components/auth/SocialProviders";
+import { SocialLoginButtons } from "@/components/auth/SocialLoginButtons";
 import { toast } from "sonner";
 
 import { z } from "zod";
@@ -24,7 +23,6 @@ import Link from "next/link";
 type FormData = z.infer<typeof signUpSchema>;
 
 export default function SignupPage() {
-  const providers = useSocialProviders();
   const router = useRouter();
 
   const {
@@ -156,13 +154,7 @@ export default function SignupPage() {
         </Button>
       </form>
 
-      {/* Only when GitHub sign-in is configured on the server */}
-      {providers.includes("github") && (
-        <div className="pt-4 border-t text-center space-y-3">
-          <p className="text-sm text-muted-foreground">Or continue with</p>
-          <GithubLoginButton onClick={signInWithGitHub} />
-        </div>
-      )}
+      <SocialLoginButtons />
 
       <div className="text-center text-sm">
         Already have an account?{" "}

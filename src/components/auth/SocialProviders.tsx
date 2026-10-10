@@ -5,14 +5,15 @@
 "use client";
 
 import { createContext, useContext } from "react";
+import type { SocialProviderId } from "@/lib/socialProviders";
 
-const SocialProvidersContext = createContext<string[]>([]);
+const SocialProvidersContext = createContext<SocialProviderId[]>([]);
 
 export function SocialProvidersProvider({
   providers,
   children,
 }: {
-  providers: string[];
+  providers: SocialProviderId[];
   children: React.ReactNode;
 }) {
   return <SocialProvidersContext.Provider value={providers}>{children}</SocialProvidersContext.Provider>;

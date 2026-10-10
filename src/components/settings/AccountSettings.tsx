@@ -7,7 +7,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Github, KeyRound, Laptop, LogOut, Smartphone, Trash2 } from "lucide-react";
+import { KeyRound, Laptop, LogOut, Smartphone, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,13 @@ import { Label } from "@/components/ui/label";
 import { useFormat } from "@/components/SettingsProvider";
 import { request } from "@/lib/api";
 import { authClient } from "@/lib/auth-client";
+import { ProviderIcon } from "@/components/auth/ProviderIcon";
+import {
+  SOCIAL_PROVIDERS,
+  SOCIAL_PROVIDER_LABELS,
+  isSocialProvider,
+  type SocialProviderId,
+} from "@/lib/socialProviders";
 import { formatRelative } from "@/lib/tasks";
 
 // Better Auth client calls resolve to { data, error }; this throws the error
@@ -42,7 +49,7 @@ interface LinkedAccount {
 export function AccountSettings() {
   const { data: session, isPending } = authClient.useSession();
   const [accounts, setAccounts] = useState<LinkedAccount[] | null>(null);
-  const [providers, setProviders] = useState<string[]>([]);
+  const [providers, setProviders] = useState<SocialProviderId[]>([]);
 
   const loadAccounts = useCallback(async () => {
     try {
@@ -54,17 +61,21 @@ export function AccountSettings() {
 
   useEffect(() => {
     loadAccounts();
-    request<string[]>("/api/account/providers").then(setProviders).catch(() => setProviders([]));
+    request<SocialProviderId[]>("/api/account/providers").then(setProviders).catch(() => setProviders([]));
   }, [loadAccounts]);
 
   if (isPending || !session) return <p className="text-sm text-muted-foreground">Loading…</p>;
 
   const hasPassword = accounts?.some((a) => a.providerId === "credential") ?? false;
+  // e.g. "GitHub" or "GitHub and Google", for accounts without a password
+  const socialNames = new Intl.ListFormat("en", { type: "conjunction" }).format(
+    (accounts ?? []).map((a) => a.providerId).filter(isSocialProvider).map((p) => SOCIAL_PROVIDER_LABELS[p])
+  );
 
   return (
     <div className="space-y-6">
       <ProfileCard name={session.user.name} email={session.user.email} />
-      <PasswordCard hasPassword={hasPassword} loading={accounts === null} />
+      <PasswordCard hasPassword={hasPassword} socialNames={socialNames} loading={accounts === null} />
       <SignInMethodsCard accounts={accounts} providers={providers} onChange={loadAccounts} />
       <SessionsCard currentToken={session.session.token} />
       <DeleteAccountCard email={session.user.email} hasPassword={hasPassword} />
@@ -221,7 +232,15 @@ function ChangeEmailForm({ currentEmail, onDone }: { currentEmail: string; onDon
 
 // ---- Password ------------------------------------------------------------
 
-function PasswordCard({ hasPassword, loading }: { hasPassword: boolean; loading: boolean }) {
+function PasswordCard({
+  hasPassword,
+  socialNames,
+  loading,
+}: {
+  hasPassword: boolean;
+  socialNames: string;
+  loading: boolean;
+}) {
   const [current, setCurrent] = useState("");
   const [next, setNext] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -234,7 +253,7 @@ function PasswordCard({ hasPassword, loading }: { hasPassword: boolean; loading:
     return (
       <Card title="Password">
         <p className="text-sm text-muted-foreground">
-          You sign in with GitHub, so your account has no password to change.
+          You sign in with {socialNames}, so your account has no password to change.
         </p>
       </Card>
     );
@@ -329,34 +348,37 @@ function SignInMethodsCard({
   onChange,
 }: {
   accounts: LinkedAccount[] | null;
-  providers: string[];
+  providers: SocialProviderId[];
   onChange: () => Promise<void>;
 }) {
   const [busy, setBusy] = useState(false);
   if (!accounts) return null;
 
   const hasPassword = accounts.some((a) => a.providerId === "credential");
-  const github = accounts.find((a) => a.providerId === "github");
-  const hasGithub = !!github;
+  const linked = (provider: SocialProviderId) => accounts.find((a) => a.providerId === provider);
+  // Linked ones stay listed even if the provider was switched off since, so
+  // they can still be disconnected
+  const shown = SOCIAL_PROVIDERS.filter((p) => linked(p) || providers.includes(p));
   // Never remove the last way to sign in
   const canUnlink = accounts.length > 1;
+  const onlyMethod = !canUnlink ? shown.find((p) => linked(p)) : undefined;
 
-  const connectGithub = async () => {
+  const connect = async (provider: SocialProviderId) => {
     setBusy(true);
     try {
-      // Leaves for GitHub and comes back here when done
-      await call(authClient.linkSocial({ provider: "github", callbackURL: "/settings?section=account" }));
+      // Leaves for the provider and comes back here when done
+      await call(authClient.linkSocial({ provider, callbackURL: "/settings?section=account" }));
     } catch (err) {
       toast.error(errorMessage(err));
       setBusy(false);
     }
   };
 
-  const disconnectGithub = async () => {
+  const disconnect = async (account: LinkedAccount, provider: SocialProviderId) => {
     setBusy(true);
     try {
-      await call(authClient.unlinkAccount({ accountId: github!.id }));
-      toast.success("GitHub disconnected");
+      await call(authClient.unlinkAccount({ accountId: account.id }));
+      toast.success(`${SOCIAL_PROVIDER_LABELS[provider]} disconnected`);
       await onChange();
     } catch (err) {
       toast.error(errorMessage(err));
@@ -373,31 +395,34 @@ function SignInMethodsCard({
           <span className="flex-1 text-sm">Email and password</span>
           <span className="text-xs text-muted-foreground">{hasPassword ? "Connected" : "Not set up"}</span>
         </li>
-        {(hasGithub || providers.includes("github")) && (
-          <li className="flex items-center gap-3 p-3">
-            <Github className="size-4 shrink-0 text-muted-foreground" />
-            <span className="flex-1 text-sm">GitHub</span>
-            {hasGithub ? (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={disconnectGithub}
-                disabled={busy || !canUnlink}
-                title={canUnlink ? undefined : "It's your only way to sign in"}
-              >
-                Disconnect
-              </Button>
-            ) : (
-              <Button variant="outline" size="sm" onClick={connectGithub} disabled={busy}>
-                Connect
-              </Button>
-            )}
-          </li>
-        )}
+        {shown.map((provider) => {
+          const account = linked(provider);
+          return (
+            <li key={provider} className="flex items-center gap-3 p-3">
+              <ProviderIcon provider={provider} className={provider === "github" ? "text-muted-foreground" : undefined} />
+              <span className="flex-1 text-sm">{SOCIAL_PROVIDER_LABELS[provider]}</span>
+              {account ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => disconnect(account, provider)}
+                  disabled={busy || !canUnlink}
+                  title={canUnlink ? undefined : "It's your only way to sign in"}
+                >
+                  Disconnect
+                </Button>
+              ) : (
+                <Button variant="outline" size="sm" onClick={() => connect(provider)} disabled={busy}>
+                  Connect
+                </Button>
+              )}
+            </li>
+          );
+        })}
       </ul>
-      {!canUnlink && hasGithub && (
+      {onlyMethod && (
         <p className="text-xs text-muted-foreground">
-          GitHub is your only way to sign in, so it can&apos;t be disconnected.
+          {SOCIAL_PROVIDER_LABELS[onlyMethod]} is your only way to sign in, so it can&apos;t be disconnected.
         </p>
       )}
     </Card>
@@ -556,7 +581,7 @@ function DeleteAccountCard({ email, hasPassword }: { email: string; hasPassword:
     setError(null);
     setDeleting(true);
     try {
-      // Without a password (GitHub-only accounts) Better Auth requires a
+      // Without a password (GitHub or Google only accounts) Better Auth requires a
       // recent sign-in instead
       await call(authClient.deleteUser(hasPassword ? { password } : {}));
       toast("Your account was deleted");
