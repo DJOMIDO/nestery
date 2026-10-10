@@ -3,13 +3,14 @@
 "use client";
 
 import Link from "next/link";
-import { CalendarDays, ChevronRight, LayoutGrid, ListTodo, NotebookPen, type LucideIcon } from "lucide-react";
+import { CalendarDays, ChevronRight, LayoutGrid, ListTodo, NotebookPen, Plane, type LucideIcon } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { CardHeading } from "./CardHeading";
 import { useFormat } from "@/components/SettingsProvider";
 import { eventDays, type CalendarEvent } from "@/lib/calendar";
 import type { Note } from "@/lib/notes";
 import { addDays, tagCounts, type Task } from "@/lib/tasks";
+import { journeyLabel, type Journey } from "@/lib/travel";
 import { cn } from "@/lib/utils";
 
 const DAY_MS = 86_400_000;
@@ -18,13 +19,14 @@ const MAX_TAGS = 6;
 interface AtAGlanceProps {
   tasks: Task[];
   notes: Note[];
-  // Events (own and subscribed) of the next 7 days, today first
+  // Events (own, subscribed and journeys) of the next 7 days, today first
   events: CalendarEvent[];
+  journeys: Journey[];
   today: string;
 }
 
 // One line per tool, with the numbers that matter over the next / last 7 days
-export function AtAGlanceCard({ tasks, notes, events, today }: AtAGlanceProps) {
+export function AtAGlanceCard({ tasks, notes, events, journeys, today }: AtAGlanceProps) {
   const format = useFormat();
   const lastDay = addDays(today, 6);
   const now = Date.now();
@@ -36,10 +38,16 @@ export function AtAGlanceCard({ tasks, notes, events, today }: AtAGlanceProps) {
   const pinned = notes.filter((n) => n.pinned).length;
   const editedRecently = notes.filter((n) => now - Date.parse(n.updatedAt) < 7 * DAY_MS).length;
 
+  // Journeys have their own row
   const upcoming = events.filter((e) => {
     const { first, last } = eventDays(e);
-    return last >= today && first <= lastDay;
+    return !e.source?.journeyId && last >= today && first <= lastDay;
   });
+
+  const upcomingTrips = journeys
+    .filter((j) => j.departureDate >= today)
+    .sort((a, b) => `${a.departureDate}${a.departureTime ?? ""}`.localeCompare(`${b.departureDate}${b.departureTime ?? ""}`));
+  const nextTrip = upcomingTrips[0];
   // The next thing on the calendar: a timed event that hasn't started, or an
   // all-day event from today on
   const next = upcoming
@@ -70,6 +78,18 @@ export function AtAGlanceCard({ tasks, notes, events, today }: AtAGlanceProps) {
               <span className="min-w-0 truncate text-muted-foreground">
                 Next: <span className="text-foreground">{next.title}</span> ·{" "}
                 {next.allDay ? format.dayWithWeekday(next.startDate!) : `${format.weekday(next.startsAt!)} ${format.time(next.startsAt!)}`}
+              </span>
+            )}
+          </GlanceRow>
+          <GlanceRow href="/travel" icon={Plane} title="Travel">
+            <Stat value={upcomingTrips.length} label={upcomingTrips.length === 1 ? "trip ahead" : "trips ahead"} />
+            {nextTrip && (
+              <span className="min-w-0 truncate text-muted-foreground">
+                Next:{" "}
+                <span className="text-foreground">
+                  {journeyLabel(nextTrip)} → {nextTrip.destinationName ?? nextTrip.destinationCity ?? nextTrip.destination}
+                </span>{" "}
+                · {format.dayWithWeekday(nextTrip.departureDate)}
               </span>
             )}
           </GlanceRow>

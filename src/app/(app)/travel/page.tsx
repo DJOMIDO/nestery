@@ -1,7 +1,8 @@
 // src/app/(app)/travel/page.tsx
 "use client";
 
-import { useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { FileUp, Plane, Plus, TrainFront, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useFormat } from "@/components/SettingsProvider";
@@ -27,11 +28,30 @@ const formatClock = (format: Formatter, hhmm: string) => {
   return format.time(new Date(2000, 0, 1, h, m));
 };
 
+// useSearchParams needs a Suspense boundary on a statically rendered page
 export default function TravelPage() {
+  return (
+    <Suspense>
+      <TravelPageContent />
+    </Suspense>
+  );
+}
+
+function TravelPageContent() {
   const { journeys, loading, createJourney, updateJourney, deleteJourney, reload } = useJourneys();
   const [filter, setFilter] = useState<Filter>("all");
   const [dialog, setDialog] = useState<{ kind: JourneyKind; journey: Journey | null } | null>(null);
   const [importOpen, setImportOpen] = useState(false);
+
+  // ?journey=<id> (from the calendar or the assistant) opens it once loaded
+  const router = useRouter();
+  const linked = useSearchParams().get("journey");
+  useEffect(() => {
+    if (!linked || loading) return;
+    const journey = journeys.find((j) => j.id === linked);
+    if (journey) setDialog({ kind: journey.kind, journey });
+    router.replace("/travel", { scroll: false });
+  }, [linked, loading, journeys, router]);
 
   const today = toDateKey(new Date());
   const { upcoming, past } = useMemo(() => {

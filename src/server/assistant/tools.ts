@@ -16,6 +16,7 @@ import { createEventInput, listEvents } from "@/server/events";
 import { getNote, listNotes, searchNotes } from "@/server/notes";
 import { subscriptionEvents } from "@/server/subscriptions";
 import { createTaskInput, getTask, listTasks, updateTaskInput } from "@/server/tasks";
+import { listJourneys } from "@/server/travel";
 import { dailyForecast, searchPlaces } from "@/server/weather";
 import type { ToolSpec } from "@/server/assistant/providers/types";
 
@@ -280,6 +281,54 @@ const weatherTool = tool({
   },
 });
 
+const listJourneysTool = tool({
+  name: "list_journeys",
+  label: "Checking your trips",
+  description:
+    "List the user's flights and train journeys from Travel. Times are local at each end (as on the ticket), with that place's time zone when known.",
+  input: z.object({
+    when: z.enum(["upcoming", "past", "all"]).optional().describe('"upcoming" (default, soonest first), "past" (latest first) or "all"'),
+    kind: z.enum(["flight", "train"]).optional(),
+    from: date.optional().describe("Only journeys departing on or after this day"),
+    to: date.optional().describe("Only journeys departing on or before this day"),
+  }),
+  async run({ when = "upcoming", kind, from, to }, { userId, today, format }) {
+    const all = await listJourneys(userId);
+    const startKey = (j: (typeof all)[number]) => `${j.departureDate}${j.departureTime ?? ""}`;
+    const journeys = all
+      .filter((j) => !kind || j.kind === kind)
+      .filter((j) => (when === "upcoming" ? j.departureDate >= today : when === "past" ? j.departureDate < today : true))
+      .filter((j) => (!from || j.departureDate >= from) && (!to || j.departureDate <= to))
+      .sort((a, b) => (when === "past" ? startKey(b).localeCompare(startKey(a)) : startKey(a).localeCompare(startKey(b))));
+    const clock = (hhmm: string | null) => {
+      if (!hhmm) return undefined;
+      const [h, m] = hhmm.split(":").map(Number);
+      return format.time(new Date(2000, 0, 1, h, m));
+    };
+    return {
+      total: journeys.length,
+      journeys: journeys.slice(0, 30).map((j) => ({
+        kind: j.kind,
+        link: `/travel?journey=${j.id}`,
+        name: `${j.carrier} ${j.number}`,
+        carrier: j.carrierName,
+        from: [j.origin, j.originName ?? j.originCity].filter(Boolean).join(" "),
+        to: [j.destination, j.destinationName ?? j.destinationCity].filter(Boolean).join(" "),
+        departureDate: j.departureDate,
+        departureText: [format.dayWithWeekday(j.departureDate), clock(j.departureTime)].filter(Boolean).join(", "),
+        departureTimeZone: j.departureTz ?? undefined,
+        arrivalText: j.arrivalTime
+          ? [format.dayWithWeekday(j.arrivalDate ?? j.departureDate), clock(j.arrivalTime)].join(", ")
+          : undefined,
+        arrivalTimeZone: j.arrivalTz ?? undefined,
+        seat: j.seat ?? undefined,
+        bookingRef: j.bookingRef ?? undefined,
+        notes: clip(j.notes, 200),
+      })),
+    };
+  },
+});
+
 const PROPOSED =
   "Shown to the user with Confirm and Dismiss buttons. It is NOT saved until they confirm; don't say it is done.";
 
@@ -367,6 +416,7 @@ const TOOLS = [
   listNotesTool,
   readNoteTool,
   weatherTool,
+  listJourneysTool,
   proposeTaskTool,
   proposeTaskUpdateTool,
   proposeEventTool,

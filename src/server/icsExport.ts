@@ -1,13 +1,15 @@
 // src/server/icsExport.ts
 // The user's calendar as an iCalendar feed for other apps: their own events
-// (repeating ones expanded, see below) and the due dates of open tasks.
+// (repeating ones expanded, see below), the due dates of open tasks and their
+// journeys from Travel.
 
 import ICAL from "ical.js";
 import { and, eq, isNotNull, ne } from "drizzle-orm";
 import { db } from "@/db";
-import { events, tasks } from "@/db/schema";
+import { events, journeys, tasks } from "@/db/schema";
 import { occurrenceDates, parseRRule } from "@/lib/recurrence";
 import { addDays } from "@/lib/tasks";
+import { journeyTimes, journeyTitle } from "@/lib/travel";
 import { dateKeyIn, wallTimeIn, wallTimeToDate } from "@/server/timeZones";
 
 // Repeating events are written out as single events over this window rather
@@ -89,20 +91,28 @@ function toVevent(occurrence: Occurrence, stamp: ICAL.Time) {
 }
 
 type TaskRow = { id: string; title: string; description: string | null; dueDate: string | null };
+type JourneyRow = typeof journeys.$inferSelect;
 
 export async function buildFeed(userId: string, timeZone: string, now = new Date()) {
-  const [eventRows, taskRows] = await Promise.all([
+  const [eventRows, taskRows, journeyRows] = await Promise.all([
     db.select().from(events).where(eq(events.userId, userId)),
     db
       .select({ id: tasks.id, title: tasks.title, description: tasks.description, dueDate: tasks.dueDate })
       .from(tasks)
       .where(and(eq(tasks.userId, userId), ne(tasks.status, "done"), isNotNull(tasks.dueDate))),
+    db.select().from(journeys).where(eq(journeys.userId, userId)),
   ]);
-  return feedFromRows(eventRows, taskRows, timeZone, now);
+  return feedFromRows(eventRows, taskRows, timeZone, now, journeyRows);
 }
 
 // Rows -> iCalendar text (separate from the queries so it can be tested alone)
-export function feedFromRows(eventRows: EventRow[], taskRows: TaskRow[], timeZone: string, now = new Date()) {
+export function feedFromRows(
+  eventRows: EventRow[],
+  taskRows: TaskRow[],
+  timeZone: string,
+  now = new Date(),
+  journeyRows: JourneyRow[] = []
+) {
   const today = dateKeyIn(now, timeZone);
   const from = shiftMonths(today, -MONTHS_BACK);
   const to = shiftMonths(today, MONTHS_AHEAD);
@@ -126,6 +136,22 @@ export function feedFromRows(eventRows: EventRow[], taskRows: TaskRow[], timeZon
       allDay: true,
       start: task.dueDate!,
       end: task.dueDate!,
+    });
+  }
+
+  for (const journey of journeyRows) {
+    if (journey.departureDate < from || journey.departureDate > to) continue;
+    // Ends without a time zone (trains, unknown airports) are on the user's clock
+    const times = journeyTimes(journey, timeZone);
+    occurrences.push({
+      uid: `journey-${journey.id}@nestery`,
+      title: journeyTitle(journey),
+      notes: [journey.seat && `Seat ${journey.seat}`, journey.bookingRef && `Booking ${journey.bookingRef}`, journey.notes]
+        .filter(Boolean)
+        .join("\n") || null,
+      allDay: !times,
+      start: times?.start ?? journey.departureDate,
+      end: times?.end ?? journey.arrivalDate ?? journey.departureDate,
     });
   }
 

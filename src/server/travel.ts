@@ -167,14 +167,15 @@ export const importJourneysInput = z.object({
 
 type JourneyRow = typeof journeys.$inferSelect;
 
-// Adds the airline and airport names when the codes are known
+// Adds the airline and airport names when the codes are known (flights)
 function withNames(row: JourneyRow) {
-  if (row.kind !== "flight") return row;
+  const flight = row.kind === "flight";
+  const place = (code: string) => (flight ? (findAirport(code)?.city ?? findAirport(code)?.name) : undefined);
   return {
     ...row,
-    carrierName: findAirline(row.carrier)?.name,
-    originName: findAirport(row.origin)?.city ?? findAirport(row.origin)?.name,
-    destinationName: findAirport(row.destination)?.city ?? findAirport(row.destination)?.name,
+    carrierName: flight ? findAirline(row.carrier)?.name : undefined,
+    originName: place(row.origin),
+    destinationName: place(row.destination),
   };
 }
 

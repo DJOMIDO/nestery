@@ -9,6 +9,8 @@ export const SUBSCRIPTION_COLORS = {
   rose: { label: "Rose", chip: "bg-rose-100 text-rose-800 dark:bg-rose-900/50 dark:text-rose-200", dot: "bg-rose-500" },
   teal: { label: "Teal", chip: "bg-teal-100 text-teal-800 dark:bg-teal-900/50 dark:text-teal-200", dot: "bg-teal-500" },
   slate: { label: "Slate", chip: "bg-slate-200 text-slate-800 dark:bg-slate-800 dark:text-slate-200", dot: "bg-slate-500" },
+  // Also used for journeys from Travel
+  indigo: { label: "Indigo", chip: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/50 dark:text-indigo-200", dot: "bg-indigo-500" },
 } as const;
 
 export type SubscriptionColor = keyof typeof SUBSCRIPTION_COLORS;
@@ -28,8 +30,11 @@ export interface CalendarSubscription {
 
 // Where an event shown on the calendar came from, when it is not the user's own
 export interface EventSource {
+  // A subscription's id, or "travel" for a journey
   subscriptionId: string;
   name: string;
   color: SubscriptionColor;
   location: string | null;
+  // Set on journeys shown from Travel; edited there
+  journeyId?: string;
 }

@@ -9,7 +9,7 @@ import remarkGfm from "remark-gfm";
 
 // Pages the assistant links to (from its tool results); other relative links
 // are shown as plain text
-const IN_APP_LINK = /^\/(tasks|notes|calendar|dashboard|settings)(\?|\/|$)/;
+const IN_APP_LINK = /^\/(tasks|notes|calendar|travel|dashboard|settings)(\?|\/|$)/;
 
 const linkClass = "text-leaf underline underline-offset-2";
 

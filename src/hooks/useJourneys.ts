@@ -1,9 +1,10 @@
 // src/hooks/useJourneys.ts
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { request } from "@/lib/api";
-import type { Journey, JourneyInput } from "@/lib/travel";
+import { eventDays } from "@/lib/calendar";
+import { journeyToEvent, type Journey, type JourneyInput } from "@/lib/travel";
 
 // Loads the user's journeys and exposes create/update/delete helpers that
 // keep the list in sync. Errors are shown as toasts.
@@ -59,4 +60,18 @@ export function useJourneys() {
   }, []);
 
   return { journeys, loading, reload, createJourney, updateJourney, deleteJourney };
+}
+
+// Journeys overlapping the days from..to as read-only calendar events
+export function journeyEventsBetween(journeys: Journey[], from: string, to: string) {
+  return journeys.map(journeyToEvent).filter((e) => {
+    const { first, last } = eventDays(e);
+    return first <= to && last >= from;
+  });
+}
+
+// The same, loading the journeys itself (for pages that don't list them)
+export function useJourneyEvents(from: string, to: string) {
+  const { journeys } = useJourneys();
+  return useMemo(() => journeyEventsBetween(journeys, from, to), [journeys, from, to]);
 }
