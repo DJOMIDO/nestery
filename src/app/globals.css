@@ -189,6 +189,18 @@
   .note-content {
     @apply min-h-[40vh] outline-none leading-relaxed;
   }
+  /* Attached images: fit the column, selected ones outlined */
+  .note-content img.note-image {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    border-radius: 0.5rem;
+    border: 1px solid var(--border);
+  }
+  .note-content img.note-image.ProseMirror-selectednode {
+    outline: 2px solid var(--leaf);
+    outline-offset: 2px;
+  }
   .note-content > * + * {
     @apply mt-3;
   }

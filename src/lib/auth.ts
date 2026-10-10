@@ -8,6 +8,8 @@ import { db } from "@/db";
 import * as schema from "@/db/schema";
 import { emailEnabled, sendEmail } from "@/server/email";
 import { confirmEmailChange, resetPasswordEmail, verifyEmail } from "@/server/emailTemplates";
+import { deleteUserFiles } from "@/server/attachments";
+import { storageEnabled } from "@/server/storage";
 import { SOCIAL_PROVIDERS, type SocialProviderId } from "@/lib/socialProviders";
 
 export { emailEnabled };
@@ -78,7 +80,13 @@ export const auth = betterAuth({
   },
   user: {
     // Settings > Account; the user's tasks, notes, events etc. cascade
-    deleteUser: { enabled: true },
+    deleteUser: {
+      enabled: true,
+      // Note attachments live in object storage, outside the database
+      beforeDelete: async (user) => {
+        if (storageEnabled()) await deleteUserFiles(user.id);
+      },
+    },
     // The current address approves first, then the new one is verified
     changeEmail: {
       enabled: true,

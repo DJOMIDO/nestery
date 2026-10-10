@@ -15,6 +15,7 @@ import {
   List,
   ListChecks,
   ListOrdered,
+  Paperclip,
   Pilcrow,
   Quote,
   SquareCode,
@@ -97,9 +98,11 @@ interface NoteToolbarProps {
   editor: Editor;
   // Opens the link editor in the bubble menu
   onEditLink: () => void;
+  // Picks files to attach; absent when attachments aren't available
+  onAttach?: () => void;
 }
 
-export function NoteToolbar({ editor, onEditLink }: NoteToolbarProps) {
+export function NoteToolbar({ editor, onEditLink, onAttach }: NoteToolbarProps) {
   // Re-render only when something shown here changes, not on every keystroke
   const state = useEditorState({
     editor,
@@ -216,6 +219,12 @@ export function NoteToolbar({ editor, onEditLink }: NoteToolbarProps) {
           ))}
         </DropdownMenuContent>
       </DropdownMenu>
+      {onAttach && (
+        <>
+          <Divider />
+          <ToolbarButton label="Attach image or file" icon={Paperclip} onClick={onAttach} />
+        </>
+      )}
     </div>
   );
 }

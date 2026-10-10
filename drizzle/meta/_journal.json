@@ -127,6 +127,13 @@
       "when": 1791638492250,
       "tag": "0017_cloudy_changeling",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1791644602518,
+      "tag": "0018_exotic_centennial",
+      "breakpoints": true
     }
   ]
 }

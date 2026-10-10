@@ -2,18 +2,55 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { EditorContent, useEditor } from "@tiptap/react";
+import { EditorContent, useEditor, type Editor } from "@tiptap/react";
+import { toast } from "sonner";
 import { ArrowLeft, Download, FileCode2, Pin, PinOff, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { NoteAttachments } from "@/components/notes/NoteAttachments";
 import { NoteBubbleMenu } from "@/components/notes/NoteBubbleMenu";
 import { NoteToolbar } from "@/components/notes/NoteToolbar";
 import { noteExtensions } from "@/components/notes/extensions";
 import { downloadMarkdown, noteToMarkdown } from "@/components/notes/markdown";
+import { useNoteAttachments } from "@/hooks/useNoteAttachments";
 import type { NoteInput } from "@/hooks/useNotes";
+import { attachmentHref, formatBytes, isImage, type NoteAttachment } from "@/lib/attachments";
 import type { Note, NoteContent } from "@/lib/notes";
 import { cn } from "@/lib/utils";
 
 const AUTOSAVE_DELAY = 800;
+
+// Puts an uploaded file in the note at `pos`: images show inline, other
+// files become a link
+function insertAttachment(editor: Editor, attachment: NoteAttachment, pos: number) {
+  const href = attachmentHref(attachment.id);
+  const node = isImage(attachment.contentType)
+    ? { type: "image", attrs: { src: href, alt: attachment.fileName } }
+    : {
+        type: "paragraph",
+        content: [
+          {
+            type: "text",
+            text: `📎 ${attachment.fileName} (${formatBytes(attachment.size)})`,
+            marks: [{ type: "link", attrs: { href } }],
+          },
+        ],
+      };
+  editor.chain().focus().insertContentAt(Math.min(pos, editor.state.doc.content.size), node).run();
+}
+
+// Takes a deleted file's images and links out of the note
+function removeAttachment(editor: Editor, attachment: NoteAttachment) {
+  const href = attachmentHref(attachment.id);
+  const ranges: [number, number][] = [];
+  editor.state.doc.descendants((node, pos) => {
+    const links = node.isText && node.marks.some((m) => m.type.name === "link" && String(m.attrs.href).startsWith(href));
+    if ((node.type.name === "image" && node.attrs.src === href) || links) ranges.push([pos, pos + node.nodeSize]);
+  });
+  if (!ranges.length) return;
+  const tr = editor.state.tr;
+  for (const [from, to] of ranges.reverse()) tr.delete(from, to);
+  editor.view.dispatch(tr);
+}
 
 type SaveStatus = "saved" | "unsaved" | "saving";
 
@@ -53,6 +90,11 @@ export function NoteEditor({
   const [source, setSource] = useState("");
   // Scroll container, so the bubble menu follows the text when it scrolls
   const [scrollEl, setScrollEl] = useState<HTMLDivElement | null>(null);
+  const { attachments, upload, remove } = useNoteAttachments(note.id);
+  const [uploading, setUploading] = useState(0);
+  const fileInput = useRef<HTMLInputElement>(null);
+  // The editor's paste and drop handlers are set once; they call the latest attach
+  const attachRef = useRef<(files: File[], pos?: number) => void>(() => {});
 
   // Edits not yet sent, merged so each save sends only the latest values
   const pending = useRef<NoteInput>({});
@@ -110,6 +152,21 @@ export function NoteEditor({
     immediatelyRender: false,
     editorProps: {
       attributes: { class: "note-content", "aria-label": "Note content" },
+      // Pasted files (e.g. a screenshot) are attached where the cursor is
+      handlePaste: (_view, event) => {
+        const files = Array.from(event.clipboardData?.files ?? []);
+        if (!files.length) return false;
+        attachRef.current(files);
+        return true;
+      },
+      // Files dropped in from outside are attached where they land
+      handleDrop: (view, event, _slice, moved) => {
+        const files = Array.from(event.dataTransfer?.files ?? []);
+        if (moved || !files.length) return false;
+        event.preventDefault();
+        attachRef.current(files, view.posAtCoords({ left: event.clientX, top: event.clientY })?.pos);
+        return true;
+      },
       // Cmd/Ctrl+click opens a link in a new tab
       handleClick: (_view, _pos, event) => {
         const link = (event.target as HTMLElement).closest("a");
@@ -133,6 +190,37 @@ export function NoteEditor({
         contentText: editor.getText({ blockSeparator: "\n" }),
       }),
   });
+
+  // Uploads one file at a time, each placed after the previous one
+  const attach = async (files: File[], pos?: number) => {
+    if (!editor || !files.length) return;
+    let at = pos ?? editor.state.selection.to;
+    setUploading((n) => n + files.length);
+    for (const file of files) {
+      try {
+        const attachment = await upload(file);
+        insertAttachment(editor, attachment, at);
+        at = editor.state.selection.to;
+      } catch (err) {
+        toast.error((err as Error).message);
+      } finally {
+        setUploading((n) => n - 1);
+      }
+    }
+  };
+  useEffect(() => {
+    attachRef.current = attach;
+  });
+
+  const handleDeleteAttachment = async (attachment: NoteAttachment) => {
+    if (!window.confirm(`Delete ${attachment.fileName}? It is removed from the note too.`)) return;
+    try {
+      await remove(attachment.id);
+      if (editor) removeAttachment(editor, attachment);
+    } catch (err) {
+      toast.error((err as Error).message);
+    }
+  };
 
   // Moving the cursor elsewhere closes the link editor
   useEffect(() => {
@@ -234,7 +322,11 @@ export function NoteEditor({
       )}
       {editor && !sourceMode && (
         <div className="border-y py-1">
-          <NoteToolbar editor={editor} onEditLink={() => setLinkEditing(true)} />
+          <NoteToolbar
+            editor={editor}
+            onEditLink={() => setLinkEditing(true)}
+            onAttach={() => fileInput.current?.click()}
+          />
         </div>
       )}
 
@@ -268,6 +360,19 @@ export function NoteEditor({
           />
         )}
         <EditorContent editor={editor} className={cn(sourceMode && "hidden")} />
+        <input
+          ref={fileInput}
+          type="file"
+          multiple
+          className="hidden"
+          onChange={(e) => {
+            attach(Array.from(e.target.files ?? []));
+            e.target.value = "";
+          }}
+        />
+        {!sourceMode && (
+          <NoteAttachments attachments={attachments} uploading={uploading} onDelete={handleDeleteAttachment} />
+        )}
         {editor && !sourceMode && (
           <NoteBubbleMenu
             editor={editor}

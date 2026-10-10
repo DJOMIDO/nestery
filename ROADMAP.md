@@ -22,13 +22,16 @@ tracks what is done, what is planned next, and ideas that were considered.
 - Phase 2: checklists, tables, links, highlight, a bubble menu for selected
   text and a block type menu
 - Phase 3: Markdown paste, per-note Markdown source view, `.md` import and export
+- Attachments: images shown in the note, other files as links, and a list
+  under the note; attach from the toolbar, by pasting or by dropping. Files
+  go from the browser straight to Neon Object Storage (private bucket,
+  signed URLs); notes link to /api/attachments/<id>, which checks the owner
+  and redirects to a cached, hour-long link. Photos over 2 MB and HEIC are
+  shrunk to a JPEG first; 20 MB per file, 1 GB per user. A deleted note's
+  files wait a day for Undo, then go unless another note links to them;
+  deleting the account deletes them all.
 
 **Planned**
-- **Attachments**: file and image uploads, images shown inline, drag-and-drop
-  and paste to upload. Storage: Neon Object Storage (S3-compatible, lives in
-  the same Neon project and branches with the database); first check that it
-  can be enabled on the existing project. Also needs an attachments table, a
-  size limit, and cleanup when a note is deleted.
 - **Integration**: tags on notes, shared with tasks (and counted in the
   dashboard's At a glance); server-side full-text search once there are
   enough notes to need it.
@@ -217,6 +220,6 @@ Tools worth borrowing from Nextcloud, in rough order of priority:
   The Tasks board view covers this instead.
 - **Password manager**: too much security risk to build ourselves.
 - **Chat and mail (Talk, Mail)**: far larger than the rest of the app.
-- **Files and Photos**: revisit once note attachments are running on Neon
-  Object Storage.
+- **Files and Photos**: note attachments now run on Neon Object Storage;
+  a separate file manager is still not planned.
 - **Forms and Polls**: built for groups, while Nestery is personal.
