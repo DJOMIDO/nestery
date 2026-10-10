@@ -55,7 +55,20 @@ export interface Airport {
   name: string;
   city: string | null;
   country: string;
+  latitude: number;
+  longitude: number;
   timeZone: string;
+}
+
+// The forecast at a journey's destination on its arrival day
+export interface JourneyWeather {
+  place: string;
+  date: string; // YYYY-MM-DD, local at the destination
+  code: number; // WMO weather code
+  conditions: string;
+  high: number;
+  low: number;
+  precipitation: number | null; // highest chance that day, %
 }
 
 export interface Airline {

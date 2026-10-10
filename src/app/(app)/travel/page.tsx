@@ -8,10 +8,11 @@ import { Button } from "@/components/ui/button";
 import { useFormat } from "@/components/SettingsProvider";
 import { ImportDialog } from "@/components/travel/ImportDialog";
 import { JourneyDialog } from "@/components/travel/JourneyDialog";
-import { useJourneys } from "@/hooks/useJourneys";
+import { JourneyWeatherBadge } from "@/components/travel/JourneyWeatherBadge";
+import { useJourneys, useJourneyWeather } from "@/hooks/useJourneys";
 import type { Formatter } from "@/lib/format";
 import { toDateKey } from "@/lib/tasks";
-import { journeyLabel, type Journey, type JourneyKind } from "@/lib/travel";
+import { journeyLabel, type Journey, type JourneyKind, type JourneyWeather } from "@/lib/travel";
 import { cn } from "@/lib/utils";
 
 type Filter = "all" | JourneyKind;
@@ -52,6 +53,10 @@ function TravelPageContent() {
     if (journey) setDialog({ kind: journey.kind, journey });
     router.replace("/travel", { scroll: false });
   }, [linked, loading, journeys, router]);
+
+  // Reloaded when a journey's destination or dates change
+  const weatherVersion = journeys.map((j) => `${j.id}:${j.destination}:${j.arrivalDate ?? j.departureDate}`).join();
+  const weather = useJourneyWeather(weatherVersion, !loading && journeys.length > 0);
 
   const today = toDateKey(new Date());
   const { upcoming, past } = useMemo(() => {
@@ -116,6 +121,7 @@ function TravelPageContent() {
           <JourneySection
             title="Upcoming"
             journeys={upcoming}
+            weather={weather}
             empty="Nothing planned."
             onOpen={(j) => setDialog({ kind: j.kind, journey: j })}
             onDelete={handleDelete}
@@ -147,12 +153,15 @@ function TravelPageContent() {
 function JourneySection({
   title,
   journeys,
+  weather = {},
   empty,
   onOpen,
   onDelete,
 }: {
   title: string;
   journeys: Journey[];
+  // By journey id; only for upcoming journeys
+  weather?: Record<string, JourneyWeather>;
   empty: string;
   onOpen: (journey: Journey) => void;
   onDelete: (journey: Journey) => void;
@@ -167,7 +176,7 @@ function JourneySection({
       ) : (
         <ul className="divide-y rounded-lg border bg-card">
           {journeys.map((j) => (
-            <JourneyRow key={j.id} journey={j} onOpen={onOpen} onDelete={onDelete} />
+            <JourneyRow key={j.id} journey={j} weather={weather[j.id]} onOpen={onOpen} onDelete={onDelete} />
           ))}
         </ul>
       )}
@@ -177,10 +186,12 @@ function JourneySection({
 
 function JourneyRow({
   journey: j,
+  weather,
   onOpen,
   onDelete,
 }: {
   journey: Journey;
+  weather?: JourneyWeather;
   onOpen: (journey: Journey) => void;
   onDelete: (journey: Journey) => void;
 }) {
@@ -215,6 +226,7 @@ function JourneyRow({
         <div className="shrink-0 text-right text-sm">
           <p>{format.dayWithYear(j.departureDate)}</p>
           {times.length > 0 && <p className="text-xs text-muted-foreground">{times.join(" – ")}</p>}
+          {weather && <JourneyWeatherBadge weather={weather} className="justify-end" />}
         </div>
       </button>
       <Button
