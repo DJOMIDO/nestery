@@ -44,14 +44,28 @@ interface WelcomeCardProps {
   className?: string;
 }
 
-// "2 events · 3 tasks due · next: Algo at 10:00", or a calm fallback
-function describeDay({ events, tasksDue, next }: DaySummary) {
-  const parts = [
+// "Today: 2 events · 3 tasks due · next: Algo at 10:00", or a calm fallback.
+// On phones the next event gets its own line ("Next: Algo at 10:00"), and the
+// time never breaks in two.
+function DayDescription({ summary: { events, tasksDue, next } }: { summary: DaySummary }) {
+  const counts = [
     events > 0 && `${events} ${events === 1 ? "event" : "events"}`,
     tasksDue > 0 && `${tasksDue} ${tasksDue === 1 ? "task" : "tasks"} due`,
-    next && `next: ${next.title} at ${next.time}`,
   ].filter(Boolean);
-  return parts.length > 0 ? `Today: ${parts.join(" · ")}` : "Nothing planned today. Enjoy the calm.";
+  if (counts.length === 0) return <>Nothing planned today. Enjoy the calm.</>;
+  return (
+    <>
+      Today: {counts.join(" · ")}
+      {/* A next event is one of today's, so there's always a count before it */}
+      {next && (
+        <span className="block sm:inline">
+          <span className="hidden sm:inline"> · next</span>
+          <span className="sm:hidden">Next</span>: {next.title} at{" "}
+          <span className="whitespace-nowrap">{next.time}</span>
+        </span>
+      )}
+    </>
+  );
 }
 
 // The greeting on the forest gradient, with At a glance below it on the plain card
@@ -87,7 +101,9 @@ export function WelcomeCard({
           {loading ? (
             <Skeleton className="appear-late mt-2 mb-0.5 h-3.5 w-56 max-w-full bg-white/25" />
           ) : (
-            <p className="mt-1 text-sm font-medium text-white/90">{describeDay(summary)}</p>
+            <p className="mt-1 text-sm font-medium text-white/90">
+              <DayDescription summary={summary} />
+            </p>
           )}
           {/* Quick add, formerly its own card */}
           <div className="mt-3 flex flex-wrap gap-2">
