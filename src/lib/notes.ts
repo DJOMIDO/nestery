@@ -3,6 +3,7 @@
 // Keep this file free of server-only imports so client components can use it.
 
 import type { JSONContent } from "@tiptap/react";
+import { isAttachmentHref } from "@/lib/attachments";
 
 // Editor document as stored in notes.content
 export type NoteContent = JSONContent & { type: "doc" };
@@ -24,10 +25,27 @@ export interface Note {
 export const noteTitle = (note: Pick<Note, "title">) =>
   note.title.trim() || "Untitled";
 
-// First non-empty line of the body, for the list
-export function notePreview(note: Pick<Note, "contentText">) {
-  const line = note.contentText.split("\n").find((l) => l.trim());
-  return line?.trim() ?? "No additional text";
+const TEXT_BLOCKS = new Set(["paragraph", "heading", "codeBlock"]);
+
+// The paragraphs, headings and code blocks of a document, in order (also
+// those inside lists, quotes and tables)
+function* textBlocks(node: JSONContent): Generator<JSONContent> {
+  if (node.type && TEXT_BLOCKS.has(node.type)) yield node;
+  else for (const child of node.content ?? []) yield* textBlocks(child);
+}
+
+// First non-empty line of the body, for the list. `file` is set when that
+// line is an attached file's link, so it can show a paperclip.
+export function notePreview(note: Pick<Note, "content">): { text: string; file: boolean } {
+  for (const block of textBlocks(note.content)) {
+    const parts = (block.content ?? []).filter((n) => n.type === "text" && n.text?.trim());
+    // Older notes put a 📎 before the file's name
+    const text = parts.map((n) => n.text).join("").replace(/^📎 /, "").split("\n")[0].trim();
+    if (!text) continue;
+    const file = parts.every((n) => n.marks?.some((m) => m.type === "link" && isAttachmentHref(m.attrs?.href)));
+    return { text, file };
+  }
+  return { text: "No additional text", file: false };
 }
 
 // Pinned first, then most recently edited

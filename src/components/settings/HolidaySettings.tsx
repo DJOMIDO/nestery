@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Search, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import { useSettings } from "@/components/SettingsProvider";
 import { fetchHolidayRegions, type Region } from "@/hooks/useHolidays";
@@ -154,6 +155,7 @@ export function HolidaySettings() {
           ). Nationwide public holidays only.
         </p>
         <Button onClick={handleSave} disabled={!dirty || saving}>
+          {saving && <Spinner />}
           {saving ? "Saving…" : "Save"}
         </Button>
       </div>

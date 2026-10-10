@@ -37,4 +37,6 @@ export interface EventSource {
   location: string | null;
   // Set on journeys shown from Travel; edited there
   journeyId?: string;
+  // The journey's kind, for its icon
+  journeyKind?: "flight" | "train";
 }

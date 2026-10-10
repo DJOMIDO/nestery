@@ -5,9 +5,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { KeyRound, Trash2 } from "lucide-react";
+import { KeyRound, Sparkles, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Loading, Spinner } from "@/components/ui/spinner";
+import { useShortcut } from "@/hooks/useShortcut";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -26,6 +28,7 @@ export function AssistantSettings() {
   const [saved, setSaved] = useState<AssistantSettingsView | null>(null);
   const [status, setStatus] = useState<AssistantStatus | null>(null);
   const [loading, setLoading] = useState(true);
+  const shortcut = useShortcut();
 
   const [provider, setProvider] = useState<AssistantProvider>("anthropic");
   const [apiKey, setApiKey] = useState("");
@@ -127,14 +130,16 @@ export function AssistantSettings() {
     }
   };
 
-  if (loading) return <p className="text-sm text-muted-foreground">Loading…</p>;
+  if (loading) return <Loading />;
 
   return (
     <section className="space-y-4 rounded-lg border bg-card p-5">
       <div>
         <h2 className="font-semibold">Assistant</h2>
         <p className="text-sm text-muted-foreground">
-          The assistant (✦ in the sidebar, or ⌘J) uses an AI model with your own API key; the provider bills you
+          {/* The same icon as the sidebar's Assistant item */}
+          The assistant (<Sparkles className="inline size-3.5 -translate-y-px" aria-label="Assistant icon" /> in the
+          sidebar, or {shortcut("J")}) uses an AI model with your own API key; the provider bills you
           for what you use. What the assistant looks up (tasks, events, notes) is sent to that provider.
         </p>
       </div>
@@ -269,7 +274,7 @@ export function AssistantSettings() {
               onClick={loadModels}
               disabled={loadingModels || !ready || (isCustom && !baseUrl.trim())}
             >
-              <KeyRound className="size-4 mr-1" />
+              {loadingModels ? <Spinner className="mr-1" /> : <KeyRound className="size-4 mr-1" />}
               {loadingModels ? "Loading…" : "Load models"}
             </Button>
           </div>
@@ -287,6 +292,7 @@ export function AssistantSettings() {
 
         <div className="flex justify-end">
           <Button type="submit" disabled={saving || !model.trim() || !ready || (isCustom && !baseUrl.trim())}>
+            {saving && <Spinner />}
             {saving ? "Saving…" : "Save"}
           </Button>
         </div>

@@ -5,6 +5,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -186,6 +187,7 @@ export function TaskForm({
           </Button>
         )}
         <Button type="submit" disabled={saving}>
+          {saving && <Spinner />}
           {saving ? "Saving…" : task ? "Save" : "Create"}
         </Button>
       </div>

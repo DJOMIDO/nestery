@@ -20,8 +20,12 @@ import { noteActivity, noteHref, type Note } from "@/lib/notes";
 import { eventActivity, type CalendarEvent } from "@/lib/calendar";
 import { SUBSCRIPTION_COLORS } from "@/lib/subscriptions";
 import { useFormat } from "@/components/SettingsProvider";
+import { ListSkeleton } from "@/components/ui/skeleton";
 
 const MAX_ITEMS = 10;
+// Older activity drops off, like the dashboard's other 7-day views
+const WINDOW_DAYS = 7;
+const WINDOW_MS = WINDOW_DAYS * 86_400_000;
 
 interface ActivityRow {
   id: string;
@@ -33,8 +37,8 @@ interface ActivityRow {
   chipClass: string;
 }
 
-// Tasks, notes and events activity merged, newest first. Each tool has its
-// own tone: tasks leaf, notes bark, events sky.
+// Tasks, notes and events activity of the last 7 days merged, newest first.
+// Each tool has its own tone: tasks leaf, notes bark, events sky.
 function recentActivity(tasks: Task[], notes: Note[], events: CalendarEvent[]): ActivityRow[] {
   const taskRows = taskActivity(tasks, MAX_ITEMS).map((a) => ({
     id: `task-${a.id}`,
@@ -63,7 +67,9 @@ function recentActivity(tasks: Task[], notes: Note[], events: CalendarEvent[]): 
     iconClass: "text-sky-600 dark:text-sky-400",
     chipClass: SUBSCRIPTION_COLORS.sky.chip,
   }));
+  const since = Date.now() - WINDOW_MS;
   return [...taskRows, ...noteRows, ...eventRows]
+    .filter((row) => Date.parse(row.at) >= since)
     .sort((a, b) => (a.at < b.at ? 1 : -1))
     .slice(0, MAX_ITEMS);
 }
@@ -74,10 +80,13 @@ export function RecentActivityCard({
   tasks,
   notes,
   events,
+  loading,
 }: {
   tasks: Task[];
   notes: Note[];
   events: CalendarEvent[];
+  // Tasks and notes still on their way
+  loading?: boolean;
 }) {
   const activities = recentActivity(tasks, notes, events);
   const format = useFormat();
@@ -86,8 +95,10 @@ export function RecentActivityCard({
     <Card className="w-full h-full rounded-lg bg-card">
       <CardContent className="p-4 flex flex-col min-h-0 flex-1">
         <CardHeading title="Recent Activity" icon={Activity} />
-        {activities.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No activity yet.</p>
+        {loading ? (
+          <ListSkeleton label="Loading activity" icon rows={4} rowClassName="px-2 py-2" />
+        ) : activities.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Nothing in the last {WINDOW_DAYS} days.</p>
         ) : (
           <ul className="space-y-0.5 min-h-0 overflow-y-auto">
             {activities.map(({ id, label, at, href, icon: Icon, iconClass, chipClass }) => (

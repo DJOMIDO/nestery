@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Plus, RefreshCw, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Loading } from "@/components/ui/spinner";
 import { ImportCalendarFile } from "@/components/calendar/CalendarTransferSettings";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -42,7 +43,7 @@ export function SubscriptionSettings() {
       </div>
 
       {loading ? (
-        <p className="text-sm text-muted-foreground">Loading…</p>
+        <Loading />
       ) : (
         subscriptions.length > 0 && (
           <ul className="divide-y rounded-md border">

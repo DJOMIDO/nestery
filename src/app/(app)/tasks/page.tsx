@@ -6,6 +6,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronDown, ChevronRight, Columns3, List, Plus, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { ListSkeleton } from "@/components/ui/skeleton";
+import { TaskBoardSkeleton } from "@/components/tasks/TaskBoardSkeleton";
 import { Input } from "@/components/ui/input";
 import { TaskBoard } from "@/components/tasks/TaskBoard";
 import { TaskDetailPanel } from "@/components/tasks/TaskDetailPanel";
@@ -218,7 +220,7 @@ function TasksPageContent() {
         {header}
         {filterChips}
         {loading ? (
-          <p className="text-sm text-muted-foreground">Loading tasks…</p>
+          <TaskBoardSkeleton />
         ) : (
           <TaskBoard
             tasks={filtered}
@@ -256,7 +258,7 @@ function TasksPageContent() {
         {filterChips}
 
         {loading ? (
-          <p className="text-sm text-muted-foreground">Loading tasks…</p>
+          <ListSkeleton label="Loading tasks" icon />
         ) : filtered.length === 0 ? (
           <p className="py-12 text-center text-sm text-muted-foreground">
             {hasFilter ? "No tasks match these filters." : "No tasks yet. Add your first one above."}
@@ -316,6 +318,7 @@ function TasksPageContent() {
               onDateFilter={setDateFilter}
               tagFilter={tagFilter}
               onTagFilter={setTagFilter}
+              loading={loading}
             />
           )}
         </div>

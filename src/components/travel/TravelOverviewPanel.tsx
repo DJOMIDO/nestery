@@ -8,6 +8,7 @@ import { Plane, TrainFront } from "lucide-react";
 import { useFormat } from "@/components/SettingsProvider";
 import { formatClock } from "@/components/travel/JourneyDetailPanel";
 import { JourneyWeatherBadge } from "@/components/travel/JourneyWeatherBadge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { dayDiff } from "@/lib/calendar";
 import { journeyLabel, type Journey, type JourneyWeather } from "@/lib/travel";
 
@@ -18,11 +19,20 @@ interface TravelOverviewPanelProps {
   weather: Record<string, JourneyWeather>;
   today: string;
   onSelect: (journey: Journey) => void;
+  // Journeys still on their way: placeholders instead of "Nothing planned" and zeros
+  loading?: boolean;
 }
 
 const placeName = (j: Journey) => j.destinationName ?? j.destinationCity ?? j.destination;
 
-export function TravelOverviewPanel({ journeys, upcoming, weather, today, onSelect }: TravelOverviewPanelProps) {
+export function TravelOverviewPanel({
+  journeys,
+  upcoming,
+  weather,
+  today,
+  onSelect,
+  loading,
+}: TravelOverviewPanelProps) {
   const format = useFormat();
   const next = upcoming[0];
   const year = today.slice(0, 4);
@@ -37,8 +47,16 @@ export function TravelOverviewPanel({ journeys, upcoming, weather, today, onSele
   return (
     <div className="flex h-full flex-col gap-6">
       <section aria-label="Next trip">
-        <h3 className="mb-2 text-sm font-semibold text-muted-foreground">Next trip</h3>
-        {next ? (
+        <h3 className="mb-3 text-base font-semibold text-muted-foreground">Next trip</h3>
+        {loading ? (
+          // The shape of the next-trip card
+          <div role="status" aria-label="Loading trips" className="appear-late space-y-3 rounded-lg border bg-background p-4">
+            <Skeleton className="h-3.5 w-20" />
+            <Skeleton className="h-6 w-1/2" />
+            <Skeleton className="h-3.5 w-2/3" />
+            <Skeleton className="h-3.5 w-1/3" />
+          </div>
+        ) : next ? (
           <button
             type="button"
             onClick={() => onSelect(next)}
@@ -66,24 +84,24 @@ export function TravelOverviewPanel({ journeys, upcoming, weather, today, onSele
           </button>
         ) : (
           <p className="text-sm text-muted-foreground">
-            Nothing planned. Add a journey, or use Paste booking to let the assistant read a confirmation email.
+            Nothing planned. Use New Journey to add one, or to paste a booking for the assistant to read.
           </p>
         )}
-        {upcoming.length > 1 && (
-          <p className="mt-2 text-xs text-muted-foreground">
+        {!loading && upcoming.length > 1 && (
+          <p className="mt-2 text-sm text-muted-foreground">
             {upcoming.length - 1} more coming up
           </p>
         )}
       </section>
 
       <section aria-label={`In ${year}`} className="mt-auto">
-        <h3 className="mb-2 text-sm font-semibold text-muted-foreground">In {year}</h3>
+        <h3 className="mb-3 text-base font-semibold text-muted-foreground">In {year}</h3>
         <div className="grid grid-cols-2 gap-3">
-          <Stat value={thisYear.length} label={thisYear.length === 1 ? "journey" : "journeys"} />
-          <Stat value={places.size} label={places.size === 1 ? "destination" : "destinations"} />
-          <Stat value={flights.length} label={flights.length === 1 ? "flight" : "flights"} />
-          <Stat value={thisYear.length - flights.length} label="by train" />
-          {km > 0 && (
+          <Stat value={thisYear.length} label={thisYear.length === 1 ? "journey" : "journeys"} loading={loading} />
+          <Stat value={places.size} label={places.size === 1 ? "destination" : "destinations"} loading={loading} />
+          <Stat value={flights.length} label={flights.length === 1 ? "flight" : "flights"} loading={loading} />
+          <Stat value={thisYear.length - flights.length} label="by train" loading={loading} />
+          {!loading && km > 0 && (
             <div className="col-span-2">
               <Stat value={km.toLocaleString()} label="km flown" />
             </div>
@@ -94,10 +112,14 @@ export function TravelOverviewPanel({ journeys, upcoming, weather, today, onSele
   );
 }
 
-function Stat({ value, label }: { value: number | string; label: string }) {
+function Stat({ value, label, loading }: { value: number | string; label: string; loading?: boolean }) {
   return (
     <div className="rounded-lg border bg-background px-3 py-2">
-      <p className="text-2xl font-semibold">{value}</p>
+      {loading ? (
+        <Skeleton className="appear-late my-1.5 h-6 w-8" />
+      ) : (
+        <p className="text-2xl font-semibold">{value}</p>
+      )}
       <p className="text-xs text-muted-foreground">{label}</p>
     </div>
   );

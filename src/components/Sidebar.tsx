@@ -11,6 +11,7 @@ import { useAssistant } from "@/components/assistant/AssistantProvider";
 import { NesteryMark } from "@/components/brand/NatureShapes";
 import { UserItem } from "@/components/UserItem";
 import { navItems } from "@/components/nav";
+import { useShortcut } from "@/hooks/useShortcut";
 import { useSidebarCollapsed } from "@/hooks/useSidebarCollapsed";
 import { signOut } from "@/lib/auth-client";
 import { useCurrentUserName } from "@/lib/useCurrentUserName";
@@ -21,6 +22,7 @@ export function Sidebar({ className = "" }: { className?: string }) {
   const { collapsed, isReady, toggle } = useSidebarCollapsed();
   const username = useCurrentUserName();
   const assistant = useAssistant();
+  const shortcut = useShortcut();
 
   // Cmd/Ctrl+\ toggles the sidebar (Cmd/Ctrl+B is bold in the note editor)
   useEffect(() => {
@@ -57,7 +59,7 @@ export function Sidebar({ className = "" }: { className?: string }) {
             opacity-0 transition-opacity hover:text-foreground group-hover/sidebar:opacity-100 focus-visible:opacity-100"
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           aria-expanded={!collapsed}
-          title={`${collapsed ? "Expand" : "Collapse"} sidebar (⌘\\)`}
+          title={`${collapsed ? "Expand" : "Collapse"} sidebar (${shortcut("\\")})`}
         >
           {collapsed ? <ChevronRight className="size-3.5" /> : <ChevronLeft className="size-3.5" />}
         </button>
@@ -80,7 +82,7 @@ export function Sidebar({ className = "" }: { className?: string }) {
       </div>
 
       <div className="px-2 pb-6 space-y-3">
-        <SideBarItem icon={Sparkles} label="Assistant (⌘J)" onClick={assistant.toggle} collapsed={collapsed} />
+        <SideBarItem icon={Sparkles} label={`Assistant (${shortcut("J")})`} onClick={assistant.toggle} collapsed={collapsed} />
         <UserItem
           name={username || "User"}
           collapsed={collapsed}

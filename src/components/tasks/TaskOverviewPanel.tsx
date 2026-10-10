@@ -4,6 +4,7 @@
 import { useMemo } from "react";
 import { MiniCalendar } from "@/components/tasks/MiniCalendar";
 import { WeekStats } from "@/components/tasks/WeekStats";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { tagCounts, type Task } from "@/lib/tasks";
 
@@ -13,6 +14,8 @@ interface TaskOverviewPanelProps {
   onDateFilter: (date: string | null) => void;
   tagFilter: string | null;
   onTagFilter: (tag: string | null) => void;
+  // Tasks still on their way: placeholders instead of the empty-state hint and zeros
+  loading?: boolean;
 }
 
 // Shown on the right of the task list when no task is selected
@@ -22,6 +25,7 @@ export function TaskOverviewPanel({
   onDateFilter,
   tagFilter,
   onTagFilter,
+  loading,
 }: TaskOverviewPanelProps) {
   const openTasks = useMemo(() => tasks.filter((t) => t.status !== "done"), [tasks]);
   const markedDates = useMemo(
@@ -41,8 +45,14 @@ export function TaskOverviewPanel({
       </section>
 
       <section aria-label="Tags">
-        <h3 className="text-sm font-semibold text-muted-foreground mb-2">Tags</h3>
-        {tags.length === 0 ? (
+        <h3 className="mb-3 text-base font-semibold text-muted-foreground">Tags</h3>
+        {loading ? (
+          <div role="status" aria-label="Loading tags" className="appear-late flex flex-wrap gap-2">
+            {["w-16", "w-20", "w-14"].map((w) => (
+              <Skeleton key={w} className={`h-6 rounded-full ${w}`} />
+            ))}
+          </div>
+        ) : tags.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             Add tags to your tasks to filter them here.
           </p>
@@ -72,8 +82,8 @@ export function TaskOverviewPanel({
 
       {/* Pinned to the bottom of the panel */}
       <section aria-label="This week" className="mt-auto">
-        <h3 className="text-sm font-semibold text-muted-foreground mb-2">This week</h3>
-        <WeekStats tasks={tasks} />
+        <h3 className="mb-3 text-base font-semibold text-muted-foreground">This week</h3>
+        <WeekStats tasks={tasks} loading={loading} />
       </section>
     </div>
   );

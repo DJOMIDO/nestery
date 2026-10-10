@@ -3,14 +3,23 @@
 
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ChevronDown, ChevronRight, ClipboardPaste, FileUp, Plane, Plus, TrainFront } from "lucide-react";
+import { ChevronDown, ChevronRight, ClipboardPaste, FileUp, Plus } from "lucide-react";
 import { useAssistant } from "@/components/assistant/AssistantProvider";
 import { Button } from "@/components/ui/button";
+import { ListSkeleton } from "@/components/ui/skeleton";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useFormat } from "@/components/SettingsProvider";
 import { ImportDialog } from "@/components/travel/ImportDialog";
 import { JourneyDetailPanel, formatClock } from "@/components/travel/JourneyDetailPanel";
 import { JourneyDialog } from "@/components/travel/JourneyDialog";
 import { JourneyWeatherBadge } from "@/components/travel/JourneyWeatherBadge";
+import { journeyIcon } from "@/components/travel/journeyIcon";
 import { TravelOverviewPanel } from "@/components/travel/TravelOverviewPanel";
 import { useJourneys, useJourneyWeather } from "@/hooks/useJourneys";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
@@ -92,40 +101,43 @@ function TravelPageContent() {
     }
   };
 
-  // The buttons wrap below the title as one group, never one by one
+  // One "New Journey" button like the other pages' "New …"; its menu has
+  // the two kinds and the two ways to bring bookings in
   const header = (
     <div className="flex flex-wrap items-center gap-x-2 gap-y-3">
       <div className="mr-auto">
         <h1 className="text-2xl font-bold">Travel</h1>
         <p className="text-sm text-muted-foreground">Your flights and train journeys.</p>
       </div>
-      <div className="flex items-center gap-2">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setImportOpen(true)}
-          title="Import from CSV"
-          aria-label="Import from CSV"
-        >
-          <FileUp className="size-4" />
-        </Button>
-        <Button
-          variant="ghost"
-          onClick={() => assistant.openWithDraft("Add the journeys from this booking to Travel:\n\n")}
-          title="Paste a booking confirmation or e-ticket; the assistant proposes the journeys"
-          aria-label="Paste booking"
-        >
-          <ClipboardPaste className="size-4 sm:mr-1" />
-          {/* Icon only on phones, so all the buttons fit on one line */}
-          <span className="hidden sm:inline">Paste booking</span>
-        </Button>
-        <Button variant="outline" onClick={() => setDialog({ kind: "train", journey: null })}>
-          <TrainFront className="mr-1 size-4" /> Train
-        </Button>
-        <Button onClick={() => setDialog({ kind: "flight", journey: null })}>
-          <Plus className="mr-1 size-4" /> Flight
-        </Button>
-      </div>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button>
+            <Plus className="mr-1 size-4" /> New Journey <ChevronDown className="ml-0.5 size-4 opacity-80" />
+          </Button>
+        </DropdownMenuTrigger>
+        {/* Each choice focuses what it opens (a dialog, the assistant's
+            message box), so the menu mustn't move focus back to its button */}
+        <DropdownMenuContent align="end" className="w-56" onCloseAutoFocus={(e) => e.preventDefault()}>
+          {(["flight", "train"] as const).map((kind) => {
+            const Icon = journeyIcon(kind);
+            return (
+              <DropdownMenuItem key={kind} onSelect={() => setDialog({ kind, journey: null })}>
+                <Icon /> {kind === "flight" ? "Flight" : "Train"}
+              </DropdownMenuItem>
+            );
+          })}
+          <DropdownMenuSeparator />
+          {/* The assistant reads a pasted confirmation or e-ticket and proposes the journeys */}
+          <DropdownMenuItem
+            onSelect={() => assistant.openWithDraft("Add the journeys from this booking to Travel: ")}
+          >
+            <ClipboardPaste /> Paste booking…
+          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => setImportOpen(true)}>
+            <FileUp /> Import from CSV…
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 
@@ -154,11 +166,11 @@ function TravelPageContent() {
         </div>
 
         {loading ? (
-          <p className="text-sm text-muted-foreground">Loading…</p>
+          <ListSkeleton label="Loading journeys" icon />
         ) : journeys.length === 0 ? (
           <p className="py-12 text-center text-sm text-muted-foreground">
-            No journeys yet. Add a flight or a train, paste a booking confirmation for the assistant to read, or import
-            a CSV file.
+            No journeys yet. Use New Journey to add a flight or a train, paste a booking confirmation for the
+            assistant to read, or import a CSV file.
           </p>
         ) : (
           <>
@@ -207,6 +219,7 @@ function TravelPageContent() {
               weather={weather}
               today={today}
               onSelect={(j) => setSelectedId(j.id)}
+              loading={loading}
             />
           )}
         </div>
@@ -266,7 +279,7 @@ function JourneyRow({
   onOpen: (journey: Journey) => void;
 }) {
   const format = useFormat();
-  const Icon = j.kind === "flight" ? Plane : TrainFront;
+  const Icon = journeyIcon(j.kind);
   const names = [j.originName ?? j.originCity, j.destinationName ?? j.destinationCity];
 
   return (
@@ -276,7 +289,7 @@ function JourneyRow({
         onClick={() => onOpen(j)}
         aria-current={selected ? "true" : undefined}
         className={cn(
-          "flex w-full items-start gap-3 rounded-md px-3 py-2 text-left hover:bg-muted/60",
+          "flex w-full items-start gap-3 rounded-md px-3 py-2 text-left hover:bg-foreground/5",
           selected && "bg-primary/10 hover:bg-primary/10 dark:bg-primary/20"
         )}
       >

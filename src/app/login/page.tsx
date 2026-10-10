@@ -8,6 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
@@ -102,6 +103,7 @@ export default function LoginPage() {
               Please confirm your email first. We&apos;ve sent a new link to <strong>{unverified}</strong>.
             </p>
             <Button type="button" variant="outline" size="sm" onClick={resend} disabled={resending}>
+              {resending && <Spinner />}
               {resending ? "Sending…" : "Send it again"}
             </Button>
           </div>

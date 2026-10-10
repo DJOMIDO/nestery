@@ -7,13 +7,15 @@ import { NotebookPen, Pin } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { CardHeading } from "./CardHeading";
 import { useFormat } from "@/components/SettingsProvider";
-import { compareNotes, noteHref, notePreview, noteTitle, type Note } from "@/lib/notes";
+import { compareNotes, noteHref, noteTitle, type Note } from "@/lib/notes";
+import { NotePreview } from "@/components/notes/NotePreview";
+import { ListSkeleton } from "@/components/ui/skeleton";
 import { formatRelative } from "@/lib/tasks";
 
 const MAX_NOTES = 5;
 
 // Pinned notes first, then the most recently edited
-export function RecentNotesCard({ notes }: { notes: Note[] }) {
+export function RecentNotesCard({ notes, loading }: { notes: Note[]; loading?: boolean }) {
   const format = useFormat();
   const shown = [...notes].sort(compareNotes).slice(0, MAX_NOTES);
 
@@ -21,7 +23,9 @@ export function RecentNotesCard({ notes }: { notes: Note[] }) {
     <Card className="w-full h-full rounded-lg bg-card">
       <CardContent className="p-4 flex flex-col min-h-0 flex-1">
         <CardHeading title="Recent notes" icon={NotebookPen} />
-        {shown.length === 0 ? (
+        {loading ? (
+          <ListSkeleton label="Loading notes" rows={3} rowClassName="px-0 py-1.5" />
+        ) : shown.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             No notes yet.{" "}
             <Link href="/notes" className="text-leaf underline-offset-2 hover:underline">
@@ -40,7 +44,7 @@ export function RecentNotesCard({ notes }: { notes: Note[] }) {
                       {formatRelative(note.updatedAt, undefined, format.day)}
                     </span>
                   </span>
-                  <span className="block truncate text-xs text-muted-foreground">{notePreview(note)}</span>
+                  <NotePreview note={note} className="text-xs" />
                 </Link>
               </li>
             ))}

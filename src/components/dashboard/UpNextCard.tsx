@@ -10,6 +10,7 @@ import { CardHeading } from "./CardHeading";
 import { CalendarRow, eventWhen } from "@/components/calendar/CalendarItemView";
 import { EventLinkList, linkedEvents } from "@/components/calendar/EventLinkList";
 import { useFormat, useHolidayCountries } from "@/components/SettingsProvider";
+import { ListSkeleton } from "@/components/ui/skeleton";
 import { useHolidays } from "@/hooks/useHolidays";
 import { itemsByDay, type CalendarEvent, type CalendarItem } from "@/lib/calendar";
 import { addDays, compareTasks, toDateKey, type Task } from "@/lib/tasks";
@@ -21,6 +22,8 @@ interface UpNextProps {
   // Events (own and subscribed) overlapping the next 7 days
   events: CalendarEvent[];
   today: string;
+  // Tasks and events still on their way
+  loading?: boolean;
 }
 
 // Where an item opens: events on the calendar, tasks on the task list
@@ -29,7 +32,7 @@ const hrefOf = (item: CalendarItem) =>
 
 // The next 7 days as one agenda: events, task due dates and holidays by day,
 // with overdue tasks first. Reminders have their own card.
-export function UpNextCard({ tasks, events, today }: UpNextProps) {
+export function UpNextCard({ tasks, events, today, loading }: UpNextProps) {
   const format = useFormat();
   const days = useMemo(() => Array.from({ length: DAYS }, (_, i) => addDays(today, i)), [today]);
 
@@ -76,55 +79,61 @@ export function UpNextCard({ tasks, events, today }: UpNextProps) {
 
         {/* -mx-1 px-1 makes room for the lists' -mx-1, so they don't scroll sideways */}
         <div className="-mx-1 min-h-0 flex-1 space-y-4 overflow-y-auto px-1">
-          {overdue.length > 0 && (
-            <section>
-              <h3 className="mb-1 flex items-center gap-1.5 text-xs font-semibold text-rose-600">
-                <AlarmClock className="size-3.5" /> Overdue
-              </h3>
-              <ul className="-mx-1">
-                {overdue.map((task) => (
-                  <li key={task.id}>
-                    <AgendaLink href="/tasks">
-                      <CalendarRow item={{ kind: "task", id: `t-${task.id}`, task }} />
-                    </AgendaLink>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          )}
-
-          {/* Links follow Today, or come first when nothing is on today */}
-          {sections[0]?.day !== today && linksSection}
-
-          {sections.map(({ day, items }) => (
-            <Fragment key={day}>
-              <section>
-                <h3 className="mb-1 text-xs font-semibold text-muted-foreground">{dayLabel(day)}</h3>
-                <ul className="-mx-1">
-                  {items.map((item) => {
-                    const href = hrefOf(item);
-                    return (
-                      <li key={item.id}>
-                        {href ? (
-                          <AgendaLink href={href}>
-                            <CalendarRow item={item} />
-                          </AgendaLink>
-                        ) : (
-                          <div className="px-1 py-1.5">
-                            <CalendarRow item={item} />
-                          </div>
-                        )}
+          {loading ? (
+            <ListSkeleton label="Loading the week ahead" icon rows={4} rowClassName="px-1 py-1.5" />
+          ) : (
+            <>
+              {overdue.length > 0 && (
+                <section>
+                  <h3 className="mb-1 flex items-center gap-1.5 text-xs font-semibold text-rose-600">
+                    <AlarmClock className="size-3.5" /> Overdue
+                  </h3>
+                  <ul className="-mx-1">
+                    {overdue.map((task) => (
+                      <li key={task.id}>
+                        <AgendaLink href="/tasks">
+                          <CalendarRow item={{ kind: "task", id: `t-${task.id}`, task }} />
+                        </AgendaLink>
                       </li>
-                    );
-                  })}
-                </ul>
-              </section>
-              {day === today && linksSection}
-            </Fragment>
-          ))}
+                    ))}
+                  </ul>
+                </section>
+              )}
 
-          {overdue.length === 0 && sections.length === 0 && (
-            <p className="text-sm text-muted-foreground">Nothing planned for the next 7 days.</p>
+              {/* Links follow Today, or come first when nothing is on today */}
+              {sections[0]?.day !== today && linksSection}
+
+              {sections.map(({ day, items }) => (
+                <Fragment key={day}>
+                  <section>
+                    <h3 className="mb-1 text-xs font-semibold text-muted-foreground">{dayLabel(day)}</h3>
+                    <ul className="-mx-1">
+                      {items.map((item) => {
+                        const href = hrefOf(item);
+                        return (
+                          <li key={item.id}>
+                            {href ? (
+                              <AgendaLink href={href}>
+                                <CalendarRow item={item} />
+                              </AgendaLink>
+                            ) : (
+                              <div className="px-1 py-1.5">
+                                <CalendarRow item={item} />
+                              </div>
+                            )}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </section>
+                  {day === today && linksSection}
+                </Fragment>
+              ))}
+
+              {overdue.length === 0 && sections.length === 0 && (
+                <p className="text-sm text-muted-foreground">Nothing planned for the next 7 days.</p>
+              )}
+            </>
           )}
         </div>
       </CardContent>

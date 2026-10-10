@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { CalendarChip } from "@/components/calendar/CalendarItemView";
+import { CalendarChip, EventKindIcon } from "@/components/calendar/CalendarItemView";
 import { SUBSCRIPTION_COLORS } from "@/lib/subscriptions";
 import { DayDrop, DraggableItem, ResizeHandle } from "@/components/calendar/dnd";
 import { useFormat } from "@/components/SettingsProvider";
@@ -60,11 +60,14 @@ export function WeekView({ days, items, events, today, selected, onSelect, onOpe
 
   const hours = Array.from({ length: 24 }, (_, h) => h);
   const columns = "grid grid-cols-[3.5rem_repeat(7,minmax(0,1fr))]";
+  // Only the time grid scrolls, so with always-visible scrollbars its days
+  // would be narrower than the headers'. Every row keeps the scrollbar's room.
+  const gutter = "overflow-y-hidden [scrollbar-gutter:stable]";
 
   return (
     <div className="flex flex-1 min-h-0 flex-col overflow-hidden rounded-lg border bg-card">
       {/* Day headers */}
-      <div className={cn(columns, "border-b")}>
+      <div className={cn(columns, gutter, "border-b")}>
         <span />
         {days.map((day) => {
           const isToday = day === today;
@@ -96,7 +99,7 @@ export function WeekView({ days, items, events, today, selected, onSelect, onOpe
       </div>
 
       {/* All-day row: holidays, all-day events, tasks due */}
-      <div className={cn(columns, "border-b")}>
+      <div className={cn(columns, gutter, "border-b")}>
         <span className="self-center pr-2 text-right text-[10px] text-muted-foreground">All day</span>
         {days.map((day) => {
           const list = allDayItems(day);
@@ -123,7 +126,7 @@ export function WeekView({ days, items, events, today, selected, onSelect, onOpe
       </div>
 
       {/* Time grid */}
-      <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto">
+      <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto [scrollbar-gutter:stable]">
         <div className={cn(columns, "relative")} style={{ height: 24 * HOUR_PX }}>
           {/* Hour labels */}
           <div className="relative">
@@ -191,7 +194,10 @@ export function WeekView({ days, items, events, today, selected, onSelect, onOpe
                       width: `calc(${100 / segment.columns}% - 4px)`,
                     }}
                   >
-                    <p className="truncate font-medium">{event.title}</p>
+                    <p className="flex items-center gap-1 font-medium">
+                      <EventKindIcon event={event} className="size-3 shrink-0" />
+                      <span className="truncate">{event.title}</span>
+                    </p>
                     {height >= 28 && (
                       <p className="truncate opacity-80">
                         {format.time(event.startsAt!)} – {format.time(event.endsAt!)}

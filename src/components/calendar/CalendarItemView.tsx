@@ -7,6 +7,7 @@ import { eventDays, type CalendarEvent, type CalendarItem } from "@/lib/calendar
 import type { Formatter } from "@/lib/format";
 import { describeRule, parseRRule } from "@/lib/recurrence";
 import { SUBSCRIPTION_COLORS } from "@/lib/subscriptions";
+import { journeyIcon } from "@/components/travel/journeyIcon";
 import { toDateKey } from "@/lib/tasks";
 import { cn } from "@/lib/utils";
 
@@ -80,12 +81,21 @@ export function CalendarChip({ item }: { item: CalendarItem }) {
       title={label}
     >
       {item.kind === "reminder" && <Bell className="size-3 shrink-0" />}
+      {item.kind === "event" && <EventKindIcon event={item.event} className="size-3 shrink-0" />}
       <span className="truncate">{label}</span>
       {item.kind === "event" && item.event.rrule && (
         <Repeat className="ml-auto size-3 shrink-0 opacity-70" aria-label="Repeats" />
       )}
     </span>
   );
+}
+
+// A plane or train before a journey's title; nothing for other events
+export function EventKindIcon({ event, className }: { event: CalendarEvent; className?: string }) {
+  const kind = event.source?.journeyKind;
+  if (!kind) return null;
+  const Icon = journeyIcon(kind);
+  return <Icon className={className} />;
 }
 
 // Full row for the day agenda
@@ -116,7 +126,7 @@ function rowContent(item: CalendarItem, format: Formatter) {
   switch (item.kind) {
     case "event":
       return {
-        icon: CalendarClock,
+        icon: item.event.source?.journeyKind ? journeyIcon(item.event.source.journeyKind) : CalendarClock,
         title: item.event.title,
         detail: [
           eventWhen(item.event, format),

@@ -16,6 +16,7 @@ import { toast } from "sonner";
 
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
@@ -87,6 +88,7 @@ export default function SignupPage() {
           </p>
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" onClick={resend} disabled={resending}>
+              {resending && <Spinner />}
               {resending ? "Sending…" : "Send it again"}
             </Button>
             <Button variant="ghost" asChild>

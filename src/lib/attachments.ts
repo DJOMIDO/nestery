@@ -20,6 +20,22 @@ export interface NoteAttachment {
 // The app's own link to a file: it checks the owner, then redirects to a
 // short-lived storage link. Notes keep this link, which never expires.
 export const attachmentHref = (id: string) => `/api/attachments/${id}`;
+export const isAttachmentHref = (href: unknown) => String(href).startsWith("/api/attachments/");
+
+// Notes once put a 📎 before a file link's name; the app now shows a
+// paperclip icon instead (the editor's is in globals.css). Drops the old
+// emoji from a note's content, so those notes show the icon too.
+export function withoutAttachmentEmoji<T>(content: T): T {
+  const strip = (node: unknown): unknown => {
+    if (Array.isArray(node)) return node.map(strip);
+    if (!node || typeof node !== "object") return node;
+    const n = node as { type?: string; text?: string; marks?: { type: string; attrs?: { href?: unknown } }[] };
+    const isFileLink = n.marks?.some((m) => m.type === "link" && isAttachmentHref(m.attrs?.href));
+    if (n.type === "text" && isFileLink && n.text?.startsWith("📎 ")) return { ...n, text: n.text.slice(3) };
+    return Object.fromEntries(Object.entries(n).map(([k, v]) => [k, k === "content" ? strip(v) : v]));
+  };
+  return strip(content) as T;
+}
 
 // Ids of the files a note's content links to
 export function attachmentIdsIn(content: unknown) {

@@ -32,6 +32,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useShortcut } from "@/hooks/useShortcut";
 import { cn } from "@/lib/utils";
 
 interface ToolbarAction {
@@ -103,6 +104,7 @@ interface NoteToolbarProps {
 }
 
 export function NoteToolbar({ editor, onEditLink, onAttach }: NoteToolbarProps) {
+  const shortcut = useShortcut();
   // Re-render only when something shown here changes, not on every keystroke
   const state = useEditorState({
     editor,
@@ -170,7 +172,7 @@ export function NoteToolbar({ editor, onEditLink, onAttach }: NoteToolbarProps) 
 
       <Divider />
       <ToolbarButton
-        label="Link (⌘K)"
+        label={`Link (${shortcut("K")})`}
         icon={Link2}
         active={state.link}
         disabled={!state.canLink}

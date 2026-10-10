@@ -6,7 +6,10 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  /* Figtree for Latin text and numbers. Chinese uses PingFang on Apple
+     devices and the Noto Sans SC web font elsewhere, so Windows doesn't fall
+     back to Microsoft YaHei */
+  --font-sans: var(--font-figtree), "PingFang SC", "Hiragino Sans GB", var(--font-noto-sans-sc), "Microsoft YaHei", system-ui, sans-serif;
   --font-mono: var(--font-geist-mono);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -35,6 +38,7 @@
   --color-primary: var(--primary);
   --color-popover-foreground: var(--popover-foreground);
   --color-popover: var(--popover);
+  --color-elevated: var(--elevated);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
   --color-leaf: var(--leaf);
@@ -77,6 +81,9 @@
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.141 0.005 155);
   --popover: oklch(1 0 0);
+  /* Panels floating over the page's cards (the assistant). Shadows set them
+     apart by day; by night a lighter surface does. */
+  --elevated: var(--card);
   --popover-foreground: oklch(0.141 0.005 155);
   /* Primary actions (default buttons, selection) in the forest palette */
   --primary: var(--forest);
@@ -129,6 +136,7 @@
   --card: oklch(0.21 0.012 155);
   --card-foreground: oklch(0.965 0.006 130);
   --popover: oklch(0.21 0.012 155);
+  --elevated: oklch(0.25 0.012 155);
   --popover-foreground: oklch(0.965 0.006 130);
   --primary: var(--leaf);
   --primary-foreground: oklch(0.16 0.01 155);
@@ -183,6 +191,16 @@
 }
 
 
+/* Loading states (<Loading>, skeletons) fade in only after a moment, so a
+   quick load shows nothing rather than a flash */
+@keyframes appear-late {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@utility appear-late {
+  animation: appear-late 200ms ease-out 300ms both;
+}
+
 /* Note editor (Tiptap) content. Tailwind's reset removes list markers and
    heading sizes, so the editor's document gets its own typography here. */
 @layer components {
@@ -236,6 +254,17 @@
   }
   .note-content a {
     @apply text-leaf underline underline-offset-2;
+  }
+  /* Attached files: a paperclip (Lucide's) before the name, in the link color */
+  .note-content a[href^="/api/attachments/"]::before {
+    content: "";
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    margin-right: 0.25em;
+    vertical-align: -0.125em;
+    background-color: currentColor;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m16 6-8.414 8.586a2 2 0 0 0 2.829 2.829l8.414-8.586a4 4 0 1 0-5.657-5.657l-8.379 8.551a6 6 0 1 0 8.485 8.485l8.379-8.551'/%3E%3C/svg%3E") center / contain no-repeat;
   }
   .note-content hr {
     @apply my-6 border-border;

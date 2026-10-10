@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useCurrentUserName } from "@/lib/useCurrentUserName";
 import { NatureGrid } from "@/components/brand/NatureShapes";
 import { AtAGlance } from "./AtAGlance";
+import { Skeleton } from "@/components/ui/skeleton";
 import type { CalendarEvent } from "@/lib/calendar";
 import type { Note } from "@/lib/notes";
 import type { Task } from "@/lib/tasks";
@@ -38,6 +39,8 @@ interface WelcomeCardProps {
   events: CalendarEvent[];
   journeys: Journey[];
   today: string;
+  // The day's tasks and events are still on their way
+  loading?: boolean;
   className?: string;
 }
 
@@ -62,6 +65,7 @@ export function WelcomeCard({
   events,
   journeys,
   today,
+  loading,
   className,
 }: WelcomeCardProps) {
   const name = useCurrentUserName();
@@ -80,7 +84,11 @@ export function WelcomeCard({
         </div>
         <div className="relative px-4 py-6">
           <h2 className="text-2xl md:text-3xl font-semibold">Hello, {name}!</h2>
-          <p className="mt-1 text-sm font-medium text-white/90">{describeDay(summary)}</p>
+          {loading ? (
+            <Skeleton className="appear-late mt-2 mb-0.5 h-3.5 w-56 max-w-full bg-white/25" />
+          ) : (
+            <p className="mt-1 text-sm font-medium text-white/90">{describeDay(summary)}</p>
+          )}
           {/* Quick add, formerly its own card */}
           <div className="mt-3 flex flex-wrap gap-2">
             <QuickAdd icon={ClipboardList} label="Task" onClick={onAddTask} />
@@ -91,7 +99,7 @@ export function WelcomeCard({
       </div>
       {/* Scrolls on its own while the greeting stays put */}
       <CardContent className="p-4 flex flex-col min-h-0 flex-1 overflow-y-auto">
-        <AtAGlance tasks={tasks} notes={notes} events={events} journeys={journeys} today={today} />
+        <AtAGlance tasks={tasks} notes={notes} events={events} journeys={journeys} today={today} loading={loading} />
       </CardContent>
     </Card>
   );
