@@ -61,7 +61,7 @@ export function FeatureShowcase() {
           key={tile.title}
           className={cn(
             "group relative overflow-hidden rounded-xl border bg-card/85 p-4 text-left backdrop-blur-sm",
-            "transition duration-200 hover:-translate-y-0.5 hover:shadow-lg",
+            "transition duration-200 hover:-translate-y-0.5",
             tile.wide ? "sm:col-span-3" : "sm:col-span-2"
           )}
         >

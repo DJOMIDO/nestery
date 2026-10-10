@@ -1,10 +1,9 @@
-// src/components/dashboard/AtAGlanceCard.tsx
+// src/components/dashboard/AtAGlance.tsx
 
 "use client";
 
 import Link from "next/link";
 import { CalendarDays, ChevronRight, LayoutGrid, ListTodo, NotebookPen, Plane, type LucideIcon } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
 import { CardHeading } from "./CardHeading";
 import { useFormat } from "@/components/SettingsProvider";
 import { eventDays, type CalendarEvent } from "@/lib/calendar";
@@ -25,8 +24,9 @@ interface AtAGlanceProps {
   today: string;
 }
 
-// One line per tool, with the numbers that matter over the next / last 7 days
-export function AtAGlanceCard({ tasks, notes, events, journeys, today }: AtAGlanceProps) {
+// One line per tool, with the numbers that matter over the next / last 7 days.
+// Rendered inside the Welcome card, below the greeting.
+export function AtAGlance({ tasks, notes, events, journeys, today }: AtAGlanceProps) {
   const format = useFormat();
   const lastDay = addDays(today, 6);
   const now = Date.now();
@@ -57,58 +57,56 @@ export function AtAGlanceCard({ tasks, notes, events, journeys, today }: AtAGlan
   const tags = tagCounts(open).slice(0, MAX_TAGS);
 
   return (
-    <Card className="w-full h-full rounded-lg shadow-sm bg-card hover:shadow-md">
-      <CardContent className="p-4 flex flex-col min-h-0 flex-1 overflow-y-auto">
-        <CardHeading title="At a glance" icon={LayoutGrid} />
+    <>
+      <CardHeading title="At a glance" icon={LayoutGrid} />
 
-        <ul className="divide-y">
-          <GlanceRow href="/tasks" icon={ListTodo} title="Tasks">
-            <Stat value={open.length} label="open" />
-            <Stat value={overdue} label="overdue" alert={overdue > 0} />
-            <Stat value={dueSoon} label="due in 7 days" />
-          </GlanceRow>
-          <GlanceRow href="/notes" icon={NotebookPen} title="Notes">
-            <Stat value={notes.length} label={notes.length === 1 ? "note" : "notes"} />
-            <Stat value={pinned} label="pinned" />
-            <Stat value={editedRecently} label="edited in 7 days" />
-          </GlanceRow>
-          <GlanceRow href="/calendar" icon={CalendarDays} title="Calendar">
-            <Stat value={upcoming.length} label={`${upcoming.length === 1 ? "event" : "events"} in 7 days`} />
-            {next && (
-              <span className="min-w-0 truncate text-muted-foreground">
-                Next: <span className="text-foreground">{next.title}</span> ·{" "}
-                {next.allDay ? format.dayWithWeekday(next.startDate!) : `${format.weekday(next.startsAt!)} ${format.time(next.startsAt!)}`}
-              </span>
-            )}
-          </GlanceRow>
-          <GlanceRow href="/travel" icon={Plane} title="Travel">
-            <Stat value={upcomingTrips.length} label={upcomingTrips.length === 1 ? "trip ahead" : "trips ahead"} />
-            {nextTrip && (
-              <span className="min-w-0 truncate text-muted-foreground">
-                Next:{" "}
-                <span className="text-foreground">
-                  {journeyLabel(nextTrip)} → {nextTrip.destinationName ?? nextTrip.destinationCity ?? nextTrip.destination}
-                </span>{" "}
-                · {format.dayWithWeekday(nextTrip.departureDate)}
-              </span>
-            )}
-          </GlanceRow>
-        </ul>
+      <ul className="divide-y">
+        <GlanceRow href="/tasks" icon={ListTodo} title="Tasks">
+          <Stat value={open.length} label="open" />
+          <Stat value={overdue} label="overdue" alert={overdue > 0} />
+          <Stat value={dueSoon} label="due in 7 days" />
+        </GlanceRow>
+        <GlanceRow href="/notes" icon={NotebookPen} title="Notes">
+          <Stat value={notes.length} label={notes.length === 1 ? "note" : "notes"} />
+          <Stat value={pinned} label="pinned" />
+          <Stat value={editedRecently} label="edited in 7 days" />
+        </GlanceRow>
+        <GlanceRow href="/calendar" icon={CalendarDays} title="Calendar">
+          <Stat value={upcoming.length} label={`${upcoming.length === 1 ? "event" : "events"} in 7 days`} />
+          {next && (
+            <span className="min-w-0 truncate text-muted-foreground">
+              Next: <span className="text-foreground">{next.title}</span> ·{" "}
+              {next.allDay ? format.dayWithWeekday(next.startDate!) : `${format.weekday(next.startsAt!)} ${format.time(next.startsAt!)}`}
+            </span>
+          )}
+        </GlanceRow>
+        <GlanceRow href="/travel" icon={Plane} title="Travel">
+          <Stat value={upcomingTrips.length} label={upcomingTrips.length === 1 ? "trip ahead" : "trips ahead"} />
+          {nextTrip && (
+            <span className="min-w-0 truncate text-muted-foreground">
+              Next:{" "}
+              <span className="text-foreground">
+                {journeyLabel(nextTrip)} → {nextTrip.destinationName ?? nextTrip.destinationCity ?? nextTrip.destination}
+              </span>{" "}
+              · {format.dayWithWeekday(nextTrip.departureDate)}
+            </span>
+          )}
+        </GlanceRow>
+      </ul>
 
-        {tags.length > 0 && (
-          <div className="mt-auto pt-4">
-            <p className="mb-2 text-xs font-medium text-muted-foreground">Tags on open tasks</p>
-            <div className="flex flex-wrap gap-1.5">
-              {tags.map(({ tag, count }) => (
-                <span key={tag} className="rounded bg-bark-soft px-2 py-0.5 text-xs text-bark">
-                  #{tag} <span className="opacity-70">{count}</span>
-                </span>
-              ))}
-            </div>
+      {tags.length > 0 && (
+        <div className="mt-auto pt-4">
+          <p className="mb-2 text-xs font-medium text-muted-foreground">Tags on open tasks</p>
+          <div className="flex flex-wrap gap-1.5">
+            {tags.map(({ tag, count }) => (
+              <span key={tag} className="rounded bg-bark-soft px-2 py-0.5 text-xs text-bark">
+                #{tag} <span className="opacity-70">{count}</span>
+              </span>
+            ))}
           </div>
-        )}
-      </CardContent>
-    </Card>
+        </div>
+      )}
+    </>
   );
 }
 

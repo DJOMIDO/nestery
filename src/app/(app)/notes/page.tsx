@@ -191,7 +191,7 @@ function NotesView() {
       )}
 
       {showEditor ? (
-        <div className="min-w-0 min-h-0 rounded-lg border bg-card p-4 shadow-sm">
+        <div className="min-w-0 min-h-0 rounded-lg border bg-card p-4">
           <NoteEditor
             key={selected.id}
             note={selected}

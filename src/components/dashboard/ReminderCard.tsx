@@ -52,7 +52,7 @@ export function ReminderCard({ tasks, journeys }: { tasks: Task[]; journeys: Jou
   const next = reminders[0];
 
   return (
-    <Card className="w-full h-full rounded-lg shadow-sm bg-card hover:shadow-md">
+    <Card className="w-full h-full rounded-lg bg-card">
       <CardContent className="p-4">
         <CardHeading title="Reminders" icon={Bell} />
 
