@@ -11,7 +11,8 @@ tracks what is done, what is planned next, and ideas that were considered.
 - Dashboard: welcome summary with quick add, today, reminders, at a glance
   (tasks, notes, calendar), up next (7-day agenda), recent notes, recent
   activity across tasks, notes and events
-- Board view: To do / In progress / Done columns, drag a card to change its status
+- Board view: To do / In progress / Waiting / Done columns, drag a card to
+  change its status; quick add at the top of each open column
 
 ## Notes
 
@@ -24,8 +25,10 @@ tracks what is done, what is planned next, and ideas that were considered.
 
 **Planned**
 - **Attachments**: file and image uploads, images shown inline, drag-and-drop
-  and paste to upload. Needs a storage decision first (e.g. Vercel Blob), an
-  attachments table, a size limit, and cleanup when a note is deleted.
+  and paste to upload. Storage: Neon Object Storage (S3-compatible, lives in
+  the same Neon project and branches with the database); first check that it
+  can be enabled on the existing project. Also needs an attachments table, a
+  size limit, and cleanup when a note is deleted.
 - **Integration**: tags on notes, shared with tasks (and counted in the
   dashboard's At a glance); server-side full-text search once there are
   enough notes to need it.
@@ -67,19 +70,68 @@ tracks what is done, what is planned next, and ideas that were considered.
 
 **Done**
 - Email and password sign-up and sign-in (Better Auth, self-hosted; data in
-  the app's own tables); GitHub sign-in when configured, with the button
-  hidden otherwise
+  the app's own tables); GitHub and Google sign-in, each offered only when
+  its OAuth credentials are configured
 - Rate limits on sign-in, sign-up, password change and account deletion,
   stored in the database; 8-character minimum for new passwords
 - Settings > Account: change name and password, connect or disconnect
-  GitHub, see and sign out devices, delete the account and all its data
+  GitHub and Google, see and sign out devices, delete the account and all
+  its data
 - Emails over SMTP (a Gmail app password works without a domain): forgot /
   reset password, email verification required to sign in when SMTP is set
   up (existing accounts were marked verified), changing the email address
   (approved from the old address, confirmed from the new one)
 
+## Weather
+
+Ported from [vitemeteo](https://github.com/DJOMIDO/vitemeteo). Data from
+Open-Meteo (no API key, free), fetched on the server.
+
 **Planned**
-- Google sign-in
+- Phase 1: a weather card on the dashboard (now, today's high and low, the
+  next few hours); location set in Settings next to the date and holiday
+  settings
+- Phase 2: weather on the calendar, per day in the month and week views and
+  for events and trips that have a place
+
+## Assistant
+
+An agent that works across Nestery's tools rather than AI features bolted
+onto each one, e.g. "I fly to Paris on Friday: what's the weather there, add
+a packing task for Thursday and list my visa notes".
+
+**Planned**
+- v1: a chat panel using Claude with tool use over the user's own data:
+  search and create tasks and events, search notes, check the weather.
+  Anything that writes is shown to the user to confirm first.
+- Notes RAG: embed notes with pgvector in the same Neon database, answers
+  cite the notes they come from and say so when nothing relevant is found.
+  Reuses what was learned in [Archivist](https://github.com/DJOMIDO/archivist)
+  (chunking, citations, evaluation); Archivist stays a separate learning
+  project, where new agent ideas are tried first.
+- Each new tool (Travel, attachments, ...) adds its own tools to the agent.
+
+## Travel
+
+Flights and train journeys, rewritten from
+[noname-app](https://github.com/DJOMIDO/noname-app) (Vue, Neon Auth) into
+Nestery's stack. Its airport, airline and currency data and its CSV import
+can be reused; existing journeys move over through a CSV export and import.
+
+**Planned**
+- Phase 1: log flights and trains (times, seat, price, booking reference),
+  list and edit them, CSV import
+- Phase 2: journeys on the calendar and in the dashboard's Up next, with the
+  destination's weather
+- Phase 3: statistics and a route map
+
+## Suggested order
+
+1. Weather card: small, and the agent's first outside tool
+2. Assistant v1 over tasks, calendar, notes and weather
+3. Notes RAG (after note attachments if attached PDFs should be searchable)
+4. Travel
+5. Cookbook
 
 ## Ideas
 
@@ -88,7 +140,10 @@ Tools worth borrowing from Nextcloud, in rough order of priority:
 - **Bookmarks**: save links with the page title and icon fetched
   automatically, organized with the shared tags.
 - **Cookbook**: recipes with ingredients, steps and serving scaling; import
-  from recipe sites that publish structured recipe data.
+  from recipe sites that publish structured recipe data. Can borrow from
+  [EtuCuisto](https://github.com/DJOMIDO/EtuCuisto) (same stack: pantry,
+  kitchen profile and AI recipe suggestions), which stays a separate public
+  app.
 - **Budget**: personal income and expense tracking by category; possibly
   splitting costs within a household later.
 
@@ -99,5 +154,6 @@ Tools worth borrowing from Nextcloud, in rough order of priority:
   The Tasks board view covers this instead.
 - **Password manager**: too much security risk to build ourselves.
 - **Chat and mail (Talk, Mail)**: far larger than the rest of the app.
-- **Files and Photos**: waiting on the storage decision for note attachments.
+- **Files and Photos**: revisit once note attachments are running on Neon
+  Object Storage.
 - **Forms and Polls**: built for groups, while Nestery is personal.
