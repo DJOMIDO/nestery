@@ -357,3 +357,30 @@ export const journeys = pgTable(
     ),
   ]
 );
+
+// Files attached to notes (images shown inline, others as links), stored in
+// Neon Object Storage under `storageKey`. A note's deletion leaves its files
+// without a note for a while, so undoing it can claim them back; files left
+// without any note are removed later (src/server/attachments.ts).
+export const noteAttachments = pgTable(
+  "note_attachments",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    userId: text()
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    noteId: uuid().references(() => notes.id, { onDelete: "set null" }),
+    storageKey: text().notNull().unique(),
+    fileName: text().notNull(),
+    contentType: text().notNull(),
+    // Bytes
+    size: integer().notNull(),
+    // False until the browser's upload is checked
+    uploaded: boolean().notNull().default(false),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+    // When the file was left without a note; removed a day later unless a
+    // note (e.g. one restored with Undo) still shows it
+    orphanedAt: timestamp({ withTimezone: true }),
+  },
+  (t) => [index("note_attachments_user_idx").on(t.userId), index("note_attachments_note_idx").on(t.noteId)]
+);

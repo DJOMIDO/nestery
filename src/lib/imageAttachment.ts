@@ -45,3 +45,26 @@ export async function prepareImage(file: File): Promise<{ image: AssistantImage;
     bitmap.close();
   }
 }
+
+// For note attachments: photos over 2 MB (or in HEIC, which most browsers
+// can't show) become a JPEG of at most 2400 px. Smaller images, GIFs and
+// other files are kept as they are.
+export async function shrinkForNote(file: File): Promise<File> {
+  const heic = /^image\/hei[cf]$/.test(file.type);
+  const photo = /^image\/(jpeg|png|webp)$/.test(file.type);
+  if (!heic && !(photo && file.size > 2 * 1024 * 1024)) return file;
+  let bitmap: ImageBitmap;
+  try {
+    bitmap = await createImageBitmap(file);
+  } catch {
+    return file;
+  }
+  try {
+    const dataUrl = await encode(bitmap, 2400);
+    const blob = await (await fetch(dataUrl)).blob();
+    const name = file.name.replace(/\.[^.]+$/, "") + ".jpg";
+    return blob.size < file.size || heic ? new File([blob], name, { type: "image/jpeg" }) : file;
+  } finally {
+    bitmap.close();
+  }
+}

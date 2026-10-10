@@ -7,6 +7,7 @@ import { z } from "zod";
 import { db } from "@/db";
 import { notes } from "@/db/schema";
 import { EMPTY_NOTE_CONTENT, type NoteContent } from "@/lib/notes";
+import { claimLinkedAttachments, releaseNoteAttachments } from "@/server/attachments";
 
 const MAX_CONTENT_BYTES = 1_000_000;
 
@@ -63,6 +64,8 @@ export async function createNote(userId: string, input: CreateNoteInput) {
     .insert(notes)
     .values({ userId, ...input })
     .returning();
+  // A note restored with Undo takes its files back
+  await claimLinkedAttachments(userId, note.id, note.content);
   return note;
 }
 
@@ -82,11 +85,14 @@ export async function updateNote(
     .set(values)
     .where(and(eq(notes.id, id), eq(notes.userId, userId)))
     .returning();
+  if (updated && input.content) await claimLinkedAttachments(userId, id, input.content);
   return updated ?? null;
 }
 
 // Returns false when the note does not exist or belongs to another user
 export async function deleteNote(userId: string, id: string) {
+  // Its files wait a day, so Undo can bring them back with the note
+  await releaseNoteAttachments(userId, id);
   const deleted = await db
     .delete(notes)
     .where(and(eq(notes.id, id), eq(notes.userId, userId)))

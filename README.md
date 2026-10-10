@@ -37,6 +37,10 @@ A workspace for personal and team collaboration, built with Next.js.
    npm run dev
    ```
 
+## Note attachments
+
+Files attached to notes are stored in [Neon Object Storage](https://neon.com/docs/storage/overview) (the free plan includes 5 GB per project). In the Neon console, create a **private** bucket on the production branch and a credential with `storage:read` and `storage:write`, then set `NEON_STORAGE_ENDPOINT`, `NEON_STORAGE_REGION`, `NEON_STORAGE_BUCKET`, `NEON_STORAGE_ACCESS_KEY_ID` (`nak_live_…`) and `NEON_STORAGE_SECRET_ACCESS_KEY` (`nsk_live_…`) locally and on Vercel. Browsers upload straight to the bucket through signed URLs, so files aren't limited by Vercel's request size. Without these settings, notes work as before and attaching shows an error.
+
 ## Travel data
 
 Travel suggests airports and airlines from two lists in `src/server/travel/data/`, refreshed with `npm run travel:data` (commit the result):
