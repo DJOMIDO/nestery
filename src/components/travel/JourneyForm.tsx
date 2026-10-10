@@ -11,9 +11,20 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { CodeInput } from "@/components/travel/CodeInput";
-import type { Journey, JourneyInput, JourneyKind } from "@/lib/travel";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  DEFAULT_REMIND_BEFORE,
+  REMINDER_OPTIONS,
+  reminderLabel,
+  type Journey,
+  type JourneyInput,
+  type JourneyKind,
+} from "@/lib/travel";
 
-type Fields = Record<keyof Omit<JourneyInput, "kind">, string>;
+type Fields = Record<keyof Omit<JourneyInput, "kind" | "remindBefore">, string>;
+
+// The reminder select's value: minutes, or "none"
+const NO_REMINDER = "none";
 
 const EMPTY: Fields = {
   carrier: "",
@@ -82,6 +93,18 @@ export function JourneyForm({ kind, journey, onSubmit, onCancel, extraActions }:
   const [showMore, setShowMore] = useState(() => !!journey && MORE[kind].some((k) => journey[k]));
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
+  // New journeys start with the usual reminder for their kind
+  const [remind, setRemind] = useState(() =>
+    journey
+      ? journey.remindBefore === null
+        ? NO_REMINDER
+        : String(journey.remindBefore)
+      : String(DEFAULT_REMIND_BEFORE[kind])
+  );
+  // A value saved some other way (e.g. 45 minutes) stays selectable
+  const remindOptions = REMINDER_OPTIONS.some((o) => String(o.minutes) === remind) || remind === NO_REMINDER
+    ? REMINDER_OPTIONS
+    : [...REMINDER_OPTIONS, { minutes: Number(remind), label: reminderLabel(Number(remind)) }];
   const formRef = useRef<HTMLFormElement>(null);
   const currencyList = useMemo(currencies, []);
   const isFlight = kind === "flight";
@@ -131,6 +154,7 @@ export function JourneyForm({ kind, journey, onSubmit, onCancel, extraActions }:
       origin: values.origin.trim(),
       destination: values.destination.trim(),
       departureDate: values.departureDate,
+      remindBefore: remind === NO_REMINDER ? null : Number(remind),
     });
     setSaving(false);
   };
@@ -211,6 +235,28 @@ export function JourneyForm({ kind, journey, onSubmit, onCancel, extraActions }:
             <Input {...bind("coach")} placeholder="7" />
           </div>
         )}
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="journey-remind">Remind me</Label>
+        <Select value={remind} onValueChange={setRemind} disabled={!fields.departureTime}>
+          <SelectTrigger id="journey-remind" className="w-full sm:max-w-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={NO_REMINDER}>Don&apos;t remind me</SelectItem>
+            {remindOptions.map((o) => (
+              <SelectItem key={o.minutes} value={String(o.minutes)}>
+                {o.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <p className="text-xs text-muted-foreground">
+          {fields.departureTime
+            ? "Shown on the dashboard's Reminders card, and as an alert in calendar apps subscribed to Nestery."
+            : "Add a departure time to get a reminder."}
+        </p>
       </div>
 
       <button

@@ -96,7 +96,7 @@ export default function DashboardPage() {
           onAddEvent={() => setIsNewEventOpen(true)}
         />
         <TodayCard tasks={tasks} events={upcomingEvents} />
-        <ReminderCard tasks={tasks} />
+        <ReminderCard tasks={tasks} journeys={journeys} />
       </div>
 
       {/* Bottom row: overview, the week ahead, notes and activity */}

@@ -11,6 +11,7 @@ import { expandEvents, type CalendarEvent } from "@/lib/calendar";
 import { addDays, compareTasks, TASK_PRIORITIES, TASK_STATUSES, type Task } from "@/lib/tasks";
 import type { Formatter } from "@/lib/format";
 import { noteHref } from "@/lib/notes";
+import { DEFAULT_REMIND_BEFORE } from "@/lib/travel";
 import type { WeatherPlace } from "@/lib/weather";
 import { createEventInput, listEvents } from "@/server/events";
 import { getNote, listNotes, searchNotes } from "@/server/notes";
@@ -424,6 +425,8 @@ const proposeJourneyTool = tool({
       notes: null,
       ...input,
       number: input.number?.replace(/^(n\/?a|none|-)$/i, "") ?? "",
+      // The usual reminder for the kind, as for journeys added in the app
+      remindBefore: DEFAULT_REMIND_BEFORE[input.kind],
       price: input.price !== undefined ? String(input.price) : null,
     };
     // The same checks as the Travel form (codes, dates, times)
