@@ -3,15 +3,17 @@
 
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ClipboardPaste, FileUp, Plane, Plus, TrainFront, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronRight, ClipboardPaste, FileUp, Plane, Plus, TrainFront } from "lucide-react";
 import { useAssistant } from "@/components/assistant/AssistantProvider";
 import { Button } from "@/components/ui/button";
 import { useFormat } from "@/components/SettingsProvider";
 import { ImportDialog } from "@/components/travel/ImportDialog";
+import { JourneyDetailPanel, formatClock } from "@/components/travel/JourneyDetailPanel";
 import { JourneyDialog } from "@/components/travel/JourneyDialog";
 import { JourneyWeatherBadge } from "@/components/travel/JourneyWeatherBadge";
+import { TravelOverviewPanel } from "@/components/travel/TravelOverviewPanel";
 import { useJourneys, useJourneyWeather } from "@/hooks/useJourneys";
-import type { Formatter } from "@/lib/format";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { toDateKey } from "@/lib/tasks";
 import { journeyLabel, type Journey, type JourneyKind, type JourneyWeather } from "@/lib/travel";
 import { cn } from "@/lib/utils";
@@ -24,12 +26,6 @@ const FILTERS: { value: Filter; label: string }[] = [
   { value: "train", label: "Trains" },
 ];
 
-// "14:30" in the user's 12/24-hour format
-const formatClock = (format: Formatter, hhmm: string) => {
-  const [h, m] = hhmm.split(":").map(Number);
-  return format.time(new Date(2000, 0, 1, h, m));
-};
-
 // useSearchParams needs a Suspense boundary on a statically rendered page
 export default function TravelPage() {
   return (
@@ -41,10 +37,17 @@ export default function TravelPage() {
 
 function TravelPageContent() {
   const { journeys, loading, createJourney, updateJourney, deleteJourney, reload } = useJourneys();
+  // Details in the side panel on large screens (Tailwind `lg`); a dialog otherwise
+  const isWide = useMediaQuery("(min-width: 1024px)");
   const [filter, setFilter] = useState<Filter>("all");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [dialog, setDialog] = useState<{ kind: JourneyKind; journey: Journey | null } | null>(null);
   const [importOpen, setImportOpen] = useState(false);
+  const [showPast, setShowPast] = useState<boolean | null>(null);
   const assistant = useAssistant();
+
+  const open = (journey: Journey) =>
+    isWide ? setSelectedId(journey.id) : setDialog({ kind: journey.kind, journey });
 
   // ?journey=<id> (from the calendar or the assistant) opens it once loaded
   const router = useRouter();
@@ -52,109 +55,177 @@ function TravelPageContent() {
   useEffect(() => {
     if (!linked || loading) return;
     const journey = journeys.find((j) => j.id === linked);
-    if (journey) setDialog({ kind: journey.kind, journey });
+    if (journey) open(journey);
     router.replace("/travel", { scroll: false });
-  }, [linked, loading, journeys, router]);
+    // `open` only depends on isWide, listed below
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [linked, loading, journeys, router, isWide]);
 
   // Reloaded when a journey's destination or dates change
   const weatherVersion = journeys.map((j) => `${j.id}:${j.destination}:${j.arrivalDate ?? j.departureDate}`).join();
   const weather = useJourneyWeather(weatherVersion, !loading && journeys.length > 0);
 
   const today = toDateKey(new Date());
-  const { upcoming, past } = useMemo(() => {
-    const shown = journeys.filter((j) => filter === "all" || j.kind === filter);
+  const { upcoming, past, allUpcoming } = useMemo(() => {
     const byStart = (a: Journey, b: Journey) =>
       `${a.departureDate}${a.departureTime ?? ""}`.localeCompare(`${b.departureDate}${b.departureTime ?? ""}`);
+    const shown = journeys.filter((j) => filter === "all" || j.kind === filter);
     return {
       // Soonest first
       upcoming: shown.filter((j) => j.departureDate >= today).sort(byStart),
       // Most recent first
       past: shown.filter((j) => j.departureDate < today).sort((a, b) => byStart(b, a)),
+      // For the overview, whatever the filter
+      allUpcoming: journeys.filter((j) => j.departureDate >= today).sort(byStart),
     };
   }, [journeys, filter, today]);
 
+  // Past is folded while there is something coming up, unless opened
+  const pastOpen = showPast ?? upcoming.length === 0;
+  const selected = isWide ? (journeys.find((j) => j.id === selectedId) ?? null) : null;
+
   const handleDelete = async (journey: Journey) => {
-    if (window.confirm(`Delete ${journeyLabel(journey)} on ${journey.departureDate}?`)) await deleteJourney(journey.id);
+    if (!window.confirm(`Delete ${journeyLabel(journey)} on ${journey.departureDate}?`)) return;
+    if (await deleteJourney(journey.id)) {
+      if (selectedId === journey.id) setSelectedId(null);
+      setDialog(null);
+    }
   };
 
-  return (
-    <div className="mx-auto max-w-4xl space-y-6">
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="mr-auto">
-          <h1 className="text-2xl font-bold">Travel</h1>
-          <p className="text-sm text-muted-foreground">Your flights and train journeys.</p>
-        </div>
-        <Button variant="ghost" onClick={() => setImportOpen(true)}>
-          <FileUp className="mr-1 size-4" /> Import
+  // The buttons wrap below the title as one group, never one by one
+  const header = (
+    <div className="flex flex-wrap items-center gap-x-2 gap-y-3">
+      <div className="mr-auto">
+        <h1 className="text-2xl font-bold">Travel</h1>
+        <p className="text-sm text-muted-foreground">Your flights and train journeys.</p>
+      </div>
+      <div className="flex items-center gap-2">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setImportOpen(true)}
+          title="Import from CSV"
+          aria-label="Import from CSV"
+        >
+          <FileUp className="size-4" />
         </Button>
         <Button
           variant="ghost"
           onClick={() => assistant.openWithDraft("Add the journeys from this booking to Travel:\n\n")}
           title="Paste a booking confirmation or e-ticket; the assistant proposes the journeys"
+          aria-label="Paste booking"
         >
-          <ClipboardPaste className="mr-1 size-4" /> Paste booking
+          <ClipboardPaste className="size-4 sm:mr-1" />
+          {/* Icon only on phones, so all the buttons fit on one line */}
+          <span className="hidden sm:inline">Paste booking</span>
         </Button>
         <Button variant="outline" onClick={() => setDialog({ kind: "train", journey: null })}>
-          <TrainFront className="mr-1 size-4" /> Add train
+          <TrainFront className="mr-1 size-4" /> Train
         </Button>
         <Button onClick={() => setDialog({ kind: "flight", journey: null })}>
-          <Plus className="mr-1 size-4" /> Add flight
+          <Plus className="mr-1 size-4" /> Flight
         </Button>
       </div>
+    </div>
+  );
 
-      <div className="inline-flex rounded-md border p-0.5" role="group" aria-label="Show">
-        {FILTERS.map(({ value, label }) => (
-          <button
-            key={value}
-            type="button"
-            onClick={() => setFilter(value)}
-            aria-pressed={filter === value}
-            className={cn(
-              "rounded px-3 py-1 text-sm",
-              filter === value ? "bg-leaf-soft text-leaf" : "text-muted-foreground hover:text-foreground"
+  return (
+    // On large screens both columns fill the viewport; the list scrolls on its own
+    <div className="grid grid-cols-1 gap-6 lg:h-full lg:grid-cols-2 lg:grid-rows-1">
+      {/* Left: the list. -ml-1 pl-1 keeps focus rings from being clipped by the scroll area */}
+      <div className="min-w-0 space-y-6 lg:-ml-1 lg:min-h-0 lg:overflow-y-auto lg:pl-1 lg:pr-2">
+        {header}
+
+        <div className="inline-flex rounded-md border p-0.5" role="group" aria-label="Show">
+          {FILTERS.map(({ value, label }) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setFilter(value)}
+              aria-pressed={filter === value}
+              className={cn(
+                "rounded px-3 py-1 text-sm",
+                filter === value ? "bg-leaf-soft text-leaf" : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {loading ? (
+          <p className="text-sm text-muted-foreground">Loading…</p>
+        ) : journeys.length === 0 ? (
+          <p className="py-12 text-center text-sm text-muted-foreground">
+            No journeys yet. Add a flight or a train, paste a booking confirmation for the assistant to read, or import
+            a CSV file.
+          </p>
+        ) : (
+          <>
+            <section aria-label="Upcoming">
+              <h2 className="mb-2 text-sm font-semibold text-muted-foreground">Upcoming ({upcoming.length})</h2>
+              {upcoming.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Nothing planned.</p>
+              ) : (
+                <JourneyList journeys={upcoming} weather={weather} selectedId={selected?.id} onOpen={open} />
+              )}
+            </section>
+
+            {past.length > 0 && (
+              <section aria-label="Past">
+                <button
+                  onClick={() => setShowPast(!pastOpen)}
+                  className="mb-2 flex items-center gap-1 text-sm font-semibold text-muted-foreground"
+                  aria-expanded={pastOpen}
+                >
+                  {pastOpen ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
+                  Past ({past.length})
+                </button>
+                {pastOpen && <JourneyList journeys={past} selectedId={selected?.id} onOpen={open} />}
+              </section>
             )}
-          >
-            {label}
-          </button>
-        ))}
+          </>
+        )}
       </div>
 
-      {loading ? (
-        <p className="text-sm text-muted-foreground">Loading…</p>
-      ) : journeys.length === 0 ? (
-        <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
-          <p>
-            No journeys yet. Add a flight or a train, paste a booking confirmation for the assistant to read, or import a
-            CSV file.
-          </p>
+      {/* Right: the selected journey, or an overview (wide screens only) */}
+      <aside aria-label={selected ? "Journey details" : "Travel overview"} className="hidden min-h-0 min-w-0 lg:block">
+        <div className="h-full overflow-y-auto rounded-lg border bg-card p-5">
+          {selected ? (
+            <JourneyDetailPanel
+              key={selected.id}
+              journey={selected}
+              weather={weather[selected.id]}
+              onSave={(input) => updateJourney(selected.id, input)}
+              onDelete={() => handleDelete(selected)}
+              onClose={() => setSelectedId(null)}
+            />
+          ) : (
+            <TravelOverviewPanel
+              journeys={journeys}
+              upcoming={allUpcoming}
+              weather={weather}
+              today={today}
+              onSelect={(j) => setSelectedId(j.id)}
+            />
+          )}
         </div>
-      ) : (
-        <>
-          <JourneySection
-            title="Upcoming"
-            journeys={upcoming}
-            weather={weather}
-            empty="Nothing planned."
-            onOpen={(j) => setDialog({ kind: j.kind, journey: j })}
-            onDelete={handleDelete}
-          />
-          <JourneySection
-            title="Past"
-            journeys={past}
-            empty="No past journeys."
-            onOpen={(j) => setDialog({ kind: j.kind, journey: j })}
-            onDelete={handleDelete}
-          />
-        </>
-      )}
+      </aside>
 
       {dialog && (
         <JourneyDialog
           open
-          onOpenChange={(open) => !open && setDialog(null)}
+          onOpenChange={(isOpen) => !isOpen && setDialog(null)}
           kind={dialog.kind}
           journey={dialog.journey}
-          onSubmit={(input) => (dialog.journey ? updateJourney(dialog.journey.id, input) : createJourney(input))}
+          onDelete={dialog.journey ? () => handleDelete(dialog.journey!) : undefined}
+          onSubmit={async (input) => {
+            if (dialog.journey) return updateJourney(dialog.journey.id, input);
+            const created = await createJourney(input);
+            // Show what was just added
+            if (created && isWide) setSelectedId(created.id);
+            return created;
+          }}
         />
       )}
       <ImportDialog open={importOpen} onOpenChange={setImportOpen} onImported={reload} />
@@ -162,95 +233,73 @@ function TravelPageContent() {
   );
 }
 
-function JourneySection({
-  title,
+function JourneyList({
   journeys,
   weather = {},
-  empty,
+  selectedId,
   onOpen,
-  onDelete,
 }: {
-  title: string;
   journeys: Journey[];
   // By journey id; only for upcoming journeys
   weather?: Record<string, JourneyWeather>;
-  empty: string;
+  selectedId?: string;
   onOpen: (journey: Journey) => void;
-  onDelete: (journey: Journey) => void;
 }) {
   return (
-    <section className="space-y-2">
-      <h2 className="text-sm font-semibold text-muted-foreground">
-        {title} <span className="font-normal">· {journeys.length}</span>
-      </h2>
-      {journeys.length === 0 ? (
-        <p className="text-sm text-muted-foreground">{empty}</p>
-      ) : (
-        <ul className="divide-y rounded-lg border bg-card">
-          {journeys.map((j) => (
-            <JourneyRow key={j.id} journey={j} weather={weather[j.id]} onOpen={onOpen} onDelete={onDelete} />
-          ))}
-        </ul>
-      )}
-    </section>
+    <ul className="space-y-1">
+      {journeys.map((j) => (
+        <JourneyRow key={j.id} journey={j} weather={weather[j.id]} selected={j.id === selectedId} onOpen={onOpen} />
+      ))}
+    </ul>
   );
 }
 
 function JourneyRow({
   journey: j,
   weather,
+  selected,
   onOpen,
-  onDelete,
 }: {
   journey: Journey;
   weather?: JourneyWeather;
+  selected: boolean;
   onOpen: (journey: Journey) => void;
-  onDelete: (journey: Journey) => void;
 }) {
   const format = useFormat();
   const Icon = j.kind === "flight" ? Plane : TrainFront;
-  const place = (code: string, name?: string, city?: string | null) => (
-    <span title={name ?? city ?? undefined}>
-      <span className="font-medium">{code}</span>
-      {(name ?? city) && j.kind === "flight" && (
-        <span className="hidden text-muted-foreground sm:inline"> {name}</span>
-      )}
-    </span>
-  );
-  const times = [j.departureTime, j.arrivalTime].filter(Boolean).map((t) => formatClock(format, t!));
+  const names = [j.originName ?? j.originCity, j.destinationName ?? j.destinationCity];
 
   return (
-    <li className="group flex items-center gap-3 px-3 py-2.5">
-      <button type="button" onClick={() => onOpen(j)} className="flex min-w-0 flex-1 items-center gap-3 text-left">
-        <Icon className="size-4 shrink-0 text-leaf" />
+    <li>
+      <button
+        type="button"
+        onClick={() => onOpen(j)}
+        aria-current={selected ? "true" : undefined}
+        className={cn(
+          "flex w-full items-start gap-3 rounded-md px-3 py-2 text-left hover:bg-muted/60",
+          selected && "bg-primary/10 hover:bg-primary/10 dark:bg-primary/20"
+        )}
+      >
+        <Icon className="mt-0.5 size-4 shrink-0 text-leaf" />
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm">
-            {place(j.origin, j.originName, j.originCity)}
-            <span className="mx-1.5 text-muted-foreground">→</span>
-            {place(j.destination, j.destinationName, j.destinationCity)}
+          <p className="flex items-baseline justify-between gap-3 text-sm">
+            <span className="truncate font-medium" title={names.every(Boolean) ? names.join(" → ") : undefined}>
+              {j.origin} → {j.destination}
+            </span>
+            <span className="shrink-0">{format.dayWithWeekday(j.departureDate)}</span>
           </p>
-          <p className="truncate text-xs text-muted-foreground">
-            {journeyLabel(j)}
-            {j.carrierName && ` · ${j.carrierName}`}
-            {j.seat && ` · Seat ${j.seat}`}
+          <p className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
+            <span className="truncate">
+              {journeyLabel(j)}
+              {j.carrierName && ` · ${j.carrierName}`}
+            </span>
+            <span className="flex shrink-0 items-center gap-2">
+              {weather && <JourneyWeatherBadge weather={weather} />}
+              {j.departureTime && formatClock(format, j.departureTime)}
+            </span>
           </p>
-        </div>
-        <div className="shrink-0 text-right text-sm">
-          <p>{format.dayWithYear(j.departureDate)}</p>
-          {times.length > 0 && <p className="text-xs text-muted-foreground">{times.join(" – ")}</p>}
-          {weather && <JourneyWeatherBadge weather={weather} className="justify-end" />}
         </div>
       </button>
-      <Button
-        variant="ghost"
-        size="icon"
-        className="shrink-0 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
-        onClick={() => onDelete(j)}
-        title="Delete"
-      >
-        <Trash2 className="size-4" />
-        <span className="sr-only">Delete</span>
-      </Button>
     </li>
   );
 }

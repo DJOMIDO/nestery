@@ -1,6 +1,8 @@
 // src/components/travel/JourneyDialog.tsx
 "use client";
 
+import { Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { JourneyForm } from "@/components/travel/JourneyForm";
 import type { Journey, JourneyInput, JourneyKind } from "@/lib/travel";
@@ -12,9 +14,11 @@ interface JourneyDialogProps {
   // Journey being edited; omit to add one
   journey?: Journey | null;
   onSubmit: (input: JourneyInput) => Promise<unknown>;
+  // Editing only; the list has no delete button on small screens
+  onDelete?: () => void;
 }
 
-export function JourneyDialog({ open, onOpenChange, kind, journey, onSubmit }: JourneyDialogProps) {
+export function JourneyDialog({ open, onOpenChange, kind, journey, onSubmit, onDelete }: JourneyDialogProps) {
   const noun = kind === "flight" ? "flight" : "train journey";
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -28,6 +32,13 @@ export function JourneyDialog({ open, onOpenChange, kind, journey, onSubmit }: J
           kind={kind}
           journey={journey}
           onCancel={() => onOpenChange(false)}
+          extraActions={
+            journey && onDelete ? (
+              <Button type="button" variant="outline" onClick={onDelete}>
+                <Trash2 className="mr-1 size-4" /> Delete
+              </Button>
+            ) : undefined
+          }
           onSubmit={async (input) => {
             const result = await onSubmit(input);
             if (result) onOpenChange(false);

@@ -73,9 +73,11 @@ interface JourneyFormProps {
   journey?: Journey | null;
   onSubmit: (input: JourneyInput) => Promise<unknown>;
   onCancel: () => void;
+  // Shown on the left of the buttons, e.g. Delete
+  extraActions?: React.ReactNode;
 }
 
-export function JourneyForm({ kind, journey, onSubmit, onCancel }: JourneyFormProps) {
+export function JourneyForm({ kind, journey, onSubmit, onCancel, extraActions }: JourneyFormProps) {
   const [fields, setFields] = useState<Fields>(() => (journey ? fromJourney(journey) : EMPTY));
   const [showMore, setShowMore] = useState(() => !!journey && MORE[kind].some((k) => journey[k]));
   const [saving, setSaving] = useState(false);
@@ -299,6 +301,7 @@ export function JourneyForm({ kind, journey, onSubmit, onCancel }: JourneyFormPr
       )}
 
       <div className="flex justify-end gap-2 pt-2">
+        {extraActions && <div className="mr-auto">{extraActions}</div>}
         <Button type="button" variant="ghost" onClick={onCancel}>
           Cancel
         </Button>
