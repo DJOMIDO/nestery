@@ -18,7 +18,7 @@ export function RecentNotesCard({ notes }: { notes: Note[] }) {
   const shown = [...notes].sort(compareNotes).slice(0, MAX_NOTES);
 
   return (
-    <Card className="w-full h-full rounded-lg shadow-sm bg-card hover:shadow-md">
+    <Card className="w-full h-full rounded-lg bg-card">
       <CardContent className="p-4 flex flex-col min-h-0 flex-1">
         <CardHeading title="Recent notes" icon={NotebookPen} />
         {shown.length === 0 ? (

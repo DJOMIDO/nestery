@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { WelcomeCard, type DaySummary } from "@/components/dashboard/WelcomeCard";
 import { TodayCard } from "@/components/dashboard/TodayCard";
 import { ReminderCard } from "@/components/dashboard/ReminderCard";
-import { AtAGlanceCard } from "@/components/dashboard/AtAGlanceCard";
 import { UpNextCard } from "@/components/dashboard/UpNextCard";
 import { RecentNotesCard } from "@/components/dashboard/RecentNotesCard";
 import { RecentActivityCard } from "@/components/dashboard/RecentActivityCard";
@@ -39,7 +38,7 @@ export default function DashboardPage() {
   const { tasks, createTask } = useTasks();
   const { notes, createNote } = useNotes();
 
-  // Today and the six days after it: shared by Today, Up next and At a glance
+  // Today and the six days after it: shared by Today, Up next and Welcome's At a glance
   const [today] = useState(() => toDateKey(new Date()));
   const lastDay = addDays(today, 6);
   const { occurrences, createEvent } = useEvents(today, lastDay);
@@ -85,28 +84,28 @@ export default function DashboardPage() {
   };
 
   return (
-    // On large screens the dashboard fits the viewport; cards scroll inside
-    <div className="space-y-6 p-2 lg:h-full lg:flex lg:flex-col lg:space-y-0 lg:gap-6">
-      {/* Top row: greeting with quick add, today, reminders */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:shrink-0">
-        <WelcomeCard
-          summary={summary}
-          onAddTask={() => setIsNewTaskOpen(true)}
-          onAddNote={handleAddNote}
-          onAddEvent={() => setIsNewEventOpen(true)}
-        />
-        <TodayCard tasks={tasks} events={upcomingEvents} />
-        <ReminderCard tasks={tasks} journeys={journeys} />
-      </div>
-
-      {/* Bottom row: overview, the week ahead, notes and activity */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:flex-1 lg:min-h-0 lg:grid-rows-1">
-        <AtAGlanceCard tasks={tasks} notes={notes} events={upcomingEvents} journeys={journeys} today={today} />
-        <UpNextCard tasks={tasks} events={upcomingEvents} today={today} />
-        <div className="grid grid-cols-1 gap-6 md:col-span-2 md:grid-cols-2 lg:col-span-1 lg:grid-cols-1 lg:grid-rows-2 lg:min-h-0">
-          <RecentNotesCard notes={notes} />
-          <RecentActivityCard tasks={tasks} notes={notes} events={recent.events} />
-        </div>
+    // On large screens the dashboard fits the viewport; cards scroll inside.
+    // Welcome (with At a glance) fills the first column; the others have a
+    // top row (Today, Reminders) and a bottom row (Up next, Notes/Activity).
+    <div className="grid grid-cols-1 gap-6 p-2 md:grid-cols-2 lg:h-full lg:grid-cols-3 lg:grid-rows-[auto_minmax(0,1fr)]">
+      <WelcomeCard
+        className="md:row-span-2 lg:min-h-0"
+        summary={summary}
+        onAddTask={() => setIsNewTaskOpen(true)}
+        onAddNote={handleAddNote}
+        onAddEvent={() => setIsNewEventOpen(true)}
+        tasks={tasks}
+        notes={notes}
+        events={upcomingEvents}
+        journeys={journeys}
+        today={today}
+      />
+      <TodayCard tasks={tasks} events={upcomingEvents} />
+      <ReminderCard tasks={tasks} journeys={journeys} />
+      <UpNextCard tasks={tasks} events={upcomingEvents} today={today} />
+      <div className="grid grid-cols-1 gap-6 lg:grid-rows-2 lg:min-h-0">
+        <RecentNotesCard notes={notes} />
+        <RecentActivityCard tasks={tasks} notes={notes} events={recent.events} />
       </div>
 
       <TaskDialog

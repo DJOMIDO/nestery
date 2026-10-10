@@ -51,7 +51,7 @@ export function TodayCard({ tasks, events }: { tasks: Task[]; events: CalendarEv
   const currentHour = `${today}T${String(now.getHours()).padStart(2, "0")}`;
 
   return (
-    <Card className="w-full h-full rounded-lg shadow-sm bg-card hover:shadow-md">
+    <Card className="w-full h-full rounded-lg bg-card">
       <CardContent className="p-4">
         <Link href="/calendar" className="block" aria-label="Open calendar">
           <CardHeading

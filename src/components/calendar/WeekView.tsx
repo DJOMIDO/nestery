@@ -179,7 +179,7 @@ export function WeekView({ days, items, events, today, selected, onSelect, onOpe
                     day={day}
                     onOpen={onOpen}
                     className={cn(
-                      "absolute overflow-hidden rounded-md border px-1.5 py-0.5 text-[11px] leading-tight shadow-xs",
+                      "absolute overflow-hidden rounded-md border px-1.5 py-0.5 text-[11px] leading-tight",
                       event.source
                         ? cn(SUBSCRIPTION_COLORS[event.source.color].chip, "border-black/5 dark:border-white/10")
                         : "border-leaf/30 bg-leaf-soft text-leaf"

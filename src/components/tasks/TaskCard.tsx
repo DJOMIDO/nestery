@@ -78,7 +78,7 @@ export function TaskCardBody({
   return (
     <div
       className={cn(
-        "rounded-md border bg-card p-3 shadow-xs transition-shadow hover:shadow-sm",
+        "rounded-md border bg-card p-3",
         lifted && "rotate-1 shadow-lg cursor-grabbing"
       )}
     >
