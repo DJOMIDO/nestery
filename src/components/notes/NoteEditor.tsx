@@ -13,14 +13,14 @@ import { noteExtensions } from "@/components/notes/extensions";
 import { downloadMarkdown, noteToMarkdown } from "@/components/notes/markdown";
 import { useNoteAttachments } from "@/hooks/useNoteAttachments";
 import type { NoteInput } from "@/hooks/useNotes";
-import { attachmentHref, formatBytes, isImage, type NoteAttachment } from "@/lib/attachments";
+import { attachmentHref, formatBytes, isImage, withoutAttachmentEmoji, type NoteAttachment } from "@/lib/attachments";
 import type { Note, NoteContent } from "@/lib/notes";
 import { cn } from "@/lib/utils";
 
 const AUTOSAVE_DELAY = 800;
 
 // Puts an uploaded file in the note at `pos`: images show inline, other
-// files become a link
+// files become a link (with a paperclip icon, see globals.css)
 function insertAttachment(editor: Editor, attachment: NoteAttachment, pos: number) {
   const href = attachmentHref(attachment.id);
   const node = isImage(attachment.contentType)
@@ -30,7 +30,7 @@ function insertAttachment(editor: Editor, attachment: NoteAttachment, pos: numbe
         content: [
           {
             type: "text",
-            text: `📎 ${attachment.fileName} (${formatBytes(attachment.size)})`,
+            text: `${attachment.fileName} (${formatBytes(attachment.size)})`,
             marks: [{ type: "link", attrs: { href } }],
           },
         ],
@@ -148,7 +148,7 @@ export function NoteEditor({
 
   const editor = useEditor({
     extensions: noteExtensions,
-    content: note.content,
+    content: withoutAttachmentEmoji(note.content),
     immediatelyRender: false,
     editorProps: {
       attributes: { class: "note-content", "aria-label": "Note content" },

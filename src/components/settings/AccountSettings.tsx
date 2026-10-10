@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import { KeyRound, Laptop, LogOut, Smartphone, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Loading, Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useFormat } from "@/components/SettingsProvider";
@@ -64,7 +65,7 @@ export function AccountSettings() {
     request<SocialProviderId[]>("/api/account/providers").then(setProviders).catch(() => setProviders([]));
   }, [loadAccounts]);
 
-  if (isPending || !session) return <p className="text-sm text-muted-foreground">Loading…</p>;
+  if (isPending || !session) return <Loading />;
 
   const hasPassword = accounts?.some((a) => a.providerId === "credential") ?? false;
   // e.g. "GitHub" or "GitHub and Google", for accounts without a password
@@ -153,6 +154,7 @@ function ProfileCard({ name, email }: { name: string; email: string }) {
         </div>
         <div className="flex justify-end sm:col-span-2">
           <Button type="submit" disabled={saving || trimmed === name || trimmed.length < 2}>
+            {saving && <Spinner />}
             {saving ? "Saving…" : "Save"}
           </Button>
         </div>
@@ -223,6 +225,7 @@ function ChangeEmailForm({ currentEmail, onDone }: { currentEmail: string; onDon
           Cancel
         </Button>
         <Button type="submit" size="sm" disabled={sending || !newEmail.trim()}>
+          {sending && <Spinner />}
           {sending ? "Sending…" : "Send confirmation"}
         </Button>
       </div>
@@ -522,7 +525,7 @@ function SessionsCard({ currentToken }: { currentToken: string }) {
   return (
     <Card title="Devices" description="Where you're signed in.">
       {!sessions ? (
-        <p className="text-sm text-muted-foreground">Loading…</p>
+        <Loading />
       ) : (
         <ul className="divide-y rounded-md border">
           {sessions.map((s) => {
@@ -642,6 +645,7 @@ function DeleteAccountCard({ email, hasPassword }: { email: string; hasPassword:
               Cancel
             </Button>
             <Button type="submit" variant="destructive" disabled={!confirmed || deleting}>
+              {deleting && <Spinner />}
               {deleting ? "Deleting…" : "Delete account forever"}
             </Button>
           </div>

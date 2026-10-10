@@ -6,11 +6,12 @@
 "use client";
 
 import { useState } from "react";
-import { Pencil, Plane, TrainFront, Trash2, X } from "lucide-react";
+import { Pencil, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useFormat } from "@/components/SettingsProvider";
 import { JourneyForm } from "@/components/travel/JourneyForm";
 import { JourneyWeatherBadge } from "@/components/travel/JourneyWeatherBadge";
+import { journeyIcon } from "@/components/travel/journeyIcon";
 import type { Formatter } from "@/lib/format";
 import {
   journeyDuration,
@@ -43,7 +44,7 @@ export function JourneyDetailPanel({ journey: j, weather, onSave, onDelete, onCl
   const format = useFormat();
   const [editing, setEditing] = useState(false);
   const isFlight = j.kind === "flight";
-  const Icon = isFlight ? Plane : TrainFront;
+  const Icon = journeyIcon(j.kind);
 
   if (editing) {
     return (

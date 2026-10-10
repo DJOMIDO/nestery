@@ -35,17 +35,20 @@ function useRecentEvents() {
 export default function DashboardPage() {
   const router = useRouter();
   const format = useFormat();
-  const { tasks, createTask } = useTasks();
-  const { notes, createNote } = useNotes();
+  const { tasks, loading: tasksLoading, createTask } = useTasks();
+  const { notes, loading: notesLoading, createNote } = useNotes();
 
   // Today and the six days after it: shared by Today, Up next and Welcome's At a glance
   const [today] = useState(() => toDateKey(new Date()));
   const lastDay = addDays(today, 6);
-  const { occurrences, createEvent } = useEvents(today, lastDay);
+  const { occurrences, loading: eventsLoading, createEvent } = useEvents(today, lastDay);
   // Subscribed calendars (e.g. a class timetable) count as well
   const subscribedEvents = useSubscriptionEvents(today, lastDay);
   // Journeys from Travel show like events in Today, Up next and At a glance
-  const { journeys } = useJourneys();
+  const { journeys, loading: journeysLoading } = useJourneys();
+  // The cards show placeholders until the data they count is in; these load
+  // side by side, so they wait for each other
+  const loading = tasksLoading || notesLoading || eventsLoading || journeysLoading;
   const upcomingEvents = useMemo(
     () => [...occurrences, ...subscribedEvents, ...journeyEventsBetween(journeys, today, lastDay)],
     [occurrences, subscribedEvents, journeys, today, lastDay]
@@ -99,13 +102,14 @@ export default function DashboardPage() {
         events={upcomingEvents}
         journeys={journeys}
         today={today}
+        loading={loading}
       />
-      <TodayCard tasks={tasks} events={upcomingEvents} />
-      <ReminderCard tasks={tasks} journeys={journeys} />
-      <UpNextCard tasks={tasks} events={upcomingEvents} today={today} />
+      <TodayCard tasks={tasks} events={upcomingEvents} loading={loading} />
+      <ReminderCard tasks={tasks} journeys={journeys} loading={loading} />
+      <UpNextCard tasks={tasks} events={upcomingEvents} today={today} loading={loading} />
       <div className="grid grid-cols-1 gap-6 lg:grid-rows-2 lg:min-h-0">
-        <RecentNotesCard notes={notes} />
-        <RecentActivityCard tasks={tasks} notes={notes} events={recent.events} />
+        <RecentNotesCard notes={notes} loading={loading} />
+        <RecentActivityCard tasks={tasks} notes={notes} events={recent.events} loading={loading} />
       </div>
 
       <TaskDialog

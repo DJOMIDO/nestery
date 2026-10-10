@@ -5,15 +5,17 @@
 "use client";
 
 import { useState } from "react";
-import { CalendarPlus, Check, ClipboardList, PencilLine, Plane, TrainFront, X } from "lucide-react";
+import { CalendarPlus, Check, ClipboardList, PencilLine, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { useFormat } from "@/components/SettingsProvider";
 import type { AssistantProposal } from "@/lib/assistant";
 import { request } from "@/lib/api";
 import { notifyDataChanged } from "@/lib/dataChanged";
 import { TASK_STATUS_LABELS } from "@/lib/tasks";
 import { journeyLabel } from "@/lib/travel";
+import { journeyIcon } from "@/components/travel/journeyIcon";
 import type { Formatter } from "@/lib/format";
 
 export type ProposalState = "pending" | "saving" | "confirmed" | "dismissed";
@@ -87,7 +89,7 @@ async function save(p: AssistantProposal) {
 const ICONS = { create_task: ClipboardList, update_task: PencilLine, create_event: CalendarPlus };
 
 const iconOf = (p: AssistantProposal) =>
-  p.kind === "create_journey" ? (p.input.kind === "flight" ? Plane : TrainFront) : ICONS[p.kind];
+  p.kind === "create_journey" ? journeyIcon(p.input.kind) : ICONS[p.kind];
 
 export function ProposalCard({
   proposal,
@@ -131,6 +133,7 @@ export function ProposalCard({
             Dismiss
           </Button>
           <Button size="sm" onClick={confirm} disabled={state === "saving"}>
+            {state === "saving" && <Spinner />}
             {state === "saving" ? "Saving…" : "Confirm"}
           </Button>
         </div>

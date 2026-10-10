@@ -7,6 +7,7 @@
 import { useMemo, useRef, useState } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -352,6 +353,7 @@ export function JourneyForm({ kind, journey, onSubmit, onCancel, extraActions }:
           Cancel
         </Button>
         <Button type="submit" disabled={saving}>
+          {saving && <Spinner />}
           {saving ? "Saving…" : journey ? "Save" : "Add"}
         </Button>
       </div>

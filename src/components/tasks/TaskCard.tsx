@@ -2,9 +2,7 @@
 "use client";
 
 import { useDraggable } from "@dnd-kit/core";
-import { CalendarDays, Trash2 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { priorityStyles } from "@/components/tasks/TaskItem";
+import { CalendarDays, Flag, Trash2 } from "lucide-react";
 import { toDateKey, type Task } from "@/lib/tasks";
 import { cn } from "@/lib/utils";
 import { useFormat } from "@/components/SettingsProvider";
@@ -47,7 +45,7 @@ export function TaskCard({ task, onOpen, onDelete, onTagClick, highlighted }: Ta
         listeners?.onKeyDown?.(e);
       }}
       className={cn(
-        "group cursor-grab touch-manipulation rounded-md outline-none transition-shadow duration-500 focus-visible:ring-2 focus-visible:ring-ring",
+        "group cursor-grab touch-manipulation rounded-lg outline-none transition-shadow duration-500 focus-visible:ring-2 focus-visible:ring-ring",
         highlighted && "ring-2 ring-leaf",
         // The DragOverlay shows the moving copy; leave a faded placeholder behind
         isDragging && "opacity-40"
@@ -78,7 +76,10 @@ export function TaskCardBody({
   return (
     <div
       className={cn(
-        "rounded-md border bg-card p-3",
+        // Flat like other cards: hovering darkens the border instead of a shadow
+        "rounded-lg border bg-card p-3 transition-colors hover:border-foreground/20",
+        // Done cards step back, so the open ones stand out
+        done && "opacity-70",
         lifted && "rotate-1 shadow-lg cursor-grabbing"
       )}
     >
@@ -89,6 +90,9 @@ export function TaskCardBody({
             done && "line-through text-muted-foreground"
           )}
         >
+          {task.priority === "high" && !done && (
+            <Flag className="mr-1 inline size-3.5 -translate-y-px text-rose-600" aria-label="High priority" />
+          )}
           {task.title}
         </p>
         {onDelete && (
@@ -109,7 +113,7 @@ export function TaskCardBody({
         )}
       </div>
 
-      {task.description?.trim() && (
+      {!done && task.description?.trim() && (
         <p
           className="mt-1 text-xs text-muted-foreground line-clamp-2 break-words"
           title={task.description}
@@ -118,11 +122,8 @@ export function TaskCardBody({
         </p>
       )}
 
-      {(task.priority === "high" || task.dueDate || task.tags.length > 0) && (
+      {(task.dueDate || task.tags.length > 0) && (
         <div className="flex flex-wrap items-center gap-2 mt-2 text-xs text-muted-foreground">
-          {task.priority === "high" && (
-            <Badge className={cn("border-transparent capitalize", priorityStyles.high)}>High</Badge>
-          )}
           {task.dueDate && (
             <span className={cn("flex items-center gap-1", overdue && "text-rose-600")}>
               <CalendarDays className="w-3.5 h-3.5" />
@@ -139,20 +140,13 @@ export function TaskCardBody({
               }}
               onPointerDown={(e) => e.stopPropagation()}
               onKeyDown={(e) => e.stopPropagation()}
-              className="text-leaf hover:underline"
+              className="rounded bg-bark-soft px-1.5 py-0.5 text-bark hover:bg-bark/20"
             >
               #{tag}
             </button>
           ))}
         </div>
       )}
-
-      <p className="mt-2 text-[11px] text-muted-foreground/80">
-        Created{" "}
-        {new Date(task.createdAt).getFullYear() === new Date().getFullYear()
-          ? format.day(task.createdAt)
-          : format.dayWithYear(task.createdAt)}
-      </p>
     </div>
   );
 }

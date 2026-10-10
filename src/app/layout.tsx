@@ -1,12 +1,21 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Figtree, Geist_Mono, Noto_Sans_SC } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "@/components/ui/sonner";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const figtree = Figtree({
+  variable: "--font-figtree",
   subsets: ["latin"],
+});
+
+// Chinese for devices without PingFang (e.g. Windows). Google serves it in
+// small unicode-range slices, so only the characters in use get downloaded,
+// and only where no earlier font in the stack covers them.
+const notoSansSC = Noto_Sans_SC({
+  variable: "--font-noto-sans-sc",
+  preload: false,
+  adjustFontFallback: false,
 });
 
 const geistMono = Geist_Mono({
@@ -25,8 +34,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+    // The font variables go on <html>: Tailwind sets the page font there, so
+    // on <body> they'd be undefined where it's read
+    <html lang="en" className={`${figtree.variable} ${notoSansSC.variable} ${geistMono.variable}`} suppressHydrationWarning>
+      <body className="antialiased">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           {children}
           <Toaster />

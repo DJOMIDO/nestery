@@ -39,7 +39,7 @@ export function TaskItem({
   return (
     <li
       className={cn(
-        "group flex items-start gap-3 rounded-md px-3 py-2 hover:bg-muted/60",
+        "group flex items-start gap-3 rounded-md px-3 py-2 hover:bg-foreground/5",
         selected && "bg-primary/10 hover:bg-primary/10 dark:bg-primary/20"
       )}
     >

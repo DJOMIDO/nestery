@@ -5,6 +5,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { requestPasswordReset } from "@/lib/auth-client";
@@ -65,6 +66,7 @@ export default function ForgotPasswordPage() {
             {error && <p className="text-sm text-red-500">{error}</p>}
           </div>
           <Button type="submit" className="w-full" disabled={sending}>
+            {sending && <Spinner />}
             {sending ? "Sending…" : "Send reset link"}
           </Button>
           <p className="text-center text-sm">

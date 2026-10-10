@@ -4,6 +4,7 @@
 import { useState } from "react";
 import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import {
   Dialog,
   DialogContent,
@@ -309,6 +310,7 @@ function EventForm({
             Cancel
           </Button>
           <Button type="submit" disabled={saving}>
+            {saving && <Spinner />}
             {saving ? "Saving…" : event ? "Save" : "Create"}
           </Button>
         </div>

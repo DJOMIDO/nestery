@@ -1,14 +1,31 @@
 // src/components/assistant/AssistantPanel.tsx
-// The chat panel that slides in from the right. The conversation lives here
+// The chat panel that slides in from the right: full screen on phones, a
+// floating card (normal or half the screen wide) on larger screens. The conversation lives here
 // only (not saved); the server streams the reply as JSON lines.
 
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowUp, Loader2, Paperclip, RotateCcw, Sparkles, Square, X } from "lucide-react";
+import {
+  ArrowUp,
+  CalendarDays,
+  CloudSun,
+  ListTodo,
+  Maximize2,
+  Minimize2,
+  NotebookPen,
+  Paperclip,
+  Plane,
+  RotateCcw,
+  Sparkles,
+  Square,
+  X,
+  type LucideIcon,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { AssistantMarkdown } from "@/components/assistant/AssistantMarkdown";
 import type { AssistantDraft } from "@/components/assistant/AssistantProvider";
 import { ProposalCard, type ProposalState } from "@/components/assistant/ProposalCard";
@@ -20,6 +37,7 @@ import {
   type AssistantStreamEvent,
 } from "@/lib/assistant";
 import { isAttachableImage, prepareImage } from "@/lib/imageAttachment";
+import { useStoredChoice } from "@/hooks/useStoredChoice";
 import { request } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
@@ -41,12 +59,13 @@ type ChatItem =
 // Models often send blank lines around their text (e.g. after thinking)
 const tidy = (text: string) => text.replace(/^\s+|\s+$/g, "").replace(/\n{3,}/g, "\n\n");
 
-const EXAMPLES = [
-  "What's left on my list this week?",
-  "What's on my calendar tomorrow?",
-  "Will it rain this weekend?",
-  "What's in my notes?",
-  "When's my next trip?",
+// One per tool, with that tool's icon
+const EXAMPLES: { text: string; icon: LucideIcon }[] = [
+  { text: "What's left on my list this week?", icon: ListTodo },
+  { text: "What's on my calendar tomorrow?", icon: CalendarDays },
+  { text: "Will it rain this weekend?", icon: CloudSun },
+  { text: "What's in my notes?", icon: NotebookPen },
+  { text: "When's my next trip?", icon: Plane },
 ];
 
 export function AssistantPanel({
@@ -68,6 +87,9 @@ export function AssistantPanel({
   // Images to send with the next message
   const [attachments, setAttachments] = useState<{ id: number; image: AssistantImage; preview: string }[]>([]);
   const [dragging, setDragging] = useState(false);
+  // Remembered per browser; only applies from sm up
+  const [width, setWidth] = useStoredChoice("assistant-width", ["normal", "wide"] as const, "normal");
+  const wide = width === "wide";
   const fileRef = useRef<HTMLInputElement>(null);
   const attachId = useRef(0);
   const [busy, setBusy] = useState(false);
@@ -75,12 +97,29 @@ export function AssistantPanel({
   const listRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  // Re-checked on every open: the user may have just saved a key in Settings
+  // Focus the message box with the cursor after any text (e.g. a draft)
+  const focusInput = useCallback(() => {
+    requestAnimationFrame(() => {
+      const box = inputRef.current;
+      if (!box) return;
+      box.focus();
+      box.setSelectionRange(box.value.length, box.value.length);
+    });
+  }, []);
+
+  // Re-checked on every open: the user may have just saved a key in Settings.
+  // The box is disabled until the status says the assistant is available, so
+  // focus it again once that's known (on the first open, it isn't yet).
   useEffect(() => {
     if (!open) return;
-    request<AssistantStatus>("/api/assistant").then(setStatus).catch(() => setStatus(null));
-    inputRef.current?.focus();
-  }, [open]);
+    focusInput();
+    request<AssistantStatus>("/api/assistant")
+      .then((next) => {
+        setStatus(next);
+        focusInput();
+      })
+      .catch(() => setStatus(null));
+  }, [open, focusInput]);
 
   useEffect(() => {
     if (!open) return;
@@ -98,13 +137,14 @@ export function AssistantPanel({
   useEffect(() => {
     if (!draft) return;
     setInput(draft.text);
-    requestAnimationFrame(() => {
-      const box = inputRef.current;
-      if (!box) return;
-      box.focus();
-      box.setSelectionRange(box.value.length, box.value.length);
-    });
-  }, [draft]);
+    focusInput();
+  }, [draft, focusInput]);
+
+  // An untouched draft only makes sense where it was handed over (e.g. right
+  // after "Paste booking"), so closing the panel drops it. Typed text stays.
+  useEffect(() => {
+    if (!open) setInput((current) => (draft && current === draft.text ? "" : current));
+  }, [open, draft]);
 
   // Changes the assistant item being streamed (always the last one)
   const updateLast = (change: (item: Extract<ChatItem, { role: "assistant" }>) => Partial<ChatItem>) =>
@@ -234,6 +274,7 @@ export function AssistantPanel({
 
   const reset = () => {
     abortRef.current?.abort();
+    setInput("");
     setItems([]);
     setHistory([]);
     setNotes([]);
@@ -257,8 +298,16 @@ export function AssistantPanel({
       aria-hidden={!open}
       inert={!open}
       className={cn(
-        "fixed inset-y-0 right-0 z-40 flex w-full flex-col border-l bg-card shadow-xl transition-transform duration-200 sm:w-[26rem]",
-        open ? "translate-x-0" : "translate-x-full",
+        "fixed inset-y-0 right-0 z-40 flex w-full flex-col border-l bg-elevated shadow-xl transition-all duration-200",
+        // Floats 2rem from the screen's edges, like the dashboard's cards.
+        // Normal is a chat window in the bottom corner; wide reaches the
+        // middle of the screen and its full height.
+        "sm:right-8 sm:bottom-8 sm:overflow-hidden sm:rounded-lg sm:border",
+        wide
+          ? "sm:top-8 sm:w-[max(26rem,calc(50vw_-_2rem))]"
+          : "sm:top-auto sm:h-[min(40rem,calc(100dvh_-_4rem))] sm:w-[26rem]",
+        // Closed, it moves past the edge margin and its shadow too
+        open ? "translate-x-0" : "translate-x-full sm:translate-x-[calc(100%_+_4rem)]",
         dragging && "ring-2 ring-inset ring-leaf"
       )}
       // Drop images anywhere on the panel
@@ -277,15 +326,31 @@ export function AssistantPanel({
         attach(Array.from(e.dataTransfer.files));
       }}
     >
-      <header className="flex items-center gap-2 border-b px-4 py-3">
+      <header className="flex items-center gap-2 px-4 py-3">
         <Sparkles className="size-4 text-leaf" />
         <div className="min-w-0 flex-1">
           <h2 className="font-semibold leading-tight">Assistant</h2>
           {status?.model && <p className="truncate text-xs text-muted-foreground">{status.model}</p>}
         </div>
-        <Button variant="ghost" size="icon" onClick={reset} disabled={items.length === 0} title="New chat">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={reset}
+          disabled={items.length === 0 && !input && attachments.length === 0}
+          title="New chat"
+        >
           <RotateCcw className="size-4" />
           <span className="sr-only">New chat</span>
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="hidden sm:inline-flex"
+          onClick={() => setWidth(wide ? "normal" : "wide")}
+          title={wide ? "Narrower" : "Wider"}
+        >
+          {wide ? <Minimize2 className="size-4" /> : <Maximize2 className="size-4" />}
+          <span className="sr-only">{wide ? "Make narrower" : "Make wider"}</span>
         </Button>
         <Button variant="ghost" size="icon" onClick={onClose} title="Close (Esc)">
           <X className="size-4" />
@@ -306,23 +371,28 @@ export function AssistantPanel({
             </p>
           </div>
         ) : items.length === 0 ? (
-          <div className="space-y-3">
-            <p className="text-sm text-muted-foreground">
+          <div className="space-y-6">
+            <p className="text-base leading-relaxed text-muted-foreground">
               Ask about your tasks, calendar, notes or the weather. I can also prepare tasks and events for you to
               confirm.
             </p>
-            <div className="flex flex-col items-start gap-2">
-              {EXAMPLES.map((example) => (
-                <button
-                  key={example}
-                  type="button"
-                  onClick={() => send(example)}
-                  disabled={!status?.available}
-                  className="rounded-full border px-3 py-1 text-left text-xs hover:bg-muted disabled:opacity-50"
-                >
-                  {example}
-                </button>
-              ))}
+            <div>
+              <p className="mb-1 px-2 text-xs font-medium text-muted-foreground">Try asking</p>
+              <ul>
+                {EXAMPLES.map(({ text, icon: Icon }) => (
+                  <li key={text}>
+                    <button
+                      type="button"
+                      onClick={() => send(text)}
+                      disabled={!status?.available}
+                      className="flex w-full items-center gap-3 rounded-md px-2 py-2 text-left text-sm transition-colors hover:bg-foreground/5 disabled:opacity-50"
+                    >
+                      <Icon className="size-4 shrink-0 text-leaf" />
+                      {text}
+                    </button>
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
         ) : (
@@ -339,7 +409,7 @@ export function AssistantPanel({
                   </div>
                 )}
                 {item.text && (
-                  <p className="whitespace-pre-wrap break-words rounded-lg bg-leaf-soft px-3 py-2 text-sm text-foreground">
+                  <p className="whitespace-pre-wrap break-words rounded-2xl bg-muted px-3.5 py-2 dark:bg-foreground/10 text-sm text-foreground">
                     {item.text}
                   </p>
                 )}
@@ -350,7 +420,7 @@ export function AssistantPanel({
                 {tidy(item.text) && <AssistantMarkdown text={tidy(item.text)} onNavigate={closeIfCovering} />}
                 {item.status && (
                   <p className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <Loader2 className="size-3.5 animate-spin" /> {item.status}…
+                    <Spinner className="size-3.5" /> {item.status}…
                   </p>
                 )}
                 {item.proposals.map(({ proposal, state }) => (
@@ -377,7 +447,7 @@ export function AssistantPanel({
           e.preventDefault();
           send(input);
         }}
-        className="border-t p-3"
+        className="p-3"
       >
         {attachments.length > 0 && (
           <div className="mb-2 flex flex-wrap gap-2">
@@ -397,7 +467,8 @@ export function AssistantPanel({
             ))}
           </div>
         )}
-        <div className="flex items-end gap-2 rounded-lg border bg-background p-2 focus-within:ring-2 focus-within:ring-ring/50">
+        {/* On the card's own white by day; a shade darker by night to stand out */}
+        <div className="flex items-end gap-2 rounded-lg border p-2 focus-within:ring-2 focus-within:ring-ring/50 dark:bg-background">
           <input
             ref={fileRef}
             type="file"

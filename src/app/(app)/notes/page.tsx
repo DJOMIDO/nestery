@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { NotebookPen, Plus, Search, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { ListSkeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { NoteEditor } from "@/components/notes/NoteEditor";
 import { NoteListItem } from "@/components/notes/NoteListItem";
@@ -170,7 +171,7 @@ function NotesView() {
           </div>
 
           {loading ? (
-            <p className="text-sm text-muted-foreground">Loading notes…</p>
+            <ListSkeleton label="Loading notes" />
           ) : visible.length === 0 ? (
             <p className="text-sm text-muted-foreground">
               {query ? "No notes match your search." : "No notes yet."}

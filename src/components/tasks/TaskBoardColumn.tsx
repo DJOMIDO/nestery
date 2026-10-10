@@ -3,7 +3,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useDroppable } from "@dnd-kit/core";
-import { Plus } from "lucide-react";
+import { Circle, CircleCheck, Clock, Contrast, Plus, type LucideIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { TaskCard } from "@/components/tasks/TaskCard";
 import { TASK_STATUS_LABELS, type Task, type TaskStatus } from "@/lib/tasks";
@@ -14,6 +14,14 @@ const DONE_PREVIEW = 10;
 
 // How long a newly added card stays outlined
 const HIGHLIGHT_MS = 1500;
+
+// Each column's mark, from grey (not started) to forest green (done)
+const STATUS_ICONS: Record<TaskStatus, { icon: LucideIcon; className: string }> = {
+  todo: { icon: Circle, className: "text-muted-foreground" },
+  in_progress: { icon: Contrast, className: "text-moss" },
+  waiting: { icon: Clock, className: "text-bark" },
+  done: { icon: CircleCheck, className: "text-leaf" },
+};
 
 interface TaskBoardColumnProps {
   status: TaskStatus;
@@ -42,6 +50,7 @@ export function TaskBoardColumn({
   const shown = isDone && !showAll ? tasks.slice(0, DONE_PREVIEW) : tasks;
   const hidden = tasks.length - shown.length;
   const label = TASK_STATUS_LABELS[status];
+  const { icon: StatusIcon, className: statusClass } = STATUS_ICONS[status];
 
   // The column keeps its sort order, so a new task may land below the fold:
   // scroll it into view and outline it for a moment
@@ -71,15 +80,15 @@ export function TaskBoardColumn({
       aria-label={label}
       className={cn(
         "relative flex flex-col min-h-0 w-[85vw] max-w-sm shrink-0 snap-start lg:w-auto lg:max-w-none",
-        "rounded-lg border bg-muted/40 transition-colors",
-        isOver && "border-leaf bg-leaf-soft/60"
+        // A lane rather than a box: the cards carry the borders
+        "rounded-xl bg-foreground/[0.03] transition-colors",
+        isOver && "bg-leaf-soft/60 ring-2 ring-leaf/50"
       )}
     >
-      <h2 className="flex items-center justify-between px-3 pt-3 pb-2 text-sm font-semibold">
+      <h2 className="flex items-center gap-2 px-3 pt-3 pb-2 text-sm font-semibold">
+        <StatusIcon className={cn("size-4 shrink-0", statusClass)} />
         {label}
-        <span className="rounded-full bg-muted px-2 text-xs font-medium text-muted-foreground">
-          {tasks.length}
-        </span>
+        <span className="text-xs font-medium text-muted-foreground">{tasks.length}</span>
       </h2>
 
       {!isDone && (
@@ -89,9 +98,10 @@ export function TaskBoardColumn({
             <Input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Add a task"
+              placeholder="Add task"
               aria-label={`Add a task to ${label}`}
-              className="h-8 pl-8 bg-card"
+              // A quiet line until it's used
+              className="h-8 pl-8 border-transparent bg-transparent shadow-none hover:bg-foreground/5 focus-visible:border-input focus-visible:bg-card dark:bg-transparent dark:focus-visible:bg-card"
             />
           </div>
         </form>

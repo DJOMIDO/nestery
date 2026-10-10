@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { resetPassword } from "@/lib/auth-client";
@@ -105,6 +106,7 @@ function ResetPasswordForm() {
         {error && <p className="text-sm text-red-500">{error}</p>}
       </div>
       <Button type="submit" className="w-full" disabled={saving || !password || !confirm}>
+        {saving && <Spinner />}
         {saving ? "Saving…" : "Change password"}
       </Button>
     </form>

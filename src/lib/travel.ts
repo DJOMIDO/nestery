@@ -195,9 +195,13 @@ export function journeyTimes(
   return { start, end };
 }
 
-// "✈ 3U 8888 PEK → CTU": how a journey appears on the calendar
+// "3U 8888 PEK → CTU": how a journey appears in Nestery, next to its icon
+export const journeyRoute = (j: Pick<Journey, "carrier" | "number" | "origin" | "destination">) =>
+  `${journeyLabel(j)} ${j.origin} → ${j.destination}`;
+
+// "✈ 3U 8888 PEK → CTU": for other calendar apps, which only show text
 export const journeyTitle = (j: Pick<Journey, "kind" | "carrier" | "number" | "origin" | "destination">) =>
-  `${j.kind === "flight" ? "✈" : "🚆"} ${journeyLabel(j)} ${j.origin} → ${j.destination}`;
+  `${j.kind === "flight" ? "✈" : "🚆"} ${journeyRoute(j)}`;
 
 // A journey as a read-only calendar event (like a subscribed calendar's),
 // so the calendar and the dashboard show it without storing a copy
@@ -214,7 +218,7 @@ export function journeyToEvent(j: Journey): CalendarEvent {
   return {
     id: `journey:${j.id}`,
     userId: "",
-    title: journeyTitle(j),
+    title: journeyRoute(j),
     notes: details.length ? details.join("\n") : null,
     allDay: !times,
     startsAt: times?.start.toISOString() ?? null,
@@ -229,6 +233,7 @@ export function journeyToEvent(j: Journey): CalendarEvent {
     source: {
       subscriptionId: "travel",
       journeyId: j.id,
+      journeyKind: j.kind,
       name: "Travel",
       color: "indigo",
       location: `${j.originName ?? j.originCity ?? j.origin} → ${j.destinationName ?? j.destinationCity ?? j.destination}`,

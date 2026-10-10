@@ -8,6 +8,7 @@
 import { useRef, useState } from "react";
 import { Download, FileUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { request } from "@/lib/api";
 import { csvRecords, toCsv } from "@/lib/csv";
@@ -205,6 +206,7 @@ export function ImportDialog({
             </Button>
             {!result && (
               <Button type="button" onClick={runImport} disabled={!rows || importing}>
+                {importing && <Spinner />}
                 {importing ? "Importing…" : rows ? `Import ${rows.length}` : "Import"}
               </Button>
             )}
