@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Plus, RefreshCw, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { ImportCalendarFile } from "@/components/calendar/CalendarTransferSettings";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useSubscriptions } from "@/hooks/useSubscriptions";
@@ -18,17 +19,24 @@ import {
 } from "@/lib/subscriptions";
 import { cn } from "@/lib/utils";
 
-// Settings > Calendar subscriptions: external .ics feeds shown read-only
+// Settings > Calendar > Other calendars: external .ics feeds shown read-only
 export function SubscriptionSettings() {
   const { subscriptions, loading, add, update, remove, refresh } = useSubscriptions();
   const nextColor = SUBSCRIPTION_COLOR_KEYS[subscriptions.length % SUBSCRIPTION_COLOR_KEYS.length];
 
   return (
-    <section className="space-y-4 rounded-lg border bg-card p-5">
+    <section id="calendar-calendars" className="scroll-mt-4 space-y-4 rounded-lg border bg-card p-5">
       <div>
-        <h2 className="font-semibold">Calendar subscriptions</h2>
+        <h2 className="font-semibold">Other calendars</h2>
         <p className="text-sm text-muted-foreground">
-          Show another calendar next to your own, read-only: a class timetable, a shared calendar, sports fixtures…
+          Bring calendars from elsewhere into Nestery: subscribe to a link to keep one in sync, or import a file once.
+        </p>
+      </div>
+
+      <div>
+        <h3 className="text-sm font-medium">Subscriptions</h3>
+        <p className="text-sm text-muted-foreground">
+          Shown next to your own events, read-only: a class timetable, your iPhone&apos;s calendar, sports fixtures…
           Paste its iCalendar (.ics or webcal) link. It refreshes every hour.
         </p>
       </div>
@@ -66,6 +74,10 @@ export function SubscriptionSettings() {
             l&apos;agenda&rdquo; option, generate the URL and copy it.
           </li>
           <li>
+            <strong>iPhone / iCloud</strong>: in the Calendar app, tap Calendars, then ⓘ next to the calendar, turn on
+            &ldquo;Public Calendar&rdquo; and share the link. Anyone with that link can see the calendar.
+          </li>
+          <li>
             <strong>Google Calendar</strong>: Settings → the calendar → &ldquo;Secret address in iCal format&rdquo;.
           </li>
           <li>
@@ -73,6 +85,9 @@ export function SubscriptionSettings() {
           </li>
         </ul>
       </details>
+
+      <div className="border-t" />
+      <ImportCalendarFile />
     </section>
   );
 }

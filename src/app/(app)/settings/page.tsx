@@ -5,23 +5,19 @@ import { Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowLeft,
-  ArrowLeftRight,
+  CalendarDays,
   ChevronRight,
   Clock,
   CloudSun,
-  PartyPopper,
-  Rss,
   Sparkles,
   UserRound,
   type LucideIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { CalendarTransferSettings } from "@/components/calendar/CalendarTransferSettings";
-import { SubscriptionSettings } from "@/components/calendar/SubscriptionSettings";
 import { AccountSettings } from "@/components/settings/AccountSettings";
 import { AssistantSettings } from "@/components/settings/AssistantSettings";
+import { CALENDAR_PARTS, CalendarSettings, type CalendarPart } from "@/components/settings/CalendarSettings";
 import { DateTimeSettings } from "@/components/settings/DateTimeSettings";
-import { HolidaySettings } from "@/components/settings/HolidaySettings";
 import { WeatherSettings } from "@/components/settings/WeatherSettings";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { cn } from "@/lib/utils";
@@ -31,8 +27,16 @@ interface Section {
   label: string;
   description: string;
   icon: LucideIcon;
-  content: React.ComponentType;
+  // `focus`: a part of the section to scroll to (only Calendar has parts)
+  content: React.ComponentType<{ focus?: CalendarPart | null }>;
 }
+
+// Sections that are now parts of Calendar, so old links still land there
+const MOVED_TO_CALENDAR: Record<string, CalendarPart> = {
+  holidays: "holidays",
+  calendars: "calendars",
+  "import-export": "share",
+};
 
 // The categories in the left-hand list; the chosen one shows on the right
 const SECTIONS: Section[] = [
@@ -58,11 +62,11 @@ const SECTIONS: Section[] = [
     content: DateTimeSettings,
   },
   {
-    id: "holidays",
-    label: "Public holidays",
-    description: "Countries and regions on your calendar",
-    icon: PartyPopper,
-    content: HolidaySettings,
+    id: "calendar",
+    label: "Calendar",
+    description: "Holidays, other calendars, sharing",
+    icon: CalendarDays,
+    content: CalendarSettings,
   },
   {
     id: "weather",
@@ -71,20 +75,7 @@ const SECTIONS: Section[] = [
     icon: CloudSun,
     content: WeatherSettings,
   },
-  {
-    id: "calendars",
-    label: "Calendar subscriptions",
-    description: "Other calendars shown next to yours",
-    icon: Rss,
-    content: SubscriptionSettings,
-  },
-  {
-    id: "import-export",
-    label: "Import & export",
-    description: "Import .ics files, subscribe from other apps",
-    icon: ArrowLeftRight,
-    content: CalendarTransferSettings,
-  },
+
 ];
 
 // useSearchParams needs a Suspense boundary on a statically rendered page
@@ -102,9 +93,14 @@ function SettingsView() {
   // List and details side by side from `md` up; one at a time below
   const isWide = useMediaQuery("(min-width: 768px)");
 
-  // ?section=… keeps the choice across reloads and lets other pages link to a section
-  const requested = SECTIONS.find((s) => s.id === params.get("section"));
+  // ?section=… keeps the choice across reloads and lets other pages link to a
+  // section; &focus=… scrolls to a part of it
+  const sectionParam = params.get("section") ?? "";
+  const moved = MOVED_TO_CALENDAR[sectionParam];
+  const requested = SECTIONS.find((s) => s.id === (moved ? "calendar" : sectionParam));
   const current = requested ?? (isWide ? SECTIONS[0] : null);
+  const focusParam = params.get("focus");
+  const focus = moved ?? CALENDAR_PARTS.find((p) => p.id === focusParam)?.id ?? null;
 
   const open = (id: string | null) =>
     router.replace(id ? `/settings?section=${id}` : "/settings", { scroll: false });
@@ -160,7 +156,7 @@ function SettingsView() {
                 <ArrowLeft className="size-4 mr-1" /> All settings
               </Button>
             )}
-            <current.content />
+            <current.content focus={focus} />
           </div>
         )}
       </div>

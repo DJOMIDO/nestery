@@ -63,6 +63,10 @@ tracks what is done, what is planned next, and ideas that were considered.
   can be replaced or turned off) so other calendar apps can subscribe to
   your events and open tasks' due dates
 
+- Settings: public holidays, other calendars (subscriptions and .ics
+  import) and the link for other apps are one "Calendar" section, below
+  Date & time; old links to the former sections still land on their part
+
 **Planned**
 - "This and following occurrences" when editing a repeating event.
 
