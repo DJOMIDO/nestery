@@ -1,7 +1,8 @@
 // src/app/(app)/tasks/page.tsx
 "use client";
 
-import { useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronDown, ChevronRight, Columns3, List, Plus, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -26,7 +27,16 @@ import { useFormat } from "@/components/SettingsProvider";
 
 const OPEN_GROUPS: TaskGroupKey[] = ["overdue", "today", "upcoming", "noDate"];
 
+// useSearchParams needs a Suspense boundary on a statically rendered page
 export default function TasksPage() {
+  return (
+    <Suspense>
+      <TasksPageContent />
+    </Suspense>
+  );
+}
+
+function TasksPageContent() {
   const { tasks, loading, createTask, updateTask, deleteTask } = useTasks();
   const format = useFormat();
   // The side panel is only shown on large screens (Tailwind `lg`)
@@ -90,6 +100,21 @@ export default function TasksPage() {
       },
     });
   };
+
+  // ?task=<id> (links from the assistant) opens that task once tasks are loaded
+  const router = useRouter();
+  const linkedTask = useSearchParams().get("task");
+  useEffect(() => {
+    if (!linkedTask || loading) return;
+    const task = tasks.find((t) => t.id === linkedTask);
+    if (task && isWide && view === "list") {
+      setSelectedId(task.id);
+    } else if (task) {
+      setEditing(task);
+      setDialogOpen(true);
+    }
+    router.replace("/tasks", { scroll: false });
+  }, [linkedTask, loading, tasks, isWide, view, router]);
 
   // Wide screens edit in the side panel; narrow screens use the dialog
   const handleEdit = (task: Task) => {

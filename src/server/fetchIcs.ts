@@ -79,7 +79,7 @@ function ipBlocked(ip: string) {
   );
 }
 
-async function assertPublicHost(url: URL) {
+export async function assertPublicHost(url: URL) {
   const host = url.hostname.replace(/^\[|\]$/g, "");
   if (host === "localhost" || host.endsWith(".localhost") || host.endsWith(".internal")) {
     throw new FeedError("That address is not reachable from Nestery");

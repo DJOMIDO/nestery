@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   ASSISTANT_PROVIDER_LABELS,
   ASSISTANT_PROVIDERS,
+  PROVIDER_KEY_PAGES,
   SUGGESTED_MODELS,
   type AssistantProvider,
   type AssistantSettingsView,
@@ -29,6 +30,8 @@ export function AssistantSettings() {
   const [provider, setProvider] = useState<AssistantProvider>("anthropic");
   const [apiKey, setApiKey] = useState("");
   const [model, setModel] = useState(SUGGESTED_MODELS.anthropic[0]);
+  // "Other" providers only
+  const [baseUrl, setBaseUrl] = useState("");
   // Models the key can use, once loaded
   const [models, setModels] = useState<string[] | null>(null);
   const [loadingModels, setLoadingModels] = useState(false);
@@ -45,6 +48,7 @@ export function AssistantSettings() {
     if (settings) {
       setProvider(settings.provider);
       setModel(settings.model);
+      setBaseUrl(settings.baseUrl ?? "");
     }
   };
 
@@ -54,8 +58,20 @@ export function AssistantSettings() {
       .finally(() => setLoading(false));
   }, []);
 
-  // Without a new key, the saved one (or the owner's) is used
-  const canUseExistingKey = !!saved?.apiKeyHint || status?.source === "server";
+  const isCustom = provider === "custom";
+  // Without a new key: the saved one, the owner's (Anthropic), or none for a
+  // local server
+  const hasSavedKey = !!saved?.apiKeyHint && saved.provider === provider;
+  const canUseExistingKey =
+    hasSavedKey || (provider === "anthropic" && status?.source === "server") || isCustom;
+  const ready = canUseExistingKey || !!apiKey.trim();
+
+  // Sent with every check and save
+  const connection = () => ({
+    provider,
+    ...(apiKey.trim() && { apiKey: apiKey.trim() }),
+    ...(isCustom && { baseUrl: baseUrl.trim() }),
+  });
 
   const loadModels = async () => {
     setError(null);
@@ -63,7 +79,7 @@ export function AssistantSettings() {
     try {
       const ids = await request<string[]>("/api/assistant/models", {
         method: "POST",
-        body: JSON.stringify({ provider, ...(apiKey.trim() && { apiKey: apiKey.trim() }) }),
+        body: JSON.stringify(connection()),
       });
       // Suggested ones first, in their order
       const suggested = SUGGESTED_MODELS[provider].filter((m) => ids.includes(m));
@@ -83,7 +99,7 @@ export function AssistantSettings() {
     try {
       await request("/api/assistant/settings", {
         method: "PUT",
-        body: JSON.stringify({ provider, model, ...(apiKey.trim() && { apiKey: apiKey.trim() }) }),
+        body: JSON.stringify({ ...connection(), model }),
       });
       setApiKey("");
       await refresh();
@@ -101,9 +117,9 @@ export function AssistantSettings() {
       await request("/api/assistant/settings", { method: "DELETE" });
       setApiKey("");
       setModels(null);
-      setModel(SUGGESTED_MODELS[provider][0]);
+      setModel(SUGGESTED_MODELS[provider][0] ?? "");
       await refresh();
-      toast.success("API key removed");
+      toast.success("Assistant settings removed");
     } catch (err) {
       toast.error((err as Error).message);
     } finally {
@@ -118,8 +134,8 @@ export function AssistantSettings() {
       <div>
         <h2 className="font-semibold">Assistant</h2>
         <p className="text-sm text-muted-foreground">
-          The assistant (✦ in the sidebar, or ⌘J) uses an AI model with your own API key. The provider bills you
-          for what you use.
+          The assistant (✦ in the sidebar, or ⌘J) uses an AI model with your own API key; the provider bills you
+          for what you use. What the assistant looks up (tasks, events, notes) is sent to that provider.
         </p>
       </div>
 
@@ -142,7 +158,8 @@ export function AssistantSettings() {
             onValueChange={(v) => {
               setProvider(v as AssistantProvider);
               setModels(null);
-              setModel(SUGGESTED_MODELS[v as AssistantProvider][0]);
+              setError(null);
+              setModel(SUGGESTED_MODELS[v as AssistantProvider][0] ?? "");
             }}
           >
             <SelectTrigger id="assistant-provider" className="w-full sm:max-w-sm">
@@ -156,11 +173,32 @@ export function AssistantSettings() {
               ))}
             </SelectContent>
           </Select>
-          <p className="text-xs text-muted-foreground">More providers (OpenAI, Gemini, OpenRouter, …) are coming.</p>
         </div>
 
+        {isCustom && (
+          <div className="space-y-2">
+            <Label htmlFor="assistant-base-url">Base URL</Label>
+            <Input
+              id="assistant-base-url"
+              type="url"
+              value={baseUrl}
+              onChange={(e) => {
+                setBaseUrl(e.target.value);
+                setModels(null);
+              }}
+              placeholder="https://api.deepseek.com/v1"
+              spellCheck={false}
+              className="sm:max-w-sm"
+            />
+            <p className="text-xs text-muted-foreground">
+              Any service with an OpenAI-compatible chat API. A server on your own computer (LM Studio:{" "}
+              <code>http://localhost:1234/v1</code>) only works while developing Nestery locally.
+            </p>
+          </div>
+        )}
+
         <div className="space-y-2">
-          <Label htmlFor="assistant-key">API key</Label>
+          <Label htmlFor="assistant-key">API key{isCustom && " (if the server needs one)"}</Label>
           <div className="flex gap-2 sm:max-w-sm">
             <Input
               id="assistant-key"
@@ -172,27 +210,31 @@ export function AssistantSettings() {
                 setApiKey(e.target.value);
                 setModels(null);
               }}
-              placeholder={saved?.apiKeyHint ? `Saved key ${saved.apiKeyHint}` : "sk-ant-…"}
+              placeholder={hasSavedKey ? `Saved key ${saved!.apiKeyHint}` : ""}
             />
-            {saved?.apiKeyHint && (
-              <Button type="button" variant="outline" size="icon" onClick={remove} disabled={saving} title="Remove key">
+            {saved && (
+              <Button type="button" variant="outline" size="icon" onClick={remove} disabled={saving} title="Remove key and settings">
                 <Trash2 className="size-4" />
                 <span className="sr-only">Remove key</span>
               </Button>
             )}
           </div>
           <p className="text-xs text-muted-foreground">
-            Create one in the{" "}
-            <a
-              href="https://platform.claude.com/settings/keys"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline underline-offset-2 hover:text-foreground"
-            >
-              Claude Console
-            </a>
-            . It&apos;s stored encrypted and only used for your own requests.
-            {saved?.apiKeyHint && " Leave empty to keep the saved key."}
+            {PROVIDER_KEY_PAGES[provider] && (
+              <>
+                <a
+                  href={PROVIDER_KEY_PAGES[provider]}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline underline-offset-2 hover:text-foreground"
+                >
+                  Create a key
+                </a>
+                .{" "}
+              </>
+            )}
+            It&apos;s stored encrypted and only used for your own requests.
+            {hasSavedKey && " Leave empty to keep the saved key."}
           </p>
         </div>
 
@@ -213,20 +255,27 @@ export function AssistantSettings() {
                 </SelectContent>
               </Select>
             ) : (
-              <Input id="assistant-model" value={model} onChange={(e) => setModel(e.target.value)} spellCheck={false} />
+              <Input
+                id="assistant-model"
+                value={model}
+                onChange={(e) => setModel(e.target.value)}
+                placeholder="Load the list, or type a model id"
+                spellCheck={false}
+              />
             )}
             <Button
               type="button"
               variant="outline"
               onClick={loadModels}
-              disabled={loadingModels || (!apiKey.trim() && !canUseExistingKey)}
+              disabled={loadingModels || !ready || (isCustom && !baseUrl.trim())}
             >
               <KeyRound className="size-4 mr-1" />
-              {loadingModels ? "Checking…" : "Check key"}
+              {loadingModels ? "Loading…" : "Load models"}
             </Button>
           </div>
           <p className="text-xs text-muted-foreground">
-            “Check key” lists the models your key can use. Haiku is the cheapest; Sonnet and Opus are smarter.
+            Lists the models your key can use, which also checks the key. Pick one that supports tool calling;
+            small local models may misuse the tools.
           </p>
         </div>
 
@@ -237,7 +286,7 @@ export function AssistantSettings() {
         )}
 
         <div className="flex justify-end">
-          <Button type="submit" disabled={saving || !model.trim() || (!apiKey.trim() && !canUseExistingKey)}>
+          <Button type="submit" disabled={saving || !model.trim() || !ready || (isCustom && !baseUrl.trim())}>
             {saving ? "Saving…" : "Save"}
           </Button>
         </div>

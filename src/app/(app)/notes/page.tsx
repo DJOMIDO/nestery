@@ -42,9 +42,13 @@ function NotesView() {
     searchParams.get("new") ? searchParams.get("note") : null
   );
 
-  // Drop the params once read so a reload does not jump back to that note
+  // Drop the params once read so a reload does not jump back to that note.
+  // A link followed while the page is open (e.g. from the assistant) selects it.
   useEffect(() => {
-    if (searchParams.has("note")) router.replace("/notes", { scroll: false });
+    const linked = searchParams.get("note");
+    if (!linked) return;
+    setSelectedId(linked);
+    router.replace("/notes", { scroll: false });
   }, [searchParams, router]);
 
   const sorted = useMemo(() => [...notes].sort(compareNotes), [notes]);

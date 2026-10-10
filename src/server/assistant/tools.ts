@@ -9,9 +9,11 @@ import * as z from "zod/v4";
 import type { AssistantProposal } from "@/lib/assistant";
 import { expandEvents, type CalendarEvent } from "@/lib/calendar";
 import { addDays, compareTasks, TASK_PRIORITIES, TASK_STATUSES, type Task } from "@/lib/tasks";
+import type { Formatter } from "@/lib/format";
+import { noteHref } from "@/lib/notes";
 import type { WeatherPlace } from "@/lib/weather";
 import { createEventInput, listEvents } from "@/server/events";
-import { getNote, searchNotes } from "@/server/notes";
+import { getNote, listNotes, searchNotes } from "@/server/notes";
 import { subscriptionEvents } from "@/server/subscriptions";
 import { createTaskInput, getTask, listTasks, updateTaskInput } from "@/server/tasks";
 import { dailyForecast, searchPlaces } from "@/server/weather";
@@ -23,6 +25,8 @@ export interface ToolContext {
   today: string;
   // From Settings > Weather
   place: WeatherPlace | null;
+  // Writes dates the way the app shows them to this user
+  format: Formatter;
   propose: (proposal: AssistantProposal) => void;
 }
 
@@ -76,6 +80,28 @@ function wallClockToIso(local: string, timeZone: string) {
   return new Date(asUtc - offset(first)).toISOString();
 }
 
+// "Mon, Oct 12, 9:00 AM – 10:00 AM" in the user's format; times are the
+// user's wall clock ("HH:mm"), turned into a Date only to be formatted
+function describeWhen(
+  allDay: boolean,
+  start: { date: string; time: string },
+  end: { date: string; time: string },
+  format: Formatter
+) {
+  const time = (hhmm: string) => {
+    const [h, m] = hhmm.split(":").map(Number);
+    return format.time(new Date(2000, 0, 1, h, m));
+  };
+  if (allDay) {
+    return end.date === start.date
+      ? `${format.dayWithWeekday(start.date)} (all day)`
+      : `${format.dayWithWeekday(start.date)} – ${format.dayWithWeekday(end.date)} (all day)`;
+  }
+  return end.date === start.date
+    ? `${format.dayWithWeekday(start.date)}, ${time(start.time)} – ${time(end.time)}`
+    : `${format.dayWithWeekday(start.date)}, ${time(start.time)} – ${format.dayWithWeekday(end.date)}, ${time(end.time)}`;
+}
+
 // ---- Tools -----------------------------------------------------------------
 
 const listTasksTool = tool({
@@ -93,7 +119,7 @@ const listTasksTool = tool({
     dueTo: date.optional(),
     text: z.string().optional().describe("Only tasks whose title or description contains this"),
   }),
-  async run({ status = "open", tag, dueFrom, dueTo, text }, { userId }) {
+  async run({ status = "open", tag, dueFrom, dueTo, text }, { userId, format }) {
     const rows = await listTasks(userId, {
       ...(status !== "open" && status !== "any" && { status }),
       tag,
@@ -109,10 +135,12 @@ const listTasksTool = tool({
       total: tasks.length,
       tasks: tasks.slice(0, 40).map((t) => ({
         id: t.id,
+        link: `/tasks?task=${t.id}`,
         title: t.title,
         status: t.status,
         priority: t.priority,
         dueDate: t.dueDate,
+        dueText: t.dueDate ? format.dayWithWeekday(t.dueDate) : undefined,
         tags: t.tags.length ? t.tags : undefined,
         description: clip(t.description, 200),
       })),
@@ -126,7 +154,7 @@ const listEventsTool = tool({
   description:
     "List calendar events between two dates (inclusive, at most 31 days apart), including repeating events and subscribed calendars such as a class timetable. Times are in the user's time zone.",
   input: z.object({ from: date, to: date }),
-  async run({ from, to }, { userId, timeZone }) {
+  async run({ from, to }, { userId, timeZone, format }) {
     if (to < from) throw new ToolError("`to` is before `from`");
     if (to > addDays(from, 30)) throw new ToolError("Ask for at most 31 days at a time");
 
@@ -145,6 +173,8 @@ const listEventsTool = tool({
       .slice(0, 100)
       .map(({ e, start, end }) => ({
         title: e.title,
+        link: `/calendar?date=${start.date}`,
+        whenText: describeWhen(e.allDay, start, end, format),
         ...(e.allDay
           ? { allDay: true, date: start.date, ...(end.date !== start.date && { until: end.date }) }
           : {
@@ -159,21 +189,51 @@ const listEventsTool = tool({
   },
 });
 
+const listNotesTool = tool({
+  name: "list_notes",
+  label: "Looking at your notes",
+  description:
+    "List the user's notes, pinned first, then most recently edited, with the start of each. Use it for questions about the notes in general; use search_notes to find specific content.",
+  input: z.object({
+    limit: z.number().int().min(1).max(50).optional().describe("How many notes (default 20)"),
+  }),
+  async run({ limit = 20 }, { userId, format }) {
+    const notes = await listNotes(userId);
+    return {
+      total: notes.length,
+      notes: notes.slice(0, limit).map((n) => ({
+        id: n.id,
+        link: noteHref(n.id),
+        title: n.title || "Untitled",
+        pinned: n.pinned || undefined,
+        updatedText: format.dayWithYear(n.updatedAt),
+        start: clip(n.contentText.trim(), 200),
+      })),
+    };
+  },
+});
+
 const searchNotesTool = tool({
   name: "search_notes",
   label: "Searching your notes",
   description:
-    "Find the user's notes containing all the given words (title or text). Returns excerpts; use read_note for a whole note.",
-  input: z.object({ query: z.string().min(1).describe("A few keywords, not a sentence") }),
-  async run({ query }, { userId }) {
+    "Find the user's notes containing all the given words (title or text, any case). Returns excerpts; use read_note for a whole note.",
+  input: z.object({
+    query: z
+      .string()
+      .min(1)
+      .describe("One or a few keywords separated by spaces, not a sentence. For Chinese, use short words such as “签证”."),
+  }),
+  async run({ query }, { userId, format }) {
     const notes = await searchNotes(userId, query, 8);
     const first = query.trim().split(/\s+/)[0].toLowerCase();
     return notes.map((n) => {
       const at = Math.max(0, n.contentText.toLowerCase().indexOf(first) - 150);
       return {
         id: n.id,
+        link: noteHref(n.id),
         title: n.title || "Untitled",
-        updated: n.updatedAt.toISOString().slice(0, 10),
+        updatedText: format.dayWithYear(n.updatedAt),
         excerpt: clip(n.contentText.slice(at), 500),
       };
     });
@@ -183,12 +243,12 @@ const searchNotesTool = tool({
 const readNoteTool = tool({
   name: "read_note",
   label: "Reading a note",
-  description: "Read one of the user's notes in full (plain text), by the id from search_notes.",
+  description: "Read one of the user's notes in full (plain text), by an id from list_notes or search_notes.",
   input: z.object({ id: z.uuid() }),
   async run({ id }, { userId }) {
     const note = await getNote(userId, id);
     if (!note) throw new ToolError("No note with that id");
-    return { title: note.title || "Untitled", text: clip(note.contentText, 12_000) ?? "" };
+    return { title: note.title || "Untitled", link: noteHref(note.id), text: clip(note.contentText, 12_000) ?? "" };
   },
 });
 
@@ -201,7 +261,7 @@ const weatherTool = tool({
     place: z.string().optional().describe("City name, optionally with the country, e.g. “Paris, France”"),
     days: z.number().int().min(1).max(14).optional().describe("How many days, today included (default 3)"),
   }),
-  async run({ place, days = 3 }, { timeZone, place: saved }) {
+  async run({ place, days = 3 }, { timeZone, place: saved, format }) {
     let where = saved;
     if (place) {
       // "Paris, France": search the city, prefer matches in that country
@@ -215,7 +275,7 @@ const weatherTool = tool({
     return {
       place: [where.name, where.detail].filter(Boolean).join(", "),
       temperatureUnit: "°C",
-      days: await dailyForecast(where, timeZone, days),
+      days: (await dailyForecast(where, timeZone, days)).map((d) => ({ ...d, dateText: format.dayWithWeekday(d.date) })),
     };
   },
 });
@@ -304,6 +364,7 @@ const TOOLS = [
   listTasksTool,
   listEventsTool,
   searchNotesTool,
+  listNotesTool,
   readNoteTool,
   weatherTool,
   proposeTaskTool,

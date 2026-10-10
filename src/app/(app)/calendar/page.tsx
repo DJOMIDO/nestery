@@ -1,7 +1,8 @@
 // src/app/(app)/calendar/page.tsx
 "use client";
 
-import { useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   DndContext,
@@ -64,11 +65,32 @@ const VIEWS = ["month", "week"] as const;
 const hhmm = (minutes: number) =>
   `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`;
 
+// useSearchParams needs a Suspense boundary on a statically rendered page
 export default function CalendarPage() {
+  return (
+    <Suspense>
+      <CalendarPageContent />
+    </Suspense>
+  );
+}
+
+function CalendarPageContent() {
   const today = toDateKey(new Date());
   const [view, setView] = useStoredChoice<CalendarView>("calendar-view", VIEWS, "month");
   const [month, setMonth] = useState(() => today.slice(0, 8) + "01");
   const [selected, setSelected] = useState(today);
+
+  // ?date=YYYY-MM-DD (links from the assistant) shows that day
+  const router = useRouter();
+  const linkedDate = useSearchParams().get("date");
+  useEffect(() => {
+    if (!linkedDate) return;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(linkedDate)) {
+      setSelected(linkedDate);
+      setMonth(linkedDate.slice(0, 8) + "01");
+    }
+    router.replace("/calendar", { scroll: false });
+  }, [linkedDate, router]);
 
   const format = useFormat();
   const days = useMemo(
