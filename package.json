@@ -10,7 +10,8 @@
     "lint": "next lint",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "travel:data": "node scripts/update-travel-data.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.133.0",

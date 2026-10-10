@@ -7,6 +7,7 @@ import {
   date,
   index,
   jsonb,
+  numeric,
   pgEnum,
   pgTable,
   smallint,
@@ -19,6 +20,7 @@ import {
 import { TASK_PRIORITIES, TASK_STATUSES } from "@/lib/tasks";
 import type { NoteContent } from "@/lib/notes";
 import type { WeatherPlace } from "@/lib/weather";
+import { JOURNEY_KINDS } from "@/lib/travel";
 
 // ---------------------------------------------------------------------------
 // Better Auth tables (user / session / account / verification).
@@ -283,4 +285,61 @@ export const assistantUsage = pgTable(
     requests: integer().notNull().default(0),
   },
   (t) => [uniqueIndex("assistant_usage_user_day_idx").on(t.userId, t.day)]
+);
+
+export const journeyKind = pgEnum("journey_kind", JOURNEY_KINDS);
+
+// Flights and train journeys (Travel). Departure and arrival are local
+// wall-clock dates and times at each end, with that place's time zone when
+// known (flights: from the airport list); null means the user's own zone.
+export const journeys = pgTable(
+  "journeys",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    userId: text()
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    kind: journeyKind().notNull(),
+    // Airline IATA code (flights) or train company (trains)
+    carrier: text().notNull(),
+    // Flight or train number, e.g. "933" or "6201"
+    number: text().notNull(),
+    // Airport IATA codes (flights) or station names (trains)
+    origin: text().notNull(),
+    destination: text().notNull(),
+    // Flights only
+    stopover: text(),
+    // Trains only; flights take the city from the airport list
+    originCity: text(),
+    destinationCity: text(),
+    departureDate: date().notNull(),
+    // "HH:mm"
+    departureTime: text(),
+    arrivalDate: date(),
+    arrivalTime: text(),
+    departureTz: text(),
+    arrivalTz: text(),
+    seat: text(),
+    // Gate (flights) or coach (trains)
+    gate: text(),
+    coach: text(),
+    // Aircraft type (flights) or train type such as "TGV" (trains)
+    vehicle: text(),
+    aircraftReg: text(),
+    price: numeric({ precision: 12, scale: 2 }),
+    // ISO 4217, e.g. "EUR"
+    currency: text(),
+    bookingRef: text(),
+    notes: text(),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp({ withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    index("journeys_user_departure_idx").on(t.userId, t.departureDate),
+    // The same flight or train on the same day is one journey (re-imports skip it)
+    uniqueIndex("journeys_unique_idx").on(t.userId, t.kind, t.carrier, t.number, t.departureDate),
+  ]
 );
