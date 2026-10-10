@@ -18,6 +18,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { TASK_PRIORITIES, TASK_STATUSES } from "@/lib/tasks";
 import type { NoteContent } from "@/lib/notes";
+import type { WeatherPlace } from "@/lib/weather";
 
 // ---------------------------------------------------------------------------
 // Better Auth tables (user / session / account / verification).
@@ -215,6 +216,8 @@ export const userSettings = pgTable("user_settings", {
   timeZone: text(),
   // Secret for the calendar feed URL (/api/calendar/feed/<token>); null = off
   feedToken: text().unique(),
+  // Place for the dashboard's weather (Settings > Weather); null = not set
+  weatherPlace: jsonb().$type<WeatherPlace>(),
   updatedAt: timestamp({ withTimezone: true })
     .notNull()
     .defaultNow()

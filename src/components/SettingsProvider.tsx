@@ -14,11 +14,14 @@ import {
   type DateTimePrefs,
   type Formatter,
 } from "@/lib/format";
+import type { WeatherPlace } from "@/lib/weather";
 
 export interface Settings extends DateTimePrefs {
   holidayCountries: string[];
   // IANA zone, kept in sync with the browser (the calendar feed uses it)
   timeZone: string | null;
+  // Place for the dashboard's weather; null until chosen in Settings
+  weatherPlace: WeatherPlace | null;
   // Secret of the calendar feed URL; null when the feed is off
   feedToken: string | null;
   // False until the user saves settings for the first time
@@ -31,6 +34,7 @@ const DEFAULT_SETTINGS: Settings = {
   ...DEFAULT_DATE_TIME,
   holidayCountries: [],
   timeZone: null,
+  weatherPlace: null,
   feedToken: null,
   saved: false,
 };

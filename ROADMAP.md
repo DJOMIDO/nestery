@@ -87,10 +87,13 @@ tracks what is done, what is planned next, and ideas that were considered.
 Ported from [vitemeteo](https://github.com/DJOMIDO/vitemeteo). Data from
 Open-Meteo (no API key, free), fetched on the server.
 
+**Done**
+- Phase 1: today's weather in the dashboard's Today card (current
+  conditions in the title row, high and low, a line when rain or snow is
+  likely later today); the place is chosen in Settings > Weather
+
 **Planned**
-- Phase 1: a weather card on the dashboard (now, today's high and low, the
-  next few hours); location set in Settings next to the date and holiday
-  settings
+- °C / °F choice
 - Phase 2: weather on the calendar, per day in the month and week views and
   for events and trips that have a place
 
@@ -127,7 +130,7 @@ can be reused; existing journeys move over through a CSV export and import.
 
 ## Suggested order
 
-1. Weather card: small, and the agent's first outside tool
+1. ~~Weather card~~ (done): the agent's first outside tool
 2. Assistant v1 over tasks, calendar, notes and weather
 3. Notes RAG (after note attachments if attached PDFs should be searchable)
 4. Travel
