@@ -16,7 +16,8 @@ export function TaskBoardSkeleton() {
       {CARDS.map((count, lane) => (
         <div
           key={lane}
-          className="flex w-[85vw] max-w-sm shrink-0 flex-col gap-2 rounded-xl bg-foreground/[0.03] p-3 lg:w-auto lg:max-w-none"
+          // min-h-0 and overflow-hidden: like a real column, a short screen cuts the cards off inside the lane
+          className="flex min-h-0 w-[85vw] max-w-sm shrink-0 flex-col gap-2 overflow-hidden rounded-xl bg-foreground/[0.03] p-3 lg:w-auto lg:max-w-none"
         >
           <div className="flex items-center gap-2 pb-1">
             <Skeleton className="size-4 rounded-full" />

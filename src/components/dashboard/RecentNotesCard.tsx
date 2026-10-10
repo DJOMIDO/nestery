@@ -24,7 +24,8 @@ export function RecentNotesCard({ notes, loading }: { notes: Note[]; loading?: b
       <CardContent className="p-4 flex flex-col min-h-0 flex-1">
         <CardHeading title="Recent notes" icon={NotebookPen} />
         {loading ? (
-          <ListSkeleton label="Loading notes" rows={3} rowClassName="px-0 py-1.5" />
+          // Fits the card like the list it stands in for; rows that don't fit are cut off
+          <ListSkeleton label="Loading notes" rows={3} className="min-h-0 overflow-hidden" rowClassName="px-0 py-1.5" />
         ) : shown.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             No notes yet.{" "}
