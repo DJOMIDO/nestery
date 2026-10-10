@@ -14,6 +14,15 @@ import { ProviderError, type ChatProvider, type ProviderTurn } from "./types";
 
 type Message = OpenAI.Chat.ChatCompletionMessageParam;
 
+const KNOWN_CALL_FIELDS = new Set(["index", "id", "type", "function"]);
+
+interface StreamedCall {
+  id: string;
+  name: string;
+  arguments: string;
+  extra: Record<string, unknown>;
+}
+
 const allowPrivateHosts = process.env.NODE_ENV !== "production";
 
 async function checkHost(baseUrl: string) {
@@ -73,7 +82,9 @@ function describeError(err: unknown, baseUrl: string): ProviderError {
   if (err instanceof OpenAI.APIError) {
     return new ProviderError(`${host} is unavailable right now. Try again later.`);
   }
-  return new ProviderError("The assistant failed unexpectedly.");
+  // Kept in the logs: these are the ones to look into
+  console.error(`Assistant provider ${host} failed`, err);
+  return new ProviderError(`Unexpected error from ${host}: ${err instanceof Error ? err.message : String(err)}`);
 }
 
 // Arguments arrive as a JSON string; unparseable ones are passed on so the
@@ -122,9 +133,13 @@ export function openaiProvider({
     async step({ system, tools, messages, onText, signal }): Promise<ProviderTurn> {
       try {
         await checkHost(baseUrl);
-        const stream = openai.chat.completions.stream(
+        // Streamed by hand rather than with the SDK's stream helper, which
+        // rejects small differences between providers (e.g. a tool call chunk
+        // without `type`, as Gemini sends)
+        const stream = await openai.chat.completions.create(
           {
             model,
+            stream: true,
             messages: [{ role: "system", content: system }, ...(messages as Message[])],
             tools: tools.map((t) => ({
               type: "function",
@@ -133,27 +148,50 @@ export function openaiProvider({
           },
           { signal }
         );
+
         // Reasoning written into the reply as <think>…</think> stays hidden
         const visible = thinkingFilter();
-        stream.on("content.delta", ({ delta }) => {
-          const text = visible(delta);
-          if (text) onText(text);
-        });
-        const completion = await stream.finalChatCompletion();
+        let content = "";
+        let finishReason: string | null = null;
+        const pending = new Map<string, StreamedCall>();
+        let lastKey = "";
+        for await (const chunk of stream) {
+          const choice = chunk.choices?.[0];
+          if (!choice) continue;
+          if (choice.delta?.content) {
+            content += choice.delta.content;
+            const text = visible(choice.delta.content);
+            if (text) onText(text);
+          }
+          for (const delta of choice.delta?.tool_calls ?? []) {
+            // Calls are told apart by index; some providers only send an id
+            const key = delta.index !== undefined ? `i${delta.index}` : delta.id ? `id${delta.id}` : lastKey || "i0";
+            lastKey = key;
+            const call = pending.get(key) ?? { id: "", name: "", arguments: "", extra: {} };
+            if (delta.id) call.id = delta.id;
+            if (delta.function?.name && !call.name) call.name = delta.function.name;
+            if (delta.function?.arguments) call.arguments += delta.function.arguments;
+            // Anything else (e.g. Gemini's thought signature) is sent back as is
+            for (const [key, value] of Object.entries(delta)) {
+              if (!KNOWN_CALL_FIELDS.has(key)) call.extra[key] = value;
+            }
+            pending.set(key, call);
+          }
+          if (choice.finish_reason) finishReason = choice.finish_reason;
+        }
         const rest = visible("", true);
         if (rest) onText(rest);
-        const choice = completion.choices[0];
-        if (!choice) throw new ProviderError("The model returned no answer.");
 
         // Some providers leave ids empty; the tool results must match them
-        const calls = (choice.message.tool_calls ?? [])
-          .filter((c) => c.type === "function")
-          .map((c) => ({ id: c.id || `call_${randomUUID()}`, name: c.function.name, arguments: c.function.arguments }));
+        const calls = [...pending.values()]
+          .filter((c) => c.name)
+          .map((c) => ({ ...c, id: c.id || `call_${randomUUID()}` }));
         const reply: Message = {
           role: "assistant",
-          content: choice.message.content ? stripThinking(choice.message.content) : null,
+          content: content ? stripThinking(content) : null,
           ...(calls.length > 0 && {
             tool_calls: calls.map((c) => ({
+              ...c.extra,
               id: c.id,
               type: "function" as const,
               function: { name: c.name, arguments: c.arguments },
@@ -162,8 +200,8 @@ export function openaiProvider({
         };
         const toolCalls = calls.map((c) => ({ id: c.id, name: c.name, input: parseArguments(c.arguments) }));
 
-        if (choice.finish_reason === "content_filter") return { message: reply, toolCalls: [], stop: "refused" };
-        if (choice.finish_reason === "length" && toolCalls.length > 0) {
+        if (finishReason === "content_filter") return { message: reply, toolCalls: [], stop: "refused" };
+        if (finishReason === "length" && toolCalls.length > 0) {
           return { message: reply, toolCalls: [], stop: "truncated" };
         }
         return { message: reply, toolCalls, stop: toolCalls.length > 0 ? "tool_calls" : "done" };
