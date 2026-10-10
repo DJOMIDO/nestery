@@ -172,15 +172,31 @@ export const importJourneysInput = z.object({
 
 type JourneyRow = typeof journeys.$inferSelect;
 
-// Adds the airline and airport names when the codes are known (flights)
+// Great-circle distance in km (haversine)
+function distanceKm(a: Airport, b: Airport) {
+  const rad = (deg: number) => (deg * Math.PI) / 180;
+  const dLat = rad(b.latitude - a.latitude);
+  const dLon = rad(b.longitude - a.longitude);
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(rad(a.latitude)) * Math.cos(rad(b.latitude)) * Math.sin(dLon / 2) ** 2;
+  return Math.round(2 * 6371 * Math.asin(Math.sqrt(h)));
+}
+
+// Adds the airline and airport names when the codes are known, and the
+// distance flown (through the stopover, if any)
 function withNames(row: JourneyRow) {
   const flight = row.kind === "flight";
   const place = (code: string) => (flight ? (findAirport(code)?.city ?? findAirport(code)?.name) : undefined);
+  const stops = flight ? [row.origin, row.stopover, row.destination].filter(Boolean).map((c) => findAirport(c)) : [];
+  const distance =
+    stops.length >= 2 && stops.every(Boolean)
+      ? stops.slice(1).reduce((km, airport, i) => km + distanceKm(stops[i]!, airport!), 0)
+      : undefined;
   return {
     ...row,
     carrierName: flight ? findAirline(row.carrier)?.name : undefined,
     originName: place(row.origin),
     destinationName: place(row.destination),
+    distanceKm: distance,
   };
 }
 

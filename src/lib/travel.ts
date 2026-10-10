@@ -42,12 +42,22 @@ export interface Journey {
   carrierName?: string;
   originName?: string;
   destinationName?: string;
+  // Flights between known airports: great-circle distance
+  distanceKm?: number;
 }
 
 // Shape accepted by POST /api/journeys and PUT /api/journeys/[id]
 export type JourneyInput = Omit<
   Journey,
-  "id" | "createdAt" | "updatedAt" | "departureTz" | "arrivalTz" | "carrierName" | "originName" | "destinationName"
+  | "id"
+  | "createdAt"
+  | "updatedAt"
+  | "departureTz"
+  | "arrivalTz"
+  | "carrierName"
+  | "originName"
+  | "destinationName"
+  | "distanceKm"
 >;
 
 export interface Airport {
@@ -204,4 +214,15 @@ export function journeyToEvent(j: Journey): CalendarEvent {
       location: `${j.originName ?? j.originCity ?? j.origin} → ${j.destinationName ?? j.destinationCity ?? j.destination}`,
     },
   };
+}
+
+// "2h 45m"; null when the arrival time isn't known
+export function journeyDuration(j: Parameters<typeof journeyTimes>[0]) {
+  if (!j.arrivalTime) return null;
+  const times = journeyTimes(j);
+  if (!times) return null;
+  const minutes = Math.round((times.end.getTime() - times.start.getTime()) / 60_000);
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return h ? `${h}h ${String(m).padStart(2, "0")}m` : `${m}m`;
 }

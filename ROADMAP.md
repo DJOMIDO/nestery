@@ -162,6 +162,10 @@ can be reused; existing journeys move over through a CSV export and import.
 - The destination's forecast on arrival for journeys in the next two weeks,
   in the Travel list and the calendar's journey details (flights by the
   airport's position, trains by their destination city)
+- Layout like Tasks: the list on the left; on the right an overview (next
+  trip with countdown and weather, this year's journeys, destinations and
+  km flown) or the selected journey (route, local times at each end with
+  the viewer's time, duration, distance, weather, details; edited in place)
 - Add journeys from a booking: paste a confirmation, e-ticket or order into
   the assistant ("Paste booking" in Travel opens it ready); it proposes one
   journey per leg (outbound, return, connections, trains), checked like the
