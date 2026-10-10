@@ -122,6 +122,10 @@ a packing task for Thursday and list my visa notes".
   feeds (public hosts only, no redirects); local servers such as LM Studio
   work while developing. Streamed tool calls are parsed leniently, and
   reasoning written as <think>…</think> is hidden.
+- Images: attach up to 3 per message (button, paste or drop), shrunk in
+  the browser to a JPEG of at most 1600 px; sent to the model with the
+  text (Anthropic image blocks, OpenAI-style image_url parts). Used to read
+  boarding passes, itineraries and train tickets into proposed journeys.
 - Replies: Markdown rendered (no raw HTML), links to the tasks, notes and
   events mentioned (in-app deep links), dates in the user's format, in the
   language of the user's latest message. The assistant states what it can
@@ -134,8 +138,6 @@ a packing task for Thursday and list my visa notes".
   (chunking, citations, evaluation); Archivist stays a separate learning
   project, where new agent ideas are tried first.
 - Each new tool (Travel, attachments, ...) adds its own tools to the agent.
-- Reading screenshots and photos of tickets (needs image upload in the
-  panel and per-provider image input).
 
 ## Travel
 
@@ -166,8 +168,8 @@ can be reused; existing journeys move over through a CSV export and import.
   trip with countdown and weather, this year's journeys, destinations and
   km flown) or the selected journey (route, local times at each end with
   the viewer's time, duration, distance, weather, details; edited in place)
-- Add journeys from a booking: paste a confirmation, e-ticket or order into
-  the assistant ("Paste booking" in Travel opens it ready); it proposes one
+- Add journeys from a booking: paste a confirmation, e-ticket or order, or
+  a photo or screenshot of a boarding pass or ticket, into the assistant ("Paste booking" in Travel opens it ready); it proposes one
   journey per leg (outbound, return, connections, trains), checked like the
   form, and each is saved on confirmation. Personal details are left out.
 

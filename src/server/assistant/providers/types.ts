@@ -4,6 +4,8 @@
 // appends them, never edits them, so provider features that depend on an
 // unchanged history (prompt caching, reasoning carried between turns) work.
 
+import type { AssistantImage } from "@/lib/assistant";
+
 // A tool as offered to the model, with a JSON Schema for its input
 export interface ToolSpec {
   name: string;
@@ -34,7 +36,7 @@ export interface ProviderTurn {
 }
 
 export interface ChatProvider {
-  userMessage(text: string): unknown;
+  userMessage(text: string, images?: AssistantImage[]): unknown;
   // Messages answering one turn's tool calls
   toolResults(results: ToolResult[]): unknown[];
   // Rejects history that cannot have come from this provider

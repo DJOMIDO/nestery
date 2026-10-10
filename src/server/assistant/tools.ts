@@ -404,8 +404,11 @@ const proposeJourneyTool = tool({
     vehicle: z.string().optional().describe("Aircraft type, or train type such as TGV INOUI"),
     price: z.number().nonnegative().optional().describe("Price of this leg, if the booking says"),
     currency: z.string().regex(/^[A-Za-z]{3}$/).optional().describe("ISO code, e.g. EUR, CNY"),
-    bookingRef: z.string().optional().describe("Booking reference / PNR"),
-    notes: z.string().optional(),
+    bookingRef: z.string().optional().describe("Booking reference / PNR, e.g. K7XQ2M (also labelled 订单号, Référence, Record locator)"),
+    notes: z
+      .string()
+      .optional()
+      .describe("Anything else useful (e.g. cabin class). Not the booking reference (use bookingRef), and no ticket or ID numbers"),
   }),
   async run(input, { userId, propose }) {
     const full = {
