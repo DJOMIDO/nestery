@@ -193,7 +193,9 @@ function NotesView() {
       )}
 
       {showEditor ? (
-        <div className="min-w-0 min-h-0 rounded-lg border bg-card p-4">
+        // A card on tablets and up; on phones (upright or sideways) the editor
+        // has the screen to itself, so it drops the card's border and padding
+        <div className="min-w-0 min-h-0 not-phone:rounded-lg not-phone:border not-phone:bg-card not-phone:p-4">
           <NoteEditor
             key={selected.id}
             note={selected}
