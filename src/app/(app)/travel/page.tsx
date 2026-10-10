@@ -104,10 +104,15 @@ function TravelPageContent() {
   // One "New Journey" button like the other pages' "New …"; its menu has
   // the two kinds and the two ways to bring bookings in
   const header = (
-    <div className="flex flex-wrap items-center gap-x-2 gap-y-3">
-      <div className="mr-auto">
+    // Title and button on one line, as on Notes and Tasks; the subtitle is a
+    // short count like theirs, so it fits next to the button on phones
+    <div className="flex items-center justify-between gap-3">
+      <div className="min-w-0">
         <h1 className="text-2xl font-bold">Travel</h1>
-        <p className="text-sm text-muted-foreground">Your flights and train journeys.</p>
+        <p className="text-sm text-muted-foreground">
+          {journeys.length} {journeys.length === 1 ? "journey" : "journeys"}
+          {allUpcoming.length > 0 && ` · ${allUpcoming.length} upcoming`}
+        </p>
       </div>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
