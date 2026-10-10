@@ -9,6 +9,7 @@ import Link from "next/link";
 import { ArrowUp, Loader2, RotateCcw, Sparkles, Square, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AssistantMarkdown } from "@/components/assistant/AssistantMarkdown";
+import type { AssistantDraft } from "@/components/assistant/AssistantProvider";
 import { ProposalCard, type ProposalState } from "@/components/assistant/ProposalCard";
 import type { AssistantProposal, AssistantStatus, AssistantStreamEvent } from "@/lib/assistant";
 import { request } from "@/lib/api";
@@ -39,7 +40,15 @@ const EXAMPLES = [
   "When's my next trip?",
 ];
 
-export function AssistantPanel({ open, onClose }: { open: boolean; onClose: () => void }) {
+export function AssistantPanel({
+  open,
+  draft,
+  onClose,
+}: {
+  open: boolean;
+  draft: AssistantDraft | null;
+  onClose: () => void;
+}) {
   const [status, setStatus] = useState<AssistantStatus | null>(null);
   const [items, setItems] = useState<ChatItem[]>([]);
   // The provider's transcript, sent back with each message
@@ -69,6 +78,19 @@ export function AssistantPanel({ open, onClose }: { open: boolean; onClose: () =
   useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight });
   }, [items]);
+
+  // A draft from elsewhere in the app (e.g. "Paste booking" in Travel): put
+  // it in the message box with the cursor at the end, ready to paste after
+  useEffect(() => {
+    if (!draft) return;
+    setInput(draft.text);
+    requestAnimationFrame(() => {
+      const box = inputRef.current;
+      if (!box) return;
+      box.focus();
+      box.setSelectionRange(box.value.length, box.value.length);
+    });
+  }, [draft]);
 
   // Changes the assistant item being streamed (always the last one)
   const updateLast = (change: (item: Extract<ChatItem, { role: "assistant" }>) => Partial<ChatItem>) =>

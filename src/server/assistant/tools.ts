@@ -16,7 +16,7 @@ import { createEventInput, listEvents } from "@/server/events";
 import { getNote, listNotes, searchNotes } from "@/server/notes";
 import { subscriptionEvents } from "@/server/subscriptions";
 import { createTaskInput, getTask, listTasks, updateTaskInput } from "@/server/tasks";
-import { listJourneys } from "@/server/travel";
+import { journeyInput, listJourneys } from "@/server/travel";
 import { dailyForecast, searchPlaces } from "@/server/weather";
 import type { ToolSpec } from "@/server/assistant/providers/types";
 
@@ -373,6 +373,83 @@ const proposeTaskUpdateTool = tool({
   },
 });
 
+const proposeJourneyTool = tool({
+  name: "propose_journey",
+  label: "Preparing a journey",
+  description:
+    "Propose adding one flight or train journey to Travel, e.g. one leg of a booking the user pasted. Call it once per leg (each flight or train, including returns and connections). The user confirms each before it is saved.",
+  input: z.object({
+    kind: z.enum(["flight", "train"]),
+    carrier: z
+      .string()
+      .min(1)
+      .describe("Flights: the airline's two-letter IATA code (e.g. AF, 3U). Trains: the company (e.g. SNCF, China Railway)"),
+    number: z
+      .string()
+      .optional()
+      .describe("Flight or train number without the airline code, e.g. 8888 or G1234. Leave it out if the ticket has none (regional trains); never write N/A"),
+    origin: z.string().min(1).describe("Flights: the airport's three-letter IATA code (e.g. PEK). Trains: the station name"),
+    destination: z.string().min(1).describe("Like origin"),
+    departureDate: date.describe("Local date at the origin"),
+    departureTime: z.string().regex(/^\d{2}:\d{2}$/).optional().describe("Local time at the origin, HH:mm, as printed"),
+    arrivalDate: date.optional().describe("Local date at the destination, if different or known"),
+    arrivalTime: z.string().regex(/^\d{2}:\d{2}$/).optional().describe("Local time at the destination, HH:mm"),
+    stopover: z.string().optional().describe("Flights with a stop on the same flight number: the airport code"),
+    originCity: z.string().optional().describe("Trains: the city of the origin station"),
+    destinationCity: z.string().optional().describe("Trains: the city of the destination station"),
+    seat: z.string().optional(),
+    coach: z.string().optional().describe("Trains"),
+    gate: z.string().optional().describe("Flights"),
+    vehicle: z.string().optional().describe("Aircraft type, or train type such as TGV INOUI"),
+    price: z.number().nonnegative().optional().describe("Price of this leg, if the booking says"),
+    currency: z.string().regex(/^[A-Za-z]{3}$/).optional().describe("ISO code, e.g. EUR, CNY"),
+    bookingRef: z.string().optional().describe("Booking reference / PNR"),
+    notes: z.string().optional(),
+  }),
+  async run(input, { userId, propose }) {
+    const full = {
+      stopover: null,
+      originCity: null,
+      destinationCity: null,
+      departureTime: null,
+      arrivalDate: null,
+      arrivalTime: null,
+      seat: null,
+      gate: null,
+      coach: null,
+      vehicle: null,
+      aircraftReg: null,
+      currency: null,
+      bookingRef: null,
+      notes: null,
+      ...input,
+      number: input.number?.replace(/^(n\/?a|none|-)$/i, "") ?? "",
+      price: input.price !== undefined ? String(input.price) : null,
+    };
+    // The same checks as the Travel form (codes, dates, times)
+    const parsed = journeyInput.safeParse(full);
+    if (!parsed.success) {
+      const issue = parsed.error.issues[0];
+      throw new ToolError(`${issue?.path.join(".") || "input"}: ${issue?.message ?? "invalid journey"}`);
+    }
+    const j = parsed.data;
+    const existing = await listJourneys(userId);
+    // Same rule as the database: same service, day, origin and time
+    const same = (e: (typeof existing)[number]) =>
+      e.kind === j.kind &&
+      e.carrier === j.carrier &&
+      e.number === j.number &&
+      e.departureDate === j.departureDate &&
+      e.origin === j.origin &&
+      (e.departureTime ?? "") === (j.departureTime ?? "");
+    if (existing.some(same)) {
+      return "This journey is already in the user's Travel list; no proposal was made.";
+    }
+    propose({ id: randomUUID(), kind: "create_journey", input: full });
+    return PROPOSED;
+  },
+});
+
 const proposeEventTool = tool({
   name: "propose_event",
   label: "Preparing an event",
@@ -420,6 +497,7 @@ const TOOLS = [
   proposeTaskTool,
   proposeTaskUpdateTool,
   proposeEventTool,
+  proposeJourneyTool,
 ] as Tool<z.ZodType>[];
 
 export const TOOL_SPECS: ToolSpec[] = TOOLS.map((t) => {

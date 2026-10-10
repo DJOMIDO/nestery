@@ -11,6 +11,15 @@ interface AssistantContextValue {
   open: boolean;
   setOpen: (open: boolean) => void;
   toggle: () => void;
+  // Opens the panel with this text in the message box, e.g. a prompt to
+  // paste a booking after
+  openWithDraft: (text: string) => void;
+}
+
+// A draft handed to the panel; `id` makes the same text count again
+export interface AssistantDraft {
+  id: number;
+  text: string;
 }
 
 const AssistantContext = createContext<AssistantContextValue | null>(null);
@@ -20,6 +29,11 @@ export function AssistantProvider({ children }: { children: React.ReactNode }) {
   // Mounted on first open and kept, so closing the panel keeps the chat
   const [mounted, setMounted] = useState(false);
   const toggle = useCallback(() => setOpen((o) => !o), []);
+  const [draft, setDraft] = useState<AssistantDraft | null>(null);
+  const openWithDraft = useCallback((text: string) => {
+    setDraft((prev) => ({ id: (prev?.id ?? 0) + 1, text }));
+    setOpen(true);
+  }, []);
 
   useEffect(() => {
     if (open) setMounted(true);
@@ -37,9 +51,9 @@ export function AssistantProvider({ children }: { children: React.ReactNode }) {
   }, [toggle]);
 
   return (
-    <AssistantContext.Provider value={{ open, setOpen, toggle }}>
+    <AssistantContext.Provider value={{ open, setOpen, toggle, openWithDraft }}>
       {children}
-      {mounted && <AssistantPanel open={open} onClose={() => setOpen(false)} />}
+      {mounted && <AssistantPanel open={open} draft={draft} onClose={() => setOpen(false)} />}
     </AssistantContext.Provider>
   );
 }

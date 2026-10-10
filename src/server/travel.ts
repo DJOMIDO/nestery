@@ -91,7 +91,8 @@ export const journeyInput = z
   .object({
     kind: z.enum(JOURNEY_KINDS),
     carrier: z.string().trim().min(1, "The airline or company is required").max(100),
-    number: z.string().trim().min(1, "The flight or train number is required").max(20),
+    // Required for flights; regional train tickets often have none
+    number: z.string().trim().max(20),
     origin: z.string().trim().min(1, "Where from is required").max(100),
     destination: z.string().trim().min(1, "Where to is required").max(100),
     stopover: optionalText(100),
@@ -135,6 +136,7 @@ export const journeyInput = z
           ctx.addIssue({ code: "custom", path: [field], message: "Use a three-letter airport code such as CDG" });
         }
       }
+      if (!v.number) ctx.addIssue({ code: "custom", path: ["number"], message: "The flight number is required" });
       if (!/^[A-Za-z0-9]{2,3}$/.test(v.carrier)) {
         ctx.addIssue({ code: "custom", path: ["carrier"], message: "Use the airline's two-letter code such as AF" });
       }

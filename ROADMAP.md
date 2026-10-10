@@ -134,6 +134,8 @@ a packing task for Thursday and list my visa notes".
   (chunking, citations, evaluation); Archivist stays a separate learning
   project, where new agent ideas are tried first.
 - Each new tool (Travel, attachments, ...) adds its own tools to the agent.
+- Reading screenshots and photos of tickets (needs image upload in the
+  panel and per-provider image input).
 
 ## Travel
 
@@ -160,6 +162,10 @@ can be reused; existing journeys move over through a CSV export and import.
 - The destination's forecast on arrival for journeys in the next two weeks,
   in the Travel list and the calendar's journey details (flights by the
   airport's position, trains by their destination city)
+- Add journeys from a booking: paste a confirmation, e-ticket or order into
+  the assistant ("Paste booking" in Travel opens it ready); it proposes one
+  journey per leg (outbound, return, connections, trains), checked like the
+  form, and each is saved on confirmation. Personal details are left out.
 
 **Planned**
 - An optional reminder before departure (shown on the Reminders card, not

@@ -3,7 +3,8 @@
 
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { FileUp, Plane, Plus, TrainFront, Trash2 } from "lucide-react";
+import { ClipboardPaste, FileUp, Plane, Plus, TrainFront, Trash2 } from "lucide-react";
+import { useAssistant } from "@/components/assistant/AssistantProvider";
 import { Button } from "@/components/ui/button";
 import { useFormat } from "@/components/SettingsProvider";
 import { ImportDialog } from "@/components/travel/ImportDialog";
@@ -43,6 +44,7 @@ function TravelPageContent() {
   const [filter, setFilter] = useState<Filter>("all");
   const [dialog, setDialog] = useState<{ kind: JourneyKind; journey: Journey | null } | null>(null);
   const [importOpen, setImportOpen] = useState(false);
+  const assistant = useAssistant();
 
   // ?journey=<id> (from the calendar or the assistant) opens it once loaded
   const router = useRouter();
@@ -85,6 +87,13 @@ function TravelPageContent() {
         <Button variant="ghost" onClick={() => setImportOpen(true)}>
           <FileUp className="mr-1 size-4" /> Import
         </Button>
+        <Button
+          variant="ghost"
+          onClick={() => assistant.openWithDraft("Add the journeys from this booking to Travel:\n\n")}
+          title="Paste a booking confirmation or e-ticket; the assistant proposes the journeys"
+        >
+          <ClipboardPaste className="mr-1 size-4" /> Paste booking
+        </Button>
         <Button variant="outline" onClick={() => setDialog({ kind: "train", journey: null })}>
           <TrainFront className="mr-1 size-4" /> Add train
         </Button>
@@ -114,7 +123,10 @@ function TravelPageContent() {
         <p className="text-sm text-muted-foreground">Loading…</p>
       ) : journeys.length === 0 ? (
         <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
-          <p>No journeys yet. Add a flight or a train, or import a CSV file from your old travel tracker.</p>
+          <p>
+            No journeys yet. Add a flight or a train, paste a booking confirmation for the assistant to read, or import a
+            CSV file.
+          </p>
         </div>
       ) : (
         <>

@@ -42,9 +42,10 @@ const EMPTY: Fields = {
 // a date typed field by field when React writes the value back
 const DATE_TIME_FIELDS = ["departureDate", "departureTime", "arrivalDate", "arrivalTime"] as const;
 
-const REQUIRED: { key: keyof Fields; message: string }[] = [
+const REQUIRED: { key: keyof Fields; message: string; flightsOnly?: boolean }[] = [
   { key: "carrier", message: "Enter the airline or company" },
-  { key: "number", message: "Enter the flight or train number" },
+  // Regional train tickets often have no number
+  { key: "number", message: "Enter the flight number", flightsOnly: true },
   { key: "origin", message: "Enter where you leave from" },
   { key: "destination", message: "Enter where you're going" },
   { key: "departureDate", message: "Enter the departure date" },
@@ -110,7 +111,9 @@ export function JourneyForm({ kind, journey, onSubmit, onCancel }: JourneyFormPr
         problems.push(`The ${key.startsWith("departure") ? "departure" : "arrival"} ${key.endsWith("Date") ? "date" : "time"} isn't complete`);
       }
     }
-    for (const { key, message } of REQUIRED) if (!values[key].trim()) problems.push(message);
+    for (const { key, message, flightsOnly } of REQUIRED) {
+      if ((!flightsOnly || isFlight) && !values[key].trim()) problems.push(message);
+    }
     setErrors(problems);
     if (problems.length) return;
 
@@ -150,7 +153,7 @@ export function JourneyForm({ kind, journey, onSubmit, onCancel }: JourneyFormPr
           )}
         </div>
         <div className="min-w-0 space-y-2">
-          <Label htmlFor="journey-number">{isFlight ? "Flight number" : "Train number"}</Label>
+          <Label htmlFor="journey-number">{isFlight ? "Flight number" : "Train number (if any)"}</Label>
           <Input {...bind("number")} placeholder={isFlight ? "1234" : "6201"} />
         </div>
       </div>
