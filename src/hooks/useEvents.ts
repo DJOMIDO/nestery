@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { request } from "@/lib/api";
+import { onDataChanged } from "@/lib/dataChanged";
 import { expandEvents, type CalendarEvent } from "@/lib/calendar";
 
 // Shape accepted by POST /api/events and PATCH /api/events/[id]. Timing
@@ -34,6 +35,9 @@ export function useEvents(from: string, to: string) {
   useEffect(() => {
     reload();
   }, [reload]);
+
+  // e.g. after the assistant created one
+  useEffect(() => onDataChanged("events", reload), [reload]);
 
   const createEvent = useCallback(async (input: EventInput) => {
     try {

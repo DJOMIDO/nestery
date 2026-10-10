@@ -103,10 +103,20 @@ An agent that works across Nestery's tools rather than AI features bolted
 onto each one, e.g. "I fly to Paris on Friday: what's the weather there, add
 a packing task for Thursday and list my visa notes".
 
+**Done**
+- v1: a chat panel (sidebar ✦ or ⌘J, on every page) with tool use over the
+  user's own data: list tasks, list events (including subscribed
+  calendars), search and read notes, weather for any place up to 14 days.
+  Creating a task or event and changing a task are proposals the user
+  confirms in the panel; nothing is deleted. Conversations are not saved.
+- Bring your own key: Settings > Assistant takes the user's API key
+  (checked, stored encrypted with AES-GCM) and model. The app owner's key
+  only serves allow-listed emails, with a daily limit. The agent loop talks
+  to providers through a small adapter interface (Anthropic first).
+
 **Planned**
-- v1: a chat panel using Claude with tool use over the user's own data:
-  search and create tasks and events, search notes, check the weather.
-  Anything that writes is shown to the user to confirm first.
+- OpenAI-compatible adapter (OpenAI, Gemini, OpenRouter, DeepSeek, ...),
+  with a custom base URL checked like calendar feeds (public hosts only)
 - Notes RAG: embed notes with pgvector in the same Neon database, answers
   cite the notes they come from and say so when nothing relevant is found.
   Reuses what was learned in [Archivist](https://github.com/DJOMIDO/archivist)
@@ -131,7 +141,7 @@ can be reused; existing journeys move over through a CSV export and import.
 ## Suggested order
 
 1. ~~Weather card~~ (done): the agent's first outside tool
-2. Assistant v1 over tasks, calendar, notes and weather
+2. ~~Assistant v1~~ (done); OpenAI-compatible providers next
 3. Notes RAG (after note attachments if attached PDFs should be searchable)
 4. Travel
 5. Cookbook

@@ -11,6 +11,12 @@ export async function getUserId() {
   return session?.user.id ?? null;
 }
 
+// The signed-in user's id and email, or null
+export async function getSessionUser() {
+  const session = await auth.api.getSession({ headers: await headers() });
+  return session ? { id: session.user.id, email: session.user.email } : null;
+}
+
 export const unauthorized = () =>
   NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 

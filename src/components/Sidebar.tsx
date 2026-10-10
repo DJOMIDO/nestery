@@ -4,9 +4,10 @@
 
 import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 
 import { SideBarItem } from "@/components/SideBarItem";
+import { useAssistant } from "@/components/assistant/AssistantProvider";
 import { NesteryMark } from "@/components/brand/NatureShapes";
 import { UserItem } from "@/components/UserItem";
 import { navItems } from "@/components/nav";
@@ -19,6 +20,7 @@ export function Sidebar({ className = "" }: { className?: string }) {
   const pathname = usePathname();
   const { collapsed, isReady, toggle } = useSidebarCollapsed();
   const username = useCurrentUserName();
+  const assistant = useAssistant();
 
   // Cmd/Ctrl+\ toggles the sidebar (Cmd/Ctrl+B is bold in the note editor)
   useEffect(() => {
@@ -78,6 +80,7 @@ export function Sidebar({ className = "" }: { className?: string }) {
       </div>
 
       <div className="px-2 pb-6 space-y-3">
+        <SideBarItem icon={Sparkles} label="Assistant (⌘J)" onClick={assistant.toggle} collapsed={collapsed} />
         <UserItem
           name={username || "User"}
           collapsed={collapsed}
