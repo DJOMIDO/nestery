@@ -2,7 +2,7 @@
 
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import type { AssistantStreamEvent } from "@/lib/assistant";
+import { MAX_IMAGE_BASE64, MAX_IMAGES, type AssistantStreamEvent } from "@/lib/assistant";
 import { runAssistant } from "@/server/assistant/agent";
 import { ProviderError } from "@/server/assistant/providers/types";
 import { assistantStatus, resolveAssistant, takeServerQuota } from "@/server/assistant/settings";
@@ -13,14 +13,29 @@ import { getSessionUser, parseInput, unauthorized } from "@/server/session";
 // A few model calls with tools can take a while
 export const maxDuration = 120;
 
-// Long conversations cost more on every message; start a new one past this
-const MAX_REQUEST_BYTES = 1_000_000;
+// Long conversations cost more on every message (images especially); start
+// a new one past this. Below Vercel's 4.5 MB request limit.
+const MAX_REQUEST_BYTES = 4_000_000;
 
-const assistantInput = z.object({
-  history: z.array(z.unknown()).max(500),
-  message: z.string().trim().min(1, "Type a message").max(4000, "That message is too long"),
-  notes: z.array(z.string().max(500)).max(20).default([]),
-});
+const assistantInput = z
+  .object({
+    history: z.array(z.unknown()).max(500),
+    message: z.string().trim().max(4000, "That message is too long").default(""),
+    images: z
+      .array(
+        z.object({
+          mediaType: z.enum(["image/jpeg", "image/png", "image/webp"]),
+          data: z
+            .string()
+            .max(MAX_IMAGE_BASE64, "An image is too large")
+            .regex(/^[A-Za-z0-9+/]+=*$/, "An image is not valid"),
+        })
+      )
+      .max(MAX_IMAGES, `Attach at most ${MAX_IMAGES} images`)
+      .default([]),
+    notes: z.array(z.string().max(500)).max(20).default([]),
+  })
+  .refine((v) => v.message || v.images.length > 0, "Type a message");
 
 // GET /api/assistant: whether the assistant can be used, and with whose key
 export async function GET() {
@@ -75,6 +90,7 @@ export async function POST(request: Request) {
           place: settings.weatherPlace,
           history: input.data.history,
           message: input.data.message,
+          images: input.data.images,
           notes: input.data.notes,
           emit,
           signal: request.signal,

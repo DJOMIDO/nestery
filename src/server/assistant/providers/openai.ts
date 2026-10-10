@@ -109,7 +109,19 @@ export function openaiProvider({
   const openai = client(apiKey, baseUrl);
 
   return {
-    userMessage: (text): Message => ({ role: "user", content: text }),
+    userMessage: (text, images = []): Message =>
+      images.length
+        ? {
+            role: "user",
+            content: [
+              { type: "text", text },
+              ...images.map((image) => ({
+                type: "image_url" as const,
+                image_url: { url: `data:${image.mediaType};base64,${image.data}` },
+              })),
+            ],
+          }
+        : { role: "user", content: text },
 
     // One message per result, as the API expects
     toolResults: (results): Message[] =>
@@ -125,9 +137,14 @@ export function openaiProvider({
           typeof m === "object" &&
           m !== null &&
           ["user", "assistant", "tool"].includes((m as Message).role) &&
-          // This adapter always writes text content, which tells its messages
-          // apart from Anthropic's (content blocks)
-          ((m as Message).content === null || typeof (m as Message).content === "string")
+          // This adapter writes text content, or text and image_url parts for a
+          // message with images; Anthropic's blocks look different
+          ((m as Message).content === null ||
+            typeof (m as Message).content === "string" ||
+            (Array.isArray((m as Message).content) &&
+              ((m as Message).content as { type?: string }[]).every(
+                (part) => part.type === "text" || part.type === "image_url"
+              )))
       ),
 
     async step({ system, tools, messages, onText, signal }): Promise<ProviderTurn> {

@@ -49,7 +49,17 @@ export function anthropicProvider({ apiKey, model }: { apiKey: string; model: st
     : {};
 
   return {
-    userMessage: (text): MessageParam => ({ role: "user", content: [{ type: "text", text }] }),
+    // Images first, then the text, as Anthropic recommends
+    userMessage: (text, images = []): MessageParam => ({
+      role: "user",
+      content: [
+        ...images.map((image) => ({
+          type: "image" as const,
+          source: { type: "base64" as const, media_type: image.mediaType, data: image.data },
+        })),
+        { type: "text", text },
+      ],
+    }),
 
     // All results in one message, as the API expects
     toolResults: (results): MessageParam[] => [

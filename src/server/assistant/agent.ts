@@ -2,7 +2,7 @@
 // The agent loop: ask the model, run the tools it calls, give it the results,
 // and repeat until it answers. Provider-neutral; see providers/types.ts.
 
-import type { AssistantStreamEvent } from "@/lib/assistant";
+import type { AssistantImage, AssistantStreamEvent } from "@/lib/assistant";
 import { createFormatter, type DateTimePrefs } from "@/lib/format";
 import { addDays, startOfWeek } from "@/lib/tasks";
 import type { WeatherPlace } from "@/lib/weather";
@@ -32,7 +32,7 @@ What you can do:
 - Propose a new task, a change to a task (title, status, priority, due date), a new event, or a new journey (flight or train) for Travel. The user confirms each proposal in the app, so describe it as awaiting their confirmation, never as done.
 You cannot create, edit or delete notes, edit or delete events or journeys, delete tasks, or do anything outside Nestery. Don't offer to do these; if asked, say so and suggest doing it in the app.
 
-Bookings and tickets: when the user pastes a booking confirmation, e-ticket or order (airline, 12306, SNCF, Trainline…), call propose_journey once for every leg: outbound and return, each connection, each train. Use the times exactly as printed (they are local at each end). Put the booking reference (PNR, 订单号, Référence…) on every leg it covers. For flights, use IATA codes: airline (e.g. 3U) and airports (e.g. PEK, CTU); convert names to codes only when you are sure, otherwise ask. Leave out what the text doesn't say instead of guessing, and don't copy passengers' personal details (ID or passport numbers, phone numbers) into notes. Then say briefly what you proposed.
+Bookings and tickets: when the user pastes a booking confirmation, e-ticket or order (airline, 12306, SNCF, Trainline…), or attaches a photo or screenshot of one (boarding pass, itinerary, train ticket), call propose_journey once for every leg: outbound and return, each connection, each train. Use the times exactly as printed (they are local at each end). Put the booking reference (PNR, 订单号, Référence…) on every leg it covers. For flights, use IATA codes: airline (e.g. 3U) and airports (e.g. PEK, CTU); convert names to codes only when you are sure, otherwise ask. Leave out what the text doesn't say instead of guessing, and don't copy passengers' personal details (names, ID or passport numbers, e-ticket numbers, phone numbers) into any field. Boarding passes often write dates like "18OCT" without a year: take the year from elsewhere in the images or text, or ask (the user may be adding past trips). They also show the gate, seat and boarding time; boarding time is not departure time. If part of an image is unreadable, leave those fields out and say which. Then say briefly what you proposed.
 
 Use the tools to look things up instead of guessing, and only state what the tools returned. If a search finds nothing, try other keywords or list the notes before saying something isn't there.
 
@@ -55,6 +55,7 @@ export interface AssistantRun {
   place: WeatherPlace | null;
   history: unknown[];
   message: string;
+  images: AssistantImage[];
   // What the user did with earlier proposals
   notes: string[];
   emit: (event: AssistantStreamEvent) => void;
@@ -63,10 +64,10 @@ export interface AssistantRun {
 
 export async function runAssistant(run: AssistantRun) {
   const { provider, emit } = run;
-  const text = run.notes.length
-    ? `${run.notes.map((n) => `(${n})`).join("\n")}\n\n${run.message}`
-    : run.message;
-  const messages = [...run.history, provider.userMessage(text)];
+  // A message can be just images
+  const message = run.message || "(See the attached image.)";
+  const text = run.notes.length ? `${run.notes.map((n) => `(${n})`).join("\n")}\n\n${message}` : message;
+  const messages = [...run.history, provider.userMessage(text, run.images)];
   const system = systemPrompt(run.today, run.timeZone, run.dateTime);
   const ctx: ToolContext = {
     userId: run.userId,

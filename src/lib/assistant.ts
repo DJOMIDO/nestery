@@ -118,10 +118,23 @@ export type AssistantStreamEvent =
   | { type: "done"; history: unknown[] }
   | { type: "error"; message: string };
 
+// An image attached to a message (a ticket, a boarding pass…), already
+// shrunk in the browser; `data` is base64 without the data: prefix
+export interface AssistantImage {
+  mediaType: "image/jpeg" | "image/png" | "image/webp";
+  data: string;
+}
+
+// Per message. The whole request (history included) must stay under
+// Vercel's 4.5 MB body limit, hence images shrunk to a few hundred KB.
+export const MAX_IMAGES = 3;
+export const MAX_IMAGE_BASE64 = 1_500_000;
+
 // Sent to POST /api/assistant
 export interface AssistantRequest {
   history: unknown[];
   message: string;
+  images?: AssistantImage[];
   // What the user did with earlier proposals, e.g. "Created task “Pack”"
   notes?: string[];
 }
