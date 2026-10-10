@@ -113,11 +113,17 @@ a packing task for Thursday and list my visa notes".
   (checked, stored encrypted with AES-GCM) and model. The app owner's key
   only serves allow-listed emails, with a daily limit. The agent loop talks
   to providers through a small adapter interface (Anthropic first).
-
 - OpenAI-compatible providers: OpenAI, Google Gemini, OpenRouter, or any
   base URL (DeepSeek, Groq, ...). Custom URLs are checked like calendar
   feeds (public hosts only, no redirects); local servers such as LM Studio
-  work while developing.
+  work while developing. Streamed tool calls are parsed leniently, and
+  reasoning written as <think>…</think> is hidden.
+- Replies: Markdown rendered (no raw HTML), links to the tasks, notes and
+  events mentioned (in-app deep links), dates in the user's format, in the
+  language of the user's latest message. The assistant states what it can
+  and can't do, and an empty reply from a small model is retried once.
+
+**Planned**
 - Notes RAG: embed notes with pgvector in the same Neon database, answers
   cite the notes they come from and say so when nothing relevant is found.
   Reuses what was learned in [Archivist](https://github.com/DJOMIDO/archivist)
@@ -132,9 +138,17 @@ Flights and train journeys, rewritten from
 Nestery's stack. Its airport, airline and currency data and its CSV import
 can be reused; existing journeys move over through a CSV export and import.
 
+**Done**
+- Phase 1: a Travel page (sidebar) with upcoming and past flights and train
+  journeys, filtered by kind; add, edit and delete them, with the usual
+  fields up front and the rest under "More details". Times are local at
+  each end; flights take each end's time zone from the airport list.
+  Airport and airline codes are suggested from ~7,900 airports
+  (mwgg/Airports) and ~900 airlines (Wikidata); unknown codes are kept.
+  CSV import with the old tracker's columns; journeys already logged (same
+  flight or train on the same day) are skipped.
+
 **Planned**
-- Phase 1: log flights and trains (times, seat, price, booking reference),
-  list and edit them, CSV import
 - Phase 2: journeys on the calendar and in the dashboard's Up next, with the
   destination's weather
 - Phase 3: statistics and a route map
@@ -144,7 +158,7 @@ can be reused; existing journeys move over through a CSV export and import.
 1. ~~Weather card~~ (done): the agent's first outside tool
 2. ~~Assistant v1~~ and other providers (done)
 3. Notes RAG (after note attachments if attached PDFs should be searchable)
-4. Travel
+4. Travel (phase 1 done)
 5. Cookbook
 
 ## Ideas

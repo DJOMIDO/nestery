@@ -37,6 +37,13 @@ A workspace for personal and team collaboration, built with Next.js.
    npm run dev
    ```
 
+## Travel data
+
+Travel suggests airports and airlines from two lists in `src/server/travel/data/`, refreshed with `npm run travel:data` (commit the result):
+
+- Airports: [mwgg/Airports](https://github.com/mwgg/Airports) (MIT, see `AIRPORTS-LICENSE.txt`), with each airport's time zone
+- Airlines: [Wikidata](https://www.wikidata.org/) (CC0), active airlines with an IATA code
+
 ## Deploying to Vercel
 
 1. On [vercel.com](https://vercel.com), choose **Add New → Project** and import this repository.
