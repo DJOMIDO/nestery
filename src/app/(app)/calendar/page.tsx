@@ -393,7 +393,7 @@ function CalendarPageContent() {
                   {sub.lastError && <span className="text-destructive">!</span>}
                 </button>
               ))}
-              <Link href="/settings?section=calendars" className="text-muted-foreground underline-offset-2 hover:underline">
+              <Link href="/settings?section=calendar&focus=calendars" className="text-muted-foreground underline-offset-2 hover:underline">
                 Manage
               </Link>
             </div>
@@ -404,7 +404,7 @@ function CalendarPageContent() {
               {countries.length > 0
                 ? `Showing ${countries.join(", ")} holidays based on your browser.`
                 : "No public holidays shown."}{" "}
-              <Link href="/settings?section=holidays" className="text-leaf underline-offset-2 hover:underline">
+              <Link href="/settings?section=calendar&focus=holidays" className="text-leaf underline-offset-2 hover:underline">
                 Choose countries and regions
               </Link>
             </p>

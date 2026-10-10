@@ -10,23 +10,8 @@ import { useSettings } from "@/components/SettingsProvider";
 import { request } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
-// Settings > Import & export: bring an .ics file in, or let other apps
-// subscribe to this calendar
-export function CalendarTransferSettings() {
-  return (
-    <section className="space-y-6 rounded-lg border bg-card p-5">
-      <div>
-        <h2 className="font-semibold">Import &amp; export</h2>
-        <p className="text-sm text-muted-foreground">
-          Copy events from another calendar into Nestery, or show your Nestery calendar in other apps.
-        </p>
-      </div>
-      <ImportFile />
-      <div className="border-t" />
-      <FeedLink />
-    </section>
-  );
-}
+// Settings > Calendar: importing an .ics file (part of "Other calendars") and
+// the private link that shows Nestery in other apps
 
 // ---- Import --------------------------------------------------------------
 
@@ -43,7 +28,7 @@ type Unsupported = "first" | "skip";
 
 const MAX_FILE_BYTES = 5 * 1024 * 1024;
 
-function ImportFile() {
+export function ImportCalendarFile() {
   const fileInput = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<{ name: string; text: string } | null>(null);
   const [summary, setSummary] = useState<ImportSummary | null>(null);
@@ -196,7 +181,8 @@ function ImportFile() {
 
 // ---- Feed link -----------------------------------------------------------
 
-function FeedLink() {
+// Settings > Calendar > Nestery in other apps
+export function CalendarFeedSettings() {
   const { settings, loading, setFeed } = useSettings();
   const [confirm, setConfirm] = useState<"regenerate" | "off" | null>(null);
   const [busy, setBusy] = useState(false);
@@ -216,12 +202,13 @@ function FeedLink() {
   };
 
   return (
-    <div className="space-y-3">
+    <section id="calendar-share" className="scroll-mt-4 space-y-3 rounded-lg border bg-card p-5">
       <div>
-        <h3 className="text-sm font-medium">Subscribe from other apps</h3>
+        <h2 className="font-semibold">Nestery in other apps</h2>
         <p className="text-sm text-muted-foreground">
-          A private link to your events and open tasks&apos; due dates, for Apple Calendar, Google Calendar, Outlook
-          or your phone. Apps check it for changes every few hours; anyone with the link can see your calendar.
+          A private link to your events, open tasks&apos; due dates and journeys, for Apple Calendar (iPhone: Settings
+          → Apps → Calendar → Calendar Accounts → Add Account → Other → Add Subscribed Calendar), Google Calendar or
+          Outlook. Apps check it for changes every few hours; anyone with the link can see your calendar.
         </p>
       </div>
 
@@ -265,7 +252,7 @@ function FeedLink() {
           )}
         </div>
       )}
-    </div>
+    </section>
   );
 }
 

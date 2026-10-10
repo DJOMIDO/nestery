@@ -56,7 +56,7 @@ export function HolidaySettings() {
   };
 
   return (
-    <section className="space-y-4 rounded-lg border bg-card p-5">
+    <section id="calendar-holidays" className="scroll-mt-4 space-y-4 rounded-lg border bg-card p-5">
       <div>
         <h2 className="font-semibold">Public holidays</h2>
         <p className="text-sm text-muted-foreground">
