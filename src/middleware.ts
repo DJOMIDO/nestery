@@ -20,7 +20,10 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  // Skip API routes, Next.js internals and static files (including the app
-  // icons, which the login and landing pages need too).
-  matcher: ["/((?!api|_next/static|_next/image|images|favicon.ico|icon.svg|apple-icon.png).*)"],
+  // Skip API routes, Next.js internals and static files: the app icons, which
+  // the login and landing pages need too, and what installing Nestery as an
+  // app fetches (browsers ask for the manifest without the session cookie).
+  matcher: [
+    "/((?!api|_next/static|_next/image|images|icons|favicon.ico|icon.svg|apple-icon.png|manifest.webmanifest|sw.js|offline.html).*)",
+  ],
 };

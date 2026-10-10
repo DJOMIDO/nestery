@@ -1,8 +1,9 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Figtree, Geist_Mono, Noto_Sans_SC } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "@/components/ui/sonner";
+import { ServiceWorker } from "@/components/ServiceWorker";
 
 const figtree = Figtree({
   variable: "--font-figtree",
@@ -26,6 +27,19 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Nestery",
   description: "A calm, personal home for your tasks and notes.",
+  // Added to an iPhone's home screen, it opens full screen as "Nestery".
+  // The default status bar keeps the page below it, so nothing needs to
+  // make room for the notch.
+  appleWebApp: { capable: true, title: "Nestery", statusBarStyle: "default" },
+};
+
+// The window's title bar (installed app) and the phone's status bar follow
+// the page background of each theme
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f5f6f0" },
+    { media: "(prefers-color-scheme: dark)", color: "#0a0f0b" },
+  ],
 };
 
 export default function RootLayout({
@@ -41,6 +55,7 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           {children}
           <Toaster />
+          <ServiceWorker />
         </ThemeProvider>
       </body>
     </html>
