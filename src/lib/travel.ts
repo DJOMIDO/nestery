@@ -139,7 +139,7 @@ export function journeyFromCsv(kind: JourneyKind, row: Record<string, string>): 
 }
 
 // "AF 1234" / "SNCF 6201": how a journey is named in lists
-export const journeyLabel = (j: Pick<Journey, "carrier" | "number">) => `${j.carrier} ${j.number}`;
+export const journeyLabel = (j: Pick<Journey, "carrier" | "number">) => `${j.carrier} ${j.number}`.trim();
 
 const HOUR_MS = 60 * 60 * 1000;
 

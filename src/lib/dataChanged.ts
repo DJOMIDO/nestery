@@ -2,7 +2,7 @@
 // Lets code that saves data outside a page's own hooks (the assistant panel)
 // tell open pages to reload it.
 
-type DataKind = "tasks" | "events";
+type DataKind = "tasks" | "events" | "journeys";
 
 const EVENT_NAME = "nestery:data-changed";
 

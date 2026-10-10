@@ -1,0 +1,2 @@
+DROP INDEX "journeys_unique_idx";--> statement-breakpoint
+CREATE UNIQUE INDEX "journeys_unique_idx" ON "journeys" USING btree ("user_id","kind","carrier","number","departure_date","origin",coalesce("departure_time", ''));

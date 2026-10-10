@@ -1,5 +1,6 @@
 // src/db/schema.ts
 
+import { sql } from "drizzle-orm";
 import {
   bigint,
   boolean,
@@ -302,7 +303,7 @@ export const journeys = pgTable(
     kind: journeyKind().notNull(),
     // Airline IATA code (flights) or train company (trains)
     carrier: text().notNull(),
-    // Flight or train number, e.g. "933" or "6201"
+    // Flight or train number, e.g. "933" or "6201"; "" for trains without one
     number: text().notNull(),
     // Airport IATA codes (flights) or station names (trains)
     origin: text().notNull(),
@@ -339,7 +340,17 @@ export const journeys = pgTable(
   },
   (t) => [
     index("journeys_user_departure_idx").on(t.userId, t.departureDate),
-    // The same flight or train on the same day is one journey (re-imports skip it)
-    uniqueIndex("journeys_unique_idx").on(t.userId, t.kind, t.carrier, t.number, t.departureDate),
+    // The same flight or train from the same place at the same time is one
+    // journey (re-imports skip it). Origin and time matter for trains without
+    // a number (regional tickets), e.g. a same-day return.
+    uniqueIndex("journeys_unique_idx").on(
+      t.userId,
+      t.kind,
+      t.carrier,
+      t.number,
+      t.departureDate,
+      t.origin,
+      sql`coalesce(${t.departureTime}, '')`
+    ),
   ]
 );

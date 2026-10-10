@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { request } from "@/lib/api";
+import { onDataChanged } from "@/lib/dataChanged";
 import { eventDays } from "@/lib/calendar";
 import { journeyToEvent, type Journey, type JourneyInput, type JourneyWeather } from "@/lib/travel";
 
@@ -25,6 +26,9 @@ export function useJourneys() {
   useEffect(() => {
     reload();
   }, [reload]);
+
+  // e.g. after the assistant added one
+  useEffect(() => onDataChanged("journeys", reload), [reload]);
 
   const createJourney = useCallback(async (input: JourneyInput) => {
     try {

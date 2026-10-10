@@ -5,7 +5,7 @@
 "use client";
 
 import { useState } from "react";
-import { CalendarPlus, Check, ClipboardList, PencilLine, X } from "lucide-react";
+import { CalendarPlus, Check, ClipboardList, PencilLine, Plane, TrainFront, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useFormat } from "@/components/SettingsProvider";
@@ -13,6 +13,7 @@ import type { AssistantProposal } from "@/lib/assistant";
 import { request } from "@/lib/api";
 import { notifyDataChanged } from "@/lib/dataChanged";
 import { TASK_STATUS_LABELS } from "@/lib/tasks";
+import { journeyLabel } from "@/lib/travel";
 import type { Formatter } from "@/lib/format";
 
 export type ProposalState = "pending" | "saving" | "confirmed" | "dismissed";
@@ -31,6 +32,24 @@ export function describeProposal(p: AssistantProposal, format: Formatter) {
         c.dueDate !== undefined && (c.dueDate ? `due ${format.day(c.dueDate)}` : "no due date"),
       ].filter(Boolean);
       return `Task “${p.taskTitle}”: ${parts.join(", ")}`;
+    }
+    case "create_journey": {
+      const j = p.input;
+      // Times are as printed (local at each end)
+      const clock = (hhmm: string | null) => {
+        if (!hhmm) return null;
+        const [h, m] = hhmm.split(":").map(Number);
+        return format.time(new Date(2000, 0, 1, h, m));
+      };
+      const times = [clock(j.departureTime), clock(j.arrivalTime)].filter(Boolean).join(" – ");
+      const arrivalDay = j.arrivalDate && j.arrivalDate !== j.departureDate ? ` (arrives ${format.day(j.arrivalDate)})` : "";
+      return [
+        `${journeyLabel(j)}: ${j.origin} → ${j.destination}`,
+        `${format.dayWithWeekday(j.departureDate)}${times ? `, ${times}` : ""}${arrivalDay}`,
+        j.seat && `seat ${j.seat}`,
+      ]
+        .filter(Boolean)
+        .join(" · ");
     }
     case "create_event": {
       const e = p.input;
@@ -54,6 +73,10 @@ async function save(p: AssistantProposal) {
       await request(`/api/tasks/${p.taskId}`, { method: "PATCH", body: JSON.stringify(p.changes) });
       notifyDataChanged("tasks");
       return;
+    case "create_journey":
+      await request("/api/journeys", { method: "POST", body: JSON.stringify(p.input) });
+      notifyDataChanged("journeys");
+      return;
     case "create_event":
       await request("/api/events", { method: "POST", body: JSON.stringify(p.input) });
       notifyDataChanged("events");
@@ -62,6 +85,9 @@ async function save(p: AssistantProposal) {
 }
 
 const ICONS = { create_task: ClipboardList, update_task: PencilLine, create_event: CalendarPlus };
+
+const iconOf = (p: AssistantProposal) =>
+  p.kind === "create_journey" ? (p.input.kind === "flight" ? Plane : TrainFront) : ICONS[p.kind];
 
 export function ProposalCard({
   proposal,
@@ -76,14 +102,14 @@ export function ProposalCard({
   const format = useFormat();
   const [error, setError] = useState<string | null>(null);
   const summary = describeProposal(proposal, format);
-  const Icon = ICONS[proposal.kind];
+  const Icon = iconOf(proposal);
 
   const confirm = async () => {
     setError(null);
     onSettled("saving");
     try {
       await save(proposal);
-      toast.success(proposal.kind === "update_task" ? "Task updated" : "Saved");
+      toast.success(proposal.kind === "update_task" ? "Task updated" : proposal.kind === "create_journey" ? "Added to Travel" : "Saved");
       onSettled("confirmed", `The user confirmed: ${summary}. It is saved.`);
     } catch (err) {
       setError((err as Error).message);

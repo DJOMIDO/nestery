@@ -3,6 +3,7 @@
 // file free of server-only imports.
 
 import type { TaskPriority, TaskStatus } from "@/lib/tasks";
+import type { JourneyInput } from "@/lib/travel";
 
 // Model providers a user can bring their own API key for. All but Anthropic
 // are reached through the OpenAI-compatible chat API.
@@ -91,6 +92,12 @@ export type AssistantProposal =
         priority?: TaskPriority;
         dueDate?: string | null;
       };
+    }
+  | {
+      id: string;
+      kind: "create_journey";
+      // As POST /api/journeys takes it
+      input: JourneyInput;
     }
   | {
       id: string;
