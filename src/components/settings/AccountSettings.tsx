@@ -444,6 +444,27 @@ interface SessionInfo {
 }
 
 // "Chrome on macOS" from a user agent string (good enough to tell devices apart)
+// An IP as people write it: IPv6 shortened ("2001:db8::1"), and the
+// addresses a local dev server records ("0000:…:0000", "::1", 127.0.0.1)
+// shown as "Local"
+function formatIp(ip: string) {
+  if (!ip.includes(":")) return ip.startsWith("127.") ? "Local" : ip;
+  const groups = ip.split(":").map((g) => g.replace(/^0+(?=.)/, "").toLowerCase());
+  // Collapse the longest run of zero groups into "::"
+  let best = { start: -1, length: 0 };
+  for (let i = 0; i < groups.length; ) {
+    let j = i;
+    while (j < groups.length && groups[j] === "0") j++;
+    if (j - i > best.length) best = { start: i, length: j - i };
+    i = j === i ? i + 1 : j;
+  }
+  const short =
+    best.length > 1
+      ? `${groups.slice(0, best.start).join(":")}::${groups.slice(best.start + best.length).join(":")}`
+      : groups.join(":");
+  return short === "::" || short === "::1" ? "Local" : short;
+}
+
 function describeDevice(userAgent?: string | null) {
   if (!userAgent) return { label: "Unknown device", mobile: false };
   const ua = userAgent;
@@ -540,9 +561,10 @@ function SessionsCard({ currentToken }: { currentToken: string }) {
                     {label}
                     {current && <span className="ml-2 text-xs font-medium text-leaf">This device</span>}
                   </p>
-                  <p className="text-xs text-muted-foreground">
+                  {/* A long address wraps rather than running past the card */}
+                  <p className="text-xs text-muted-foreground wrap-anywhere">
                     Active {formatRelative(new Date(s.updatedAt).toISOString(), undefined, format.day)}
-                    {s.ipAddress && ` · ${s.ipAddress}`}
+                    {s.ipAddress && ` · ${formatIp(s.ipAddress)}`}
                   </p>
                 </div>
                 {!current && (

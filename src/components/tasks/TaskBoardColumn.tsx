@@ -79,7 +79,7 @@ export function TaskBoardColumn({
       ref={setNodeRef}
       aria-label={label}
       className={cn(
-        "relative flex flex-col min-h-0 w-[85vw] max-w-sm shrink-0 snap-start lg:w-auto lg:max-w-none",
+        "relative flex flex-col min-h-0",
         // A lane rather than a box: the cards carry the borders
         "rounded-xl bg-foreground/[0.03] transition-colors",
         isOver && "bg-leaf-soft/60 ring-2 ring-leaf/50"

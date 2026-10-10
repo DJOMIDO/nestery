@@ -79,8 +79,9 @@ export function TaskBoard({ tasks, onMove, onAdd, onOpen, onDelete, onTagClick }
       onDragEnd={handleDragEnd}
       onDragCancel={() => setActiveId(null)}
     >
-      {/* Narrow screens scroll between columns; wide screens show all four */}
-      <div className="flex flex-1 min-h-0 gap-4 overflow-x-auto snap-x snap-mandatory pb-2 lg:grid lg:grid-cols-4 lg:overflow-visible lg:pb-0">
+      {/* Columns stack on phones, sit two by two on tablets and four across
+          on large screens, where each fills the height and scrolls */}
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:flex-1 lg:min-h-0 lg:grid-cols-4">
         {TASK_STATUSES.map((status) => (
           <TaskBoardColumn
             key={status}
