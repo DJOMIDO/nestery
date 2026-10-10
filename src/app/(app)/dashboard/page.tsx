@@ -16,6 +16,7 @@ import { useFormat } from "@/components/SettingsProvider";
 import { useTasks } from "@/hooks/useTasks";
 import { useNotes } from "@/hooks/useNotes";
 import { useEvents, type EventInput } from "@/hooks/useEvents";
+import { journeyEventsBetween, useJourneys } from "@/hooks/useJourneys";
 import { useSubscriptionEvents } from "@/hooks/useSubscriptions";
 import { request } from "@/lib/api";
 import { eventDays, type CalendarEvent } from "@/lib/calendar";
@@ -44,7 +45,12 @@ export default function DashboardPage() {
   const { occurrences, createEvent } = useEvents(today, lastDay);
   // Subscribed calendars (e.g. a class timetable) count as well
   const subscribedEvents = useSubscriptionEvents(today, lastDay);
-  const upcomingEvents = useMemo(() => [...occurrences, ...subscribedEvents], [occurrences, subscribedEvents]);
+  // Journeys from Travel show like events in Today, Up next and At a glance
+  const { journeys } = useJourneys();
+  const upcomingEvents = useMemo(
+    () => [...occurrences, ...subscribedEvents, ...journeyEventsBetween(journeys, today, lastDay)],
+    [occurrences, subscribedEvents, journeys, today, lastDay]
+  );
   const recent = useRecentEvents();
 
   const [isNewTaskOpen, setIsNewTaskOpen] = useState(false);
@@ -95,7 +101,7 @@ export default function DashboardPage() {
 
       {/* Bottom row: overview, the week ahead, notes and activity */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:flex-1 lg:min-h-0 lg:grid-rows-1">
-        <AtAGlanceCard tasks={tasks} notes={notes} events={upcomingEvents} today={today} />
+        <AtAGlanceCard tasks={tasks} notes={notes} events={upcomingEvents} journeys={journeys} today={today} />
         <UpNextCard tasks={tasks} events={upcomingEvents} today={today} />
         <div className="grid grid-cols-1 gap-6 md:col-span-2 md:grid-cols-2 lg:col-span-1 lg:grid-cols-1 lg:grid-rows-2 lg:min-h-0">
           <RecentNotesCard notes={notes} />

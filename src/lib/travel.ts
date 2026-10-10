@@ -2,6 +2,10 @@
 // Travel types and CSV columns shared by the server and the pages. Keep this
 // file free of server-only imports.
 
+import type { CalendarEvent } from "@/lib/calendar";
+// Plain Intl, safe in the browser too
+import { wallTimeToDate } from "@/server/timeZones";
+
 export const JOURNEY_KINDS = ["flight", "train"] as const;
 
 export type JourneyKind = (typeof JOURNEY_KINDS)[number];
@@ -123,3 +127,68 @@ export function journeyFromCsv(kind: JourneyKind, row: Record<string, string>): 
 
 // "AF 1234" / "SNCF 6201": how a journey is named in lists
 export const journeyLabel = (j: Pick<Journey, "carrier" | "number">) => `${j.carrier} ${j.number}`;
+
+const HOUR_MS = 60 * 60 * 1000;
+
+// When a journey leaves and arrives, as real moments. Each end's time is on
+// its own clock (the airport's zone); ends without a zone use `fallbackZone`,
+// or the viewer's own clock when that is absent too. Null without a
+// departure time. A missing or inconsistent arrival becomes one hour later.
+export function journeyTimes(
+  j: Pick<Journey, "departureDate" | "departureTime" | "arrivalDate" | "arrivalTime" | "departureTz" | "arrivalTz">,
+  fallbackZone?: string
+) {
+  if (!j.departureTime) return null;
+  const at = (date: string, time: string, zone: string | null) => {
+    const tz = zone ?? fallbackZone;
+    if (!tz) return new Date(`${date}T${time}`);
+    const [year, month, day] = date.split("-").map(Number);
+    const [hour, minute] = time.split(":").map(Number);
+    return wallTimeToDate({ year, month, day, hour, minute, second: 0 }, tz);
+  };
+  const start = at(j.departureDate, j.departureTime, j.departureTz);
+  let end = j.arrivalTime ? at(j.arrivalDate ?? j.departureDate, j.arrivalTime, j.arrivalTz) : null;
+  if (!end || end <= start) end = new Date(start.getTime() + HOUR_MS);
+  return { start, end };
+}
+
+// "✈ 3U 8888 PEK → CTU": how a journey appears on the calendar
+export const journeyTitle = (j: Pick<Journey, "kind" | "carrier" | "number" | "origin" | "destination">) =>
+  `${j.kind === "flight" ? "✈" : "🚆"} ${journeyLabel(j)} ${j.origin} → ${j.destination}`;
+
+// A journey as a read-only calendar event (like a subscribed calendar's),
+// so the calendar and the dashboard show it without storing a copy
+export function journeyToEvent(j: Journey): CalendarEvent {
+  const times = journeyTimes(j);
+  const details = [
+    j.carrierName,
+    j.seat && `Seat ${j.seat}`,
+    j.coach && `Coach ${j.coach}`,
+    j.gate && `Gate ${j.gate}`,
+    j.bookingRef && `Booking ${j.bookingRef}`,
+    j.notes,
+  ].filter(Boolean);
+  return {
+    id: `journey:${j.id}`,
+    userId: "",
+    title: journeyTitle(j),
+    notes: details.length ? details.join("\n") : null,
+    allDay: !times,
+    startsAt: times?.start.toISOString() ?? null,
+    endsAt: times?.end.toISOString() ?? null,
+    startDate: times ? null : j.departureDate,
+    endDate: times ? null : (j.arrivalDate ?? j.departureDate),
+    rrule: null,
+    exdates: [],
+    seriesId: null,
+    createdAt: j.createdAt,
+    updatedAt: j.updatedAt,
+    source: {
+      subscriptionId: "travel",
+      journeyId: j.id,
+      name: "Travel",
+      color: "indigo",
+      location: `${j.originName ?? j.originCity ?? j.origin} → ${j.destinationName ?? j.destinationCity ?? j.destination}`,
+    },
+  };
+}

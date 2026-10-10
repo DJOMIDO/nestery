@@ -148,9 +148,16 @@ can be reused; existing journeys move over through a CSV export and import.
   CSV import with the old tracker's columns; journeys already logged (same
   flight or train on the same day) are skipped.
 
+- Phase 2: journeys on the calendar (month and week views, on the viewer's
+  clock: each end's time zone is converted), in the dashboard's Today, Up
+  next and At a glance (next trip), in the calendar feed for other apps,
+  and in the assistant (list_journeys). They are shown from the journeys
+  table, not copied into events, so edits in Travel apply everywhere.
+
 **Planned**
-- Phase 2: journeys on the calendar and in the dashboard's Up next, with the
-  destination's weather
+- The destination's weather on upcoming journeys
+- An optional reminder before departure (shown on the Reminders card, not
+  stored as a task)
 - Phase 3: statistics and a route map
 
 ## Suggested order
@@ -158,7 +165,7 @@ can be reused; existing journeys move over through a CSV export and import.
 1. ~~Weather card~~ (done): the agent's first outside tool
 2. ~~Assistant v1~~ and other providers (done)
 3. Notes RAG (after note attachments if attached PDFs should be searchable)
-4. Travel (phase 1 done)
+4. Travel (phases 1 and 2 done)
 5. Cookbook
 
 ## Ideas

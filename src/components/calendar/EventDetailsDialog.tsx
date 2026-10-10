@@ -1,7 +1,8 @@
 // src/components/calendar/EventDetailsDialog.tsx
 "use client";
 
-import { CalendarClock, MapPin, Rss } from "lucide-react";
+import Link from "next/link";
+import { CalendarClock, MapPin, Plane, Rss } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -22,7 +23,8 @@ interface EventDetailsDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-// Read-only view of an event from a subscribed calendar
+// Read-only view of an event from a subscribed calendar, or of a journey
+// from Travel (edited there)
 export function EventDetailsDialog({ event, open, onOpenChange }: EventDetailsDialogProps) {
   const format = useFormat();
   const source = event?.source;
@@ -36,7 +38,7 @@ export function EventDetailsDialog({ event, open, onOpenChange }: EventDetailsDi
               <DialogTitle className="break-words">{event.title}</DialogTitle>
               <DialogDescription className="flex items-center gap-1.5">
                 <span className={cn("size-2 rounded-full", SUBSCRIPTION_COLORS[source.color].dot)} />
-                From {source.name} (read-only)
+                {source.journeyId ? "From Travel" : `From ${source.name} (read-only)`}
               </DialogDescription>
             </DialogHeader>
 
@@ -59,13 +61,22 @@ export function EventDetailsDialog({ event, open, onOpenChange }: EventDetailsDi
                   {event.notes}
                 </p>
               )}
-              <p className="flex items-center gap-2 text-xs text-muted-foreground">
-                <Rss className="size-3.5" />
-                Changes come from the calendar&apos;s source and appear here when it refreshes.
-              </p>
+              {!source.journeyId && (
+                <p className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Rss className="size-3.5" />
+                  Changes come from the calendar&apos;s source and appear here when it refreshes.
+                </p>
+              )}
             </div>
 
-            <div className="flex justify-end">
+            <div className="flex justify-end gap-2">
+              {source.journeyId && (
+                <Button variant="outline" asChild>
+                  <Link href={`/travel?journey=${source.journeyId}`}>
+                    <Plane className="mr-1 size-4" /> Open in Travel
+                  </Link>
+                </Button>
+              )}
               <Button variant="outline" onClick={() => onOpenChange(false)}>
                 Close
               </Button>

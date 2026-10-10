@@ -31,6 +31,7 @@ import { TaskDialog } from "@/components/tasks/TaskDialog";
 import { useEvents, type EventInput } from "@/hooks/useEvents";
 import { useHolidays } from "@/hooks/useHolidays";
 import { useStoredChoice } from "@/hooks/useStoredChoice";
+import { useJourneyEvents } from "@/hooks/useJourneys";
 import { useSubscriptionEvents, useSubscriptions } from "@/hooks/useSubscriptions";
 import { SUBSCRIPTION_COLORS } from "@/lib/subscriptions";
 import { useFormat, useHolidayCountries } from "@/components/SettingsProvider";
@@ -106,7 +107,12 @@ function CalendarPageContent() {
   const { subscriptions, update: updateSubscription } = useSubscriptions();
   const enabledKey = subscriptions.filter((s) => s.enabled).map((s) => s.id).join(",");
   const subscribedEvents = useSubscriptionEvents(first, last, enabledKey);
-  const shownEvents = useMemo(() => [...occurrences, ...subscribedEvents], [occurrences, subscribedEvents]);
+  // Journeys from Travel, also read-only
+  const journeyEvents = useJourneyEvents(first, last);
+  const shownEvents = useMemo(
+    () => [...occurrences, ...subscribedEvents, ...journeyEvents],
+    [occurrences, subscribedEvents, journeyEvents]
+  );
   const { countries, guessed } = useHolidayCountries();
   // The visible days can span two years around January and December
   const years = useMemo(

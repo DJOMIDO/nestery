@@ -36,6 +36,7 @@ const EXAMPLES = [
   "What's on my calendar tomorrow?",
   "Will it rain this weekend?",
   "What's in my notes?",
+  "When's my next trip?",
 ];
 
 export function AssistantPanel({ open, onClose }: { open: boolean; onClose: () => void }) {
