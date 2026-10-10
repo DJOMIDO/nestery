@@ -11,13 +11,13 @@ export function TaskBoardSkeleton() {
     <div
       role="status"
       aria-label="Loading tasks"
-      className="appear-late flex flex-1 min-h-0 gap-4 overflow-hidden pb-2 lg:grid lg:grid-cols-4 lg:pb-0"
+      className="appear-late grid grid-cols-1 gap-4 md:grid-cols-2 lg:flex-1 lg:min-h-0 lg:grid-cols-4"
     >
       {CARDS.map((count, lane) => (
         <div
           key={lane}
           // min-h-0 and overflow-hidden: like a real column, a short screen cuts the cards off inside the lane
-          className="flex min-h-0 w-[85vw] max-w-sm shrink-0 flex-col gap-2 overflow-hidden rounded-xl bg-foreground/[0.03] p-3 lg:w-auto lg:max-w-none"
+          className="flex min-h-0 flex-col gap-2 overflow-hidden rounded-xl bg-foreground/[0.03] p-3"
         >
           <div className="flex items-center gap-2 pb-1">
             <Skeleton className="size-4 rounded-full" />

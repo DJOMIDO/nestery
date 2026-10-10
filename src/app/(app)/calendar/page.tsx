@@ -344,11 +344,19 @@ function CalendarPageContent() {
                     key={value}
                     variant="ghost"
                     size="sm"
-                    className={cn("h-8 gap-1.5", view === value && "bg-leaf-soft text-leaf hover:bg-leaf-soft hover:text-leaf")}
+                    className={cn(
+                      // Icon only on phones, so the view switch, the arrows and
+                      // New Event fit on one line
+                      "h-8 w-8 gap-1.5 sm:w-auto",
+                      view === value && "bg-leaf-soft text-leaf hover:bg-leaf-soft hover:text-leaf"
+                    )}
                     onClick={() => setView(value)}
                     aria-pressed={view === value}
+                    aria-label={label}
+                    title={label}
                   >
-                    <Icon className="size-4" /> {label}
+                    <Icon className="size-4" />
+                    <span className="hidden sm:inline">{label}</span>
                   </Button>
                 ))}
               </div>
