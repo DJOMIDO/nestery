@@ -1,6 +1,7 @@
 // src/components/tasks/TaskDetailPanel.tsx
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TaskForm } from "@/components/tasks/TaskForm";
@@ -16,15 +17,17 @@ interface TaskDetailPanelProps {
 }
 
 export function TaskDetailPanel({ task, onSave, onDelete, onClose }: TaskDetailPanelProps) {
+  const t = useTranslations("tasks");
+  const tCommon = useTranslations("common");
   const format = useFormat();
   return (
     <div className="flex flex-col h-full gap-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">Task details</h2>
+        <h2 className="text-lg font-semibold">{t("details")}</h2>
         <button
           onClick={onClose}
           className="p-1.5 rounded hover:bg-muted"
-          aria-label="Close details"
+          aria-label={t("closeDetails")}
         >
           <X className="w-4 h-4" />
         </button>
@@ -39,14 +42,14 @@ export function TaskDetailPanel({ task, onSave, onDelete, onClose }: TaskDetailP
         fill
         extraActions={
           <Button type="button" variant="outline" onClick={onDelete}>
-            <Trash2 className="w-4 h-4 mr-1" /> Delete
+            <Trash2 className="w-4 h-4 mr-1" /> {tCommon("delete")}
           </Button>
         }
       />
 
       <p className="text-xs text-muted-foreground">
-        Created {format.dayTime(task.createdAt)}
-        {task.completedAt && ` · Completed ${format.dayTime(task.completedAt)}`}
+        {t("created", { date: format.dayTime(task.createdAt) })}
+        {task.completedAt && t("completedAt", { date: format.dayTime(task.completedAt) })}
       </p>
     </div>
   );

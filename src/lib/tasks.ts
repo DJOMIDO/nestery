@@ -7,12 +7,6 @@ export const TASK_PRIORITIES = ["low", "medium", "high"] as const;
 
 export type TaskStatus = (typeof TASK_STATUSES)[number];
 
-export const TASK_STATUS_LABELS: Record<TaskStatus, string> = {
-  todo: "To do",
-  in_progress: "In progress",
-  waiting: "Waiting",
-  done: "Done",
-};
 export type TaskPriority = (typeof TASK_PRIORITIES)[number];
 
 // A task as returned by /api/tasks
@@ -82,14 +76,6 @@ export function boardColumns(tasks: Task[]): Record<TaskStatus, Task[]> {
 }
 
 export type TaskGroupKey = "overdue" | "today" | "upcoming" | "noDate" | "done";
-
-export const TASK_GROUP_LABELS: Record<TaskGroupKey, string> = {
-  overdue: "Overdue",
-  today: "Today",
-  upcoming: "Upcoming",
-  noDate: "No date",
-  done: "Completed",
-};
 
 export function groupTasks(tasks: Task[], today = toDateKey(new Date())) {
   const groups: Record<TaskGroupKey, Task[]> = {

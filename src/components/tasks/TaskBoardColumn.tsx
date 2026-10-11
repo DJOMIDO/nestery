@@ -1,12 +1,13 @@
 // src/components/tasks/TaskBoardColumn.tsx
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { useDroppable } from "@dnd-kit/core";
 import { Circle, CircleCheck, Clock, Contrast, Plus, type LucideIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { TaskCard } from "@/components/tasks/TaskCard";
-import { TASK_STATUS_LABELS, type Task, type TaskStatus } from "@/lib/tasks";
+import type { Task, TaskStatus } from "@/lib/tasks";
 import { cn } from "@/lib/utils";
 
 // Done can grow without limit, so only the most recent are shown at first
@@ -40,6 +41,7 @@ export function TaskBoardColumn({
   onDelete,
   onTagClick,
 }: TaskBoardColumnProps) {
+  const t = useTranslations("tasks");
   const { setNodeRef, isOver } = useDroppable({ id: status });
   const [title, setTitle] = useState("");
   const [showAll, setShowAll] = useState(false);
@@ -49,7 +51,7 @@ export function TaskBoardColumn({
   const isDone = status === "done";
   const shown = isDone && !showAll ? tasks.slice(0, DONE_PREVIEW) : tasks;
   const hidden = tasks.length - shown.length;
-  const label = TASK_STATUS_LABELS[status];
+  const label = t(`status.${status}`);
   const { icon: StatusIcon, className: statusClass } = STATUS_ICONS[status];
 
   // The column keeps its sort order, so a new task may land below the fold:
@@ -98,8 +100,8 @@ export function TaskBoardColumn({
             <Input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Add task"
-              aria-label={`Add a task to ${label}`}
+              placeholder={t("board.addTask")}
+              aria-label={t("board.addTaskTo", { column: label })}
               // A quiet line until it's used
               className="h-8 pl-8 border-transparent bg-transparent shadow-none hover:bg-foreground/5 focus-visible:border-input focus-visible:bg-card dark:bg-transparent dark:focus-visible:bg-card"
             />
@@ -125,7 +127,7 @@ export function TaskBoardColumn({
           whether or not they have the add field */}
       {tasks.length === 0 && (
         <p className="pointer-events-none absolute inset-x-3 top-1/2 -translate-y-1/2 text-center text-xs text-muted-foreground">
-          {isDone ? "Drag tasks here to complete them" : "No tasks"}
+          {isDone ? t("board.dropToComplete") : t("board.noTasks")}
         </p>
       )}
 
@@ -135,7 +137,7 @@ export function TaskBoardColumn({
           onClick={() => setShowAll(true)}
           className="mx-3 mb-3 text-xs text-muted-foreground hover:text-foreground"
         >
-          Show {hidden} more
+          {t("board.showMore", { count: hidden })}
         </button>
       )}
     </section>

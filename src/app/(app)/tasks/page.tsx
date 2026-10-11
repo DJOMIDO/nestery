@@ -4,6 +4,7 @@
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronDown, ChevronRight, Columns3, List, Plus, X } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ListSkeleton } from "@/components/ui/skeleton";
@@ -20,7 +21,6 @@ import { useTasks } from "@/hooks/useTasks";
 import { useTasksView, type TasksView } from "@/hooks/useTasksView";
 import {
   groupTasks,
-  TASK_GROUP_LABELS,
   type Task,
   type TaskGroupKey,
   type TaskStatus,
@@ -39,6 +39,8 @@ export default function TasksPage() {
 }
 
 function TasksPageContent() {
+  const t = useTranslations("tasks");
+  const tCommon = useTranslations("common");
   const { tasks, loading, createTask, updateTask, deleteTask } = useTasks();
   const format = useFormat();
   // The side panel is only shown on large screens (Tailwind `lg`)
@@ -86,9 +88,9 @@ function TasksPageContent() {
   const handleDelete = async (task: Task) => {
     if (!(await deleteTask(task.id))) return;
     if (selectedId === task.id) setSelectedId(null);
-    toast("Task deleted", {
+    toast(t("deleted"), {
       action: {
-        label: "Undo",
+        label: tCommon("undo"),
         onClick: () =>
           createTask({
             title: task.title,
@@ -179,12 +181,12 @@ function TasksPageContent() {
   const filterChips = (
     hasFilter && (
       <div className="flex flex-wrap items-center gap-2 text-sm">
-        <span className="text-muted-foreground">Filtered by</span>
+        <span className="text-muted-foreground">{t("filteredBy")}</span>
         {tagFilter && (
           <button
             onClick={() => setTagFilter(null)}
             className="flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium"
-            aria-label={`Clear tag filter #${tagFilter}`}
+            aria-label={t("clearTag", { tag: tagFilter })}
           >
             #{tagFilter} <X className="w-3 h-3" />
           </button>
@@ -193,9 +195,9 @@ function TasksPageContent() {
           <button
             onClick={() => setDateFilter(null)}
             className="flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium"
-            aria-label="Clear date filter"
+            aria-label={t("clearDate")}
           >
-            Due {format.dayWithWeekday(dateFilter)} <X className="w-3 h-3" />
+            {t("dueOn", { date: format.dayWithWeekday(dateFilter) })} <X className="w-3 h-3" />
           </button>
         )}
       </div>
@@ -247,39 +249,39 @@ function TasksPageContent() {
           <Input
             value={quickTitle}
             onChange={(e) => setQuickTitle(e.target.value)}
-            placeholder="Add a task and press Enter"
-            aria-label="Quick add task"
+            placeholder={t("quickAdd")}
+            aria-label={t("quickAddLabel")}
           />
           <Button type="submit" variant="outline" disabled={!quickTitle.trim()}>
-            Add
+            {tCommon("add")}
           </Button>
         </form>
 
         {filterChips}
 
         {loading ? (
-          <ListSkeleton label="Loading tasks" icon />
+          <ListSkeleton label={t("loading")} icon />
         ) : filtered.length === 0 ? (
           <p className="py-12 text-center text-sm text-muted-foreground">
-            {hasFilter ? "No tasks match these filters." : "No tasks yet. Add your first one above."}
+            {hasFilter ? t("noMatch") : t("empty")}
           </p>
         ) : (
           <>
             {OPEN_GROUPS.filter((key) => groups[key].length > 0).map((key) => (
-              <section key={key} aria-label={TASK_GROUP_LABELS[key]}>
+              <section key={key} aria-label={t(`groups.${key}`)}>
                 <h2
                   className={`text-sm font-semibold mb-2 ${
                     key === "overdue" ? "text-rose-600" : "text-muted-foreground"
                   }`}
                 >
-                  {TASK_GROUP_LABELS[key]} ({groups[key].length})
+                  {t(`groups.${key}`)} ({groups[key].length})
                 </h2>
                 {renderList(groups[key])}
               </section>
             ))}
 
             {groups.done.length > 0 && (
-              <section aria-label={TASK_GROUP_LABELS.done}>
+              <section aria-label={t("groups.done")}>
                 <button
                   onClick={() => setShowDone((v) => !v)}
                   className="flex items-center gap-1 text-sm font-semibold text-muted-foreground mb-2"
@@ -289,7 +291,7 @@ function TasksPageContent() {
                   ) : (
                     <ChevronRight className="w-4 h-4" />
                   )}
-                  {TASK_GROUP_LABELS.done} ({groups.done.length})
+                  {t("groups.done")} ({groups.done.length})
                 </button>
                 {showDone && renderList(groups.done)}
               </section>
@@ -300,7 +302,7 @@ function TasksPageContent() {
 
       {/* Right: details of the selected task, or an overview (wide screens only) */}
       <aside
-        aria-label={selected ? "Task details" : "Task overview"}
+        aria-label={selected ? t("details") : t("overview")}
         className="hidden lg:block min-w-0 min-h-0"
       >
         <div className="h-full overflow-y-auto rounded-lg border bg-card p-5">
@@ -342,21 +344,20 @@ function TasksHeader({
   onViewChange: (view: TasksView) => void;
   onNew: () => void;
 }) {
+  const t = useTranslations("tasks");
   const views = [
-    { value: "list" as const, label: "List view", icon: List },
-    { value: "board" as const, label: "Board view", icon: Columns3 },
+    { value: "list" as const, label: t("listView"), icon: List },
+    { value: "board" as const, label: t("boardView"), icon: Columns3 },
   ];
 
   return (
     <div className="flex items-center justify-between gap-3">
       <div>
-        <h1 className="text-2xl font-bold">Tasks</h1>
-        <p className="text-sm text-muted-foreground">
-          {openCount} open · {doneCount} completed
-        </p>
+        <h1 className="text-2xl font-bold">{t("title")}</h1>
+        <p className="text-sm text-muted-foreground">{t("subtitle", { open: openCount, done: doneCount })}</p>
       </div>
       <div className="flex items-center gap-2">
-        <div role="group" aria-label="View" className="flex rounded-md border p-0.5">
+        <div role="group" aria-label={t("view")} className="flex rounded-md border p-0.5">
           {views.map(({ value, label, icon: Icon }) => (
             <Button
               key={value}
@@ -376,7 +377,7 @@ function TasksHeader({
           ))}
         </div>
         <Button onClick={onNew}>
-          <Plus className="w-4 h-4 mr-1" /> New Task
+          <Plus className="w-4 h-4 mr-1" /> {t("newTask")}
         </Button>
       </div>
     </div>

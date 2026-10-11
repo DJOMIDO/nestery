@@ -7,7 +7,15 @@
     "today": "今天",
     "tomorrow": "明天",
     "allDay": "全天",
-    "pinned": "已釘選"
+    "pinned": "已釘選",
+    "undo": "復原",
+    "cancel": "取消",
+    "save": "儲存",
+    "create": "建立",
+    "delete": "刪除",
+    "add": "新增",
+    "previousMonth": "上個月",
+    "nextMonth": "下個月"
   },
   "nav": {
     "dashboard": "首頁",
@@ -117,6 +125,82 @@
       "in_progress": "進行中",
       "waiting": "等待中",
       "done": "已完成"
+    },
+    "title": "任務",
+    "subtitle": "{open} 個未完成 · {done} 個已完成",
+    "view": "檢視",
+    "listView": "清單檢視",
+    "boardView": "看板檢視",
+    "newTask": "新增任務",
+    "editTask": "編輯任務",
+    "filteredBy": "篩選條件",
+    "clearTag": "清除標籤篩選 #{tag}",
+    "clearDate": "清除日期篩選",
+    "dueOn": "{date} 到期",
+    "quickAdd": "輸入任務後按 Enter 新增",
+    "quickAddLabel": "快速新增任務",
+    "loading": "正在載入任務",
+    "noMatch": "沒有符合這些條件的任務。",
+    "empty": "還沒有任務。在上方新增第一個吧。",
+    "deleted": "任務已刪除",
+    "details": "任務詳情",
+    "overview": "任務概覽",
+    "closeDetails": "關閉詳情",
+    "created": "建立於 {date}",
+    "completedAt": " · 完成於 {date}",
+    "groups": {
+      "overdue": "已逾期",
+      "today": "今天",
+      "upcoming": "即將到來",
+      "noDate": "無日期",
+      "done": "已完成"
+    },
+    "priority": {
+      "high": "高",
+      "medium": "中",
+      "low": "低"
+    },
+    "highPriority": "高優先順序",
+    "complete": "完成「{title}」",
+    "uncomplete": "將「{title}」標為未完成",
+    "editNamed": "編輯「{title}」",
+    "deleteNamed": "刪除「{title}」",
+    "form": {
+      "title": "標題",
+      "description": "描述",
+      "tags": "標籤",
+      "tagsPlaceholder": "工作, 學習",
+      "priority": "優先順序",
+      "status": "狀態",
+      "dueDate": "截止日期",
+      "remindAt": "提醒時間",
+      "titleRequired": "請填寫標題"
+    },
+    "board": {
+      "addTask": "新增任務",
+      "addTaskTo": "新增任務到「{column}」",
+      "dropToComplete": "把任務拖到這裡來完成",
+      "noTasks": "沒有任務",
+      "showMore": "再顯示 {count} 個",
+      "draggable": "可拖曳的任務",
+      "pickedUp": "已拿起「{title}」。",
+      "over": "「{title}」位於「{column}」上方。",
+      "moved": "「{title}」已移到「{column}」。",
+      "dropped": "已放下「{title}」。",
+      "cancelled": "已取消移動「{title}」。"
+    },
+    "overviewPanel": {
+      "calendar": "行事曆",
+      "tags": "標籤",
+      "tagsEmpty": "替任務加上標籤，就能在這裡篩選。",
+      "thisWeek": "本週",
+      "loadingTags": "正在載入標籤"
+    },
+    "week": {
+      "done": "本週完成",
+      "due": "本週到期",
+      "overdue": "已逾期",
+      "open": "未完成"
     }
   },
   "proposal": {
@@ -195,7 +279,7 @@
       "pinned": "已釘選",
       "editedRecently": "7 天內編輯過",
       "events": "個活動（7 天內）",
-      "trips": "趟旅程待出發",
+      "trips": "個待出發行程",
       "next": "下一個：",
       "tags": "未完成任務的標籤"
     },
@@ -212,7 +296,7 @@
     },
     "reminders": {
       "title": "提醒",
-      "due": "待提醒",
+      "due": "今日提醒",
       "departs": "{time} 出發",
       "moreToday": "今天還有 {count} 則",
       "allDone": "所有提醒都已完成。",

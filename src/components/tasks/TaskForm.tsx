@@ -3,6 +3,7 @@
 // Mount with a `key` per task so the form starts from that task's values.
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
@@ -20,7 +21,6 @@ import type { TaskInput } from "@/hooks/useTasks";
 import { cn } from "@/lib/utils";
 import {
   parseTags,
-  TASK_STATUS_LABELS,
   TASK_STATUSES,
   type Task,
   type TaskPriority,
@@ -61,6 +61,8 @@ export function TaskForm({
   const [title, setTitle] = useState(task?.title ?? "");
   const [description, setDescription] = useState(task?.description ?? "");
   const [tags, setTags] = useState(task?.tags.join(", ") ?? "");
+  const t = useTranslations("tasks");
+  const tCommon = useTranslations("common");
   const [status, setStatus] = useState<TaskStatus>(task?.status ?? "todo");
   const [priority, setPriority] = useState<TaskPriority>(task?.priority ?? "medium");
   const [dueDate, setDueDate] = useState(task?.dueDate ?? "");
@@ -73,7 +75,7 @@ export function TaskForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) {
-      setError("Title is required");
+      setError(t("form.titleRequired"));
       return;
     }
     setError("");
@@ -96,7 +98,7 @@ export function TaskForm({
       className={cn("space-y-5", fill && "flex flex-col flex-1 min-h-0")}
     >
       <div>
-        <Label htmlFor={id("title")}>Title</Label>
+        <Label htmlFor={id("title")}>{t("form.title")}</Label>
         <Input
           id={id("title")}
           className="mt-2"
@@ -106,7 +108,7 @@ export function TaskForm({
         />
       </div>
       <div className={cn(fill && "flex flex-col flex-1 min-h-32")}>
-        <Label htmlFor={id("desc")}>Description</Label>
+        <Label htmlFor={id("desc")}>{t("form.description")}</Label>
         <Textarea
           id={id("desc")}
           className={cn("mt-2", fill && "flex-1 resize-none")}
@@ -115,31 +117,31 @@ export function TaskForm({
         />
       </div>
       <div>
-        <Label htmlFor={id("tags")}>Tags</Label>
+        <Label htmlFor={id("tags")}>{t("form.tags")}</Label>
         <Input
           id={id("tags")}
           className="mt-2"
           value={tags}
           onChange={(e) => setTags(e.target.value)}
-          placeholder="work, study"
+          placeholder={t("form.tagsPlaceholder")}
         />
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label htmlFor={id("priority")}>Priority</Label>
+          <Label htmlFor={id("priority")}>{t("form.priority")}</Label>
           <Select value={priority} onValueChange={(v) => setPriority(v as TaskPriority)}>
             <SelectTrigger id={id("priority")} className="mt-2 w-full">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="high">High</SelectItem>
-              <SelectItem value="medium">Medium</SelectItem>
-              <SelectItem value="low">Low</SelectItem>
+              <SelectItem value="high">{t("priority.high")}</SelectItem>
+              <SelectItem value="medium">{t("priority.medium")}</SelectItem>
+              <SelectItem value="low">{t("priority.low")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
         <div>
-          <Label htmlFor={id("status")}>Status</Label>
+          <Label htmlFor={id("status")}>{t("form.status")}</Label>
           <Select value={status} onValueChange={(v) => setStatus(v as TaskStatus)}>
             <SelectTrigger id={id("status")} className="mt-2 w-full">
               <SelectValue />
@@ -147,7 +149,7 @@ export function TaskForm({
             <SelectContent>
               {TASK_STATUSES.map((value) => (
                 <SelectItem key={value} value={value}>
-                  {TASK_STATUS_LABELS[value]}
+                  {t(`status.${value}`)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -157,7 +159,7 @@ export function TaskForm({
       {/* Stacked on phones: datetime inputs are too wide to share a row */}
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="min-w-0">
-          <Label htmlFor={id("due")}>Due Date</Label>
+          <Label htmlFor={id("due")}>{t("form.dueDate")}</Label>
           <Input
             id={id("due")}
             type="date"
@@ -167,7 +169,7 @@ export function TaskForm({
           />
         </div>
         <div className="min-w-0">
-          <Label htmlFor={id("remind")}>Remind At</Label>
+          <Label htmlFor={id("remind")}>{t("form.remindAt")}</Label>
           <Input
             id={id("remind")}
             type="datetime-local"
@@ -183,12 +185,12 @@ export function TaskForm({
         <div className="flex-1" />
         {onCancel && (
           <Button variant="outline" type="button" onClick={onCancel} disabled={saving}>
-            Cancel
+            {tCommon("cancel")}
           </Button>
         )}
         <Button type="submit" disabled={saving}>
           {saving && <Spinner />}
-          {saving ? "Saving…" : task ? "Save" : "Create"}
+          {saving ? tCommon("saving") : task ? tCommon("save") : tCommon("create")}
         </Button>
       </div>
     </form>

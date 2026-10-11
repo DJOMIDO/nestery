@@ -7,7 +7,15 @@
     "today": "Today",
     "tomorrow": "Tomorrow",
     "allDay": "All day",
-    "pinned": "Pinned"
+    "pinned": "Pinned",
+    "undo": "Undo",
+    "cancel": "Cancel",
+    "save": "Save",
+    "create": "Create",
+    "delete": "Delete",
+    "add": "Add",
+    "previousMonth": "Previous month",
+    "nextMonth": "Next month"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -117,6 +125,82 @@
       "in_progress": "In progress",
       "waiting": "Waiting",
       "done": "Done"
+    },
+    "title": "Tasks",
+    "subtitle": "{open} open · {done} completed",
+    "view": "View",
+    "listView": "List view",
+    "boardView": "Board view",
+    "newTask": "New Task",
+    "editTask": "Edit Task",
+    "filteredBy": "Filtered by",
+    "clearTag": "Clear tag filter #{tag}",
+    "clearDate": "Clear date filter",
+    "dueOn": "Due {date}",
+    "quickAdd": "Add a task and press Enter",
+    "quickAddLabel": "Quick add task",
+    "loading": "Loading tasks",
+    "noMatch": "No tasks match these filters.",
+    "empty": "No tasks yet. Add your first one above.",
+    "deleted": "Task deleted",
+    "details": "Task details",
+    "overview": "Task overview",
+    "closeDetails": "Close details",
+    "created": "Created {date}",
+    "completedAt": " · Completed {date}",
+    "groups": {
+      "overdue": "Overdue",
+      "today": "Today",
+      "upcoming": "Upcoming",
+      "noDate": "No date",
+      "done": "Completed"
+    },
+    "priority": {
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low"
+    },
+    "highPriority": "High priority",
+    "complete": "Complete “{title}”",
+    "uncomplete": "Mark “{title}” as not done",
+    "editNamed": "Edit “{title}”",
+    "deleteNamed": "Delete “{title}”",
+    "form": {
+      "title": "Title",
+      "description": "Description",
+      "tags": "Tags",
+      "tagsPlaceholder": "work, study",
+      "priority": "Priority",
+      "status": "Status",
+      "dueDate": "Due date",
+      "remindAt": "Remind at",
+      "titleRequired": "Title is required"
+    },
+    "board": {
+      "addTask": "Add task",
+      "addTaskTo": "Add a task to {column}",
+      "dropToComplete": "Drag tasks here to complete them",
+      "noTasks": "No tasks",
+      "showMore": "Show {count} more",
+      "draggable": "Draggable task",
+      "pickedUp": "Picked up “{title}”.",
+      "over": "“{title}” is over {column}.",
+      "moved": "“{title}” moved to {column}.",
+      "dropped": "“{title}” was dropped.",
+      "cancelled": "Moving “{title}” was cancelled."
+    },
+    "overviewPanel": {
+      "calendar": "Calendar",
+      "tags": "Tags",
+      "tagsEmpty": "Add tags to your tasks to filter them here.",
+      "thisWeek": "This week",
+      "loadingTags": "Loading tags"
+    },
+    "week": {
+      "done": "Done this week",
+      "due": "Due this week",
+      "overdue": "Overdue",
+      "open": "Open"
     }
   },
   "proposal": {

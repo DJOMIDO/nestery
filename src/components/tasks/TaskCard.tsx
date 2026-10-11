@@ -1,6 +1,7 @@
 // src/components/tasks/TaskCard.tsx
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useDraggable } from "@dnd-kit/core";
 import { CalendarDays, Flag, Trash2 } from "lucide-react";
 import { toDateKey, type Task } from "@/lib/tasks";
@@ -28,6 +29,7 @@ function descriptionPreview(description: string) {
 // A board card. Drag it to another column to change the task's status;
 // click (or Enter) opens it for editing.
 export function TaskCard({ task, onOpen, onDelete, onTagClick, highlighted }: TaskCardProps) {
+  const t = useTranslations("tasks");
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: task.id });
 
   return (
@@ -36,7 +38,7 @@ export function TaskCard({ task, onOpen, onDelete, onTagClick, highlighted }: Ta
       {...attributes}
       {...listeners}
       data-task-id={task.id}
-      aria-roledescription="Draggable task"
+      aria-roledescription={t("board.draggable")}
       aria-label={task.title}
       onClick={() => onOpen(task)}
       onKeyDown={(e) => {
@@ -70,6 +72,7 @@ export function TaskCardBody({
   lifted?: boolean;
 }) {
   const done = task.status === "done";
+  const t = useTranslations("tasks");
   const format = useFormat();
   const overdue = !done && !!task.dueDate && task.dueDate < toDateKey(new Date());
 
@@ -91,7 +94,7 @@ export function TaskCardBody({
           )}
         >
           {task.priority === "high" && !done && (
-            <Flag className="mr-1 inline size-3.5 -translate-y-px text-rose-600" aria-label="High priority" />
+            <Flag className="mr-1 inline size-3.5 -translate-y-px text-rose-600" aria-label={t("highPriority")} />
           )}
           {task.title}
         </p>
@@ -106,7 +109,7 @@ export function TaskCardBody({
             onPointerDown={(e) => e.stopPropagation()}
             onKeyDown={(e) => e.stopPropagation()}
             className="-m-1 p-1 rounded opacity-100 md:opacity-0 md:group-hover:opacity-100 focus-visible:opacity-100 hover:bg-muted transition-opacity"
-            aria-label={`Delete "${task.title}"`}
+            aria-label={t("deleteNamed", { title: task.title })}
           >
             <Trash2 className="w-3.5 h-3.5 text-muted-foreground" />
           </button>

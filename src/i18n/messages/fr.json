@@ -7,7 +7,15 @@
     "today": "Aujourd’hui",
     "tomorrow": "Demain",
     "allDay": "Toute la journée",
-    "pinned": "Épinglée"
+    "pinned": "Épinglée",
+    "undo": "Annuler",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "create": "Créer",
+    "delete": "Supprimer",
+    "add": "Ajouter",
+    "previousMonth": "Mois précédent",
+    "nextMonth": "Mois suivant"
   },
   "nav": {
     "dashboard": "Tableau de bord",
@@ -117,6 +125,82 @@
       "in_progress": "En cours",
       "waiting": "En attente",
       "done": "Terminé"
+    },
+    "title": "Tâches",
+    "subtitle": "{open, plural, one {# ouverte} other {# ouvertes}} · {done, plural, one {# terminée} other {# terminées}}",
+    "view": "Affichage",
+    "listView": "Vue liste",
+    "boardView": "Vue tableau",
+    "newTask": "Nouvelle tâche",
+    "editTask": "Modifier la tâche",
+    "filteredBy": "Filtré par",
+    "clearTag": "Retirer le filtre #{tag}",
+    "clearDate": "Retirer le filtre de date",
+    "dueOn": "Échéance le {date}",
+    "quickAdd": "Ajoutez une tâche et appuyez sur Entrée",
+    "quickAddLabel": "Ajout rapide de tâche",
+    "loading": "Chargement des tâches",
+    "noMatch": "Aucune tâche ne correspond à ces filtres.",
+    "empty": "Aucune tâche pour l’instant. Ajoutez la première ci-dessus.",
+    "deleted": "Tâche supprimée",
+    "details": "Détails de la tâche",
+    "overview": "Aperçu des tâches",
+    "closeDetails": "Fermer les détails",
+    "created": "Créée le {date}",
+    "completedAt": " · Terminée le {date}",
+    "groups": {
+      "overdue": "En retard",
+      "today": "Aujourd’hui",
+      "upcoming": "À venir",
+      "noDate": "Sans date",
+      "done": "Terminées"
+    },
+    "priority": {
+      "high": "Haute",
+      "medium": "Moyenne",
+      "low": "Basse"
+    },
+    "highPriority": "Priorité haute",
+    "complete": "Terminer « {title} »",
+    "uncomplete": "Marquer « {title} » comme non terminée",
+    "editNamed": "Modifier « {title} »",
+    "deleteNamed": "Supprimer « {title} »",
+    "form": {
+      "title": "Titre",
+      "description": "Description",
+      "tags": "Étiquettes",
+      "tagsPlaceholder": "travail, études",
+      "priority": "Priorité",
+      "status": "Statut",
+      "dueDate": "Échéance",
+      "remindAt": "Rappel",
+      "titleRequired": "Le titre est obligatoire"
+    },
+    "board": {
+      "addTask": "Ajouter une tâche",
+      "addTaskTo": "Ajouter une tâche dans « {column} »",
+      "dropToComplete": "Glissez des tâches ici pour les terminer",
+      "noTasks": "Aucune tâche",
+      "showMore": "Afficher {count} de plus",
+      "draggable": "Tâche déplaçable",
+      "pickedUp": "« {title} » saisie.",
+      "over": "« {title} » est au-dessus de « {column} ».",
+      "moved": "« {title} » déplacée vers « {column} ».",
+      "dropped": "« {title} » déposée.",
+      "cancelled": "Déplacement de « {title} » annulé."
+    },
+    "overviewPanel": {
+      "calendar": "Calendrier",
+      "tags": "Étiquettes",
+      "tagsEmpty": "Ajoutez des étiquettes à vos tâches pour les filtrer ici.",
+      "thisWeek": "Cette semaine",
+      "loadingTags": "Chargement des étiquettes"
+    },
+    "week": {
+      "done": "Terminées cette semaine",
+      "due": "À rendre cette semaine",
+      "overdue": "En retard",
+      "open": "Ouvertes"
     }
   },
   "proposal": {
@@ -212,7 +296,7 @@
     },
     "reminders": {
       "title": "Rappels",
-      "due": "À VOIR",
+      "due": "AUJOURD’HUI",
       "departs": "Départ à {time}",
       "moreToday": "+{count} aujourd’hui",
       "allDone": "Tous les rappels sont traités.",
