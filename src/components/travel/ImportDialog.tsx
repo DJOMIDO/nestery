@@ -5,6 +5,7 @@
 
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useRef, useState } from "react";
 import { Download, FileUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -21,7 +22,6 @@ interface ImportResult {
   errors: { row: number; message: string }[];
 }
 
-const KIND_LABELS: Record<JourneyKind, string> = { flight: "Flights", train: "Trains" };
 
 const MAX_FILE_BYTES = 2 * 1024 * 1024;
 
@@ -34,6 +34,9 @@ export function ImportDialog({
   onOpenChange: (open: boolean) => void;
   onImported: () => void;
 }) {
+  const t = useTranslations("travel.import");
+  const tTravel = useTranslations("travel");
+  const tCommon = useTranslations("common");
   const [kind, setKind] = useState<JourneyKind>("flight");
   const [fileName, setFileName] = useState<string | null>(null);
   const [rows, setRows] = useState<JourneyInput[] | null>(null);
@@ -67,7 +70,7 @@ export function ImportDialog({
     setProblem(null);
     if (!file) return;
     setFileName(file.name);
-    if (file.size > MAX_FILE_BYTES) return setProblem("The file is larger than 2 MB.");
+    if (file.size > MAX_FILE_BYTES) return setProblem(t("tooLarge"));
     try {
       const { columns, records } = csvRecords(await file.text());
       const required = CSV_COLUMNS[kind].slice(0, 2);
@@ -77,11 +80,11 @@ export function ImportDialog({
         const looksLikeOther = CSV_COLUMNS[other].slice(0, 2).every((c) => columns.includes(c));
         return setProblem(
           looksLikeOther
-            ? `This looks like a ${other} file. Switch to ${KIND_LABELS[other]} above.`
-            : `Missing columns: ${missing.join(", ")}. Use the template's columns.`
+            ? t("otherKind", { kind: other })
+            : t("missing", { columns: missing.join(", ") })
         );
       }
-      if (records.length === 0) return setProblem("The file has no rows.");
+      if (records.length === 0) return setProblem(t("noRows"));
       setRows(records.map((r) => journeyFromCsv(kind, r)));
     } catch (err) {
       setProblem((err as Error).message);
@@ -115,16 +118,13 @@ export function ImportDialog({
     >
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Import from CSV</DialogTitle>
-          <DialogDescription>
-            One file per kind, with the template&apos;s columns (the same as the old travel tracker). Dates are
-            YYYY-MM-DD, times HH:mm.
-          </DialogDescription>
+          <DialogTitle>{t("title")}</DialogTitle>
+          <DialogDescription>{t("description")}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           <div className="flex flex-wrap items-center gap-2">
-            <div className="inline-flex rounded-md border p-0.5" role="group" aria-label="Kind of journeys">
+            <div className="inline-flex rounded-md border p-0.5" role="group" aria-label={t("kind")}>
               {(["flight", "train"] as const).map((k) => (
                 <button
                   key={k}
@@ -136,12 +136,12 @@ export function ImportDialog({
                     kind === k ? "bg-leaf-soft text-leaf" : "text-muted-foreground hover:text-foreground"
                   )}
                 >
-                  {KIND_LABELS[k]}
+                  {tTravel(`filter.${k}`)}
                 </button>
               ))}
             </div>
             <Button type="button" variant="ghost" size="sm" onClick={downloadTemplate} className="ml-auto">
-              <Download className="mr-1 size-4" /> Template
+              <Download className="mr-1 size-4" /> {t("template")}
             </Button>
           </div>
 
@@ -153,7 +153,7 @@ export function ImportDialog({
             onChange={(e) => readFile(e.target.files?.[0])}
           />
           <Button type="button" variant="outline" className="w-full" onClick={() => fileInput.current?.click()}>
-            <FileUp className="mr-2 size-4" /> {fileName ?? "Choose a CSV file"}
+            <FileUp className="mr-2 size-4" /> {fileName ?? t("choose")}
           </Button>
 
           {problem && (
@@ -165,7 +165,7 @@ export function ImportDialog({
           {rows && !result && (
             <div className="space-y-2">
               <p className="text-sm">
-                {rows.length} {rows.length === 1 ? "row" : "rows"} found. First ones:
+                {t("found", { count: rows.length })}
               </p>
               <ul className="divide-y rounded-md border text-sm">
                 {rows.slice(0, 5).map((r, i) => (
@@ -184,15 +184,15 @@ export function ImportDialog({
           {result && (
             <div className="space-y-2 text-sm" aria-live="polite">
               <p>
-                <strong>{result.imported}</strong> imported
-                {result.skipped > 0 && `, ${result.skipped} already in your list`}
-                {result.errors.length > 0 && `, ${result.errors.length} with errors`}.
+                {t.rich("imported", { count: result.imported, b: (chunks) => <strong>{chunks}</strong> })}
+                {result.skipped > 0 && t("skipped", { count: result.skipped })}
+                {result.errors.length > 0 && t("withErrors", { count: result.errors.length })}
               </p>
               {result.errors.length > 0 && (
                 <ul className="max-h-40 space-y-1 overflow-y-auto rounded-md border p-2 text-xs text-destructive">
                   {result.errors.map((e) => (
                     <li key={e.row}>
-                      Line {e.row + 1}: {e.message}
+                      {t("line", { line: e.row + 1, message: e.message })}
                     </li>
                   ))}
                 </ul>
@@ -202,12 +202,12 @@ export function ImportDialog({
 
           <div className="flex justify-end gap-2">
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
-              {result ? "Close" : "Cancel"}
+              {result ? tCommon("close") : tCommon("cancel")}
             </Button>
             {!result && (
               <Button type="button" onClick={runImport} disabled={!rows || importing}>
                 {importing && <Spinner />}
-                {importing ? "Importing…" : rows ? `Import ${rows.length}` : "Import"}
+                {importing ? t("importing") : rows ? t("importCount", { count: rows.length }) : t("import")}
               </Button>
             )}
           </div>

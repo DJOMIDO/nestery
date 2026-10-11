@@ -4,6 +4,7 @@
 
 "use client";
 
+import { useLocale, useTranslations } from "next-intl";
 import { Plane, TrainFront } from "lucide-react";
 import { useFormat } from "@/components/SettingsProvider";
 import { formatClock } from "@/components/travel/JourneyDetailPanel";
@@ -34,6 +35,8 @@ export function TravelOverviewPanel({
   loading,
 }: TravelOverviewPanelProps) {
   const format = useFormat();
+  const t = useTranslations("travel");
+  const locale = useLocale();
   const next = upcoming[0];
   const year = today.slice(0, 4);
   const thisYear = journeys.filter((j) => j.departureDate.startsWith(year));
@@ -42,12 +45,12 @@ export function TravelOverviewPanel({
   const km = flights.reduce((sum, j) => sum + (j.distanceKm ?? 0), 0);
 
   const daysAway = next ? dayDiff(today, next.departureDate) : 0;
-  const when = daysAway === 0 ? "Today" : daysAway === 1 ? "Tomorrow" : `In ${daysAway} days`;
+  const when = t("daysAway", { days: daysAway });
 
   return (
     <div className="flex h-full flex-col gap-6">
-      <section aria-label="Next trip">
-        <h3 className="mb-3 text-base font-semibold text-muted-foreground">Next trip</h3>
+      <section aria-label={t("nextTrip")}>
+        <h3 className="mb-3 text-base font-semibold text-muted-foreground">{t("nextTrip")}</h3>
         {loading ? (
           // The shape of the next-trip card
           <div role="status" aria-label="Loading trips" className="appear-late space-y-3 rounded-lg border bg-background p-4">
@@ -84,26 +87,26 @@ export function TravelOverviewPanel({
           </button>
         ) : (
           <p className="text-sm text-muted-foreground">
-            Nothing planned. Use New Journey to add one, or to paste a booking for the assistant to read.
+            {t("overviewEmpty")}
           </p>
         )}
         {!loading && upcoming.length > 1 && (
           <p className="mt-2 text-sm text-muted-foreground">
-            {upcoming.length - 1} more coming up
+            {t("moreComing", { count: upcoming.length - 1 })}
           </p>
         )}
       </section>
 
-      <section aria-label={`In ${year}`} className="mt-auto">
-        <h3 className="mb-3 text-base font-semibold text-muted-foreground">In {year}</h3>
+      <section aria-label={t("inYear", { year })} className="mt-auto">
+        <h3 className="mb-3 text-base font-semibold text-muted-foreground">{t("inYear", { year })}</h3>
         <div className="grid grid-cols-2 gap-3">
-          <Stat value={thisYear.length} label={thisYear.length === 1 ? "journey" : "journeys"} loading={loading} />
-          <Stat value={places.size} label={places.size === 1 ? "destination" : "destinations"} loading={loading} />
-          <Stat value={flights.length} label={flights.length === 1 ? "flight" : "flights"} loading={loading} />
-          <Stat value={thisYear.length - flights.length} label="by train" loading={loading} />
+          <Stat value={thisYear.length} label={t("stats.journeys", { count: thisYear.length })} loading={loading} />
+          <Stat value={places.size} label={t("stats.destinations", { count: places.size })} loading={loading} />
+          <Stat value={flights.length} label={t("stats.flights", { count: flights.length })} loading={loading} />
+          <Stat value={thisYear.length - flights.length} label={t("stats.trains")} loading={loading} />
           {!loading && km > 0 && (
             <div className="col-span-2">
-              <Stat value={km.toLocaleString()} label="km flown" />
+              <Stat value={km.toLocaleString(locale)} label={t("stats.km")} />
             </div>
           )}
         </div>

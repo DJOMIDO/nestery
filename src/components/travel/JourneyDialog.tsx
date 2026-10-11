@@ -1,6 +1,7 @@
 // src/components/travel/JourneyDialog.tsx
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -19,12 +20,21 @@ interface JourneyDialogProps {
 }
 
 export function JourneyDialog({ open, onOpenChange, kind, journey, onSubmit, onDelete }: JourneyDialogProps) {
-  const noun = kind === "flight" ? "flight" : "train journey";
+  const t = useTranslations("travel");
+  const isFlight = kind === "flight";
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>{journey ? `Edit ${noun}` : `Add a ${noun}`}</DialogTitle>
+          <DialogTitle>
+            {journey
+              ? isFlight
+                ? t("editFlight")
+                : t("editTrain")
+              : isFlight
+                ? t("addFlight")
+                : t("addTrain")}
+          </DialogTitle>
         </DialogHeader>
         {/* The content unmounts when closed, so the form resets on each open */}
         <JourneyForm

@@ -89,21 +89,18 @@ export interface Airline {
 }
 
 // Reminder choices in the form, in minutes before departure
-export const REMINDER_OPTIONS: { minutes: number; label: string }[] = [
-  { minutes: 30, label: "30 minutes before" },
-  { minutes: 60, label: "1 hour before" },
-  { minutes: 120, label: "2 hours before" },
-  { minutes: 180, label: "3 hours before" },
-  { minutes: 1440, label: "1 day before" },
-];
+export const REMINDER_OPTIONS = [30, 60, 120, 180, 1440];
 
 // For new journeys: time to get to the airport and through security, or to
 // the station
 export const DEFAULT_REMIND_BEFORE: Record<JourneyKind, number> = { flight: 180, train: 60 };
 
-export const reminderLabel = (minutes: number) =>
-  REMINDER_OPTIONS.find((o) => o.minutes === minutes)?.label ??
-  (minutes % 60 === 0 ? `${minutes / 60} hours before` : `${minutes} minutes before`);
+// A reminder's lead time in its largest whole unit, for "3 hours before"
+export function reminderParts(minutes: number): { unit: "day" | "hour" | "minute"; count: number } {
+  if (minutes % 1440 === 0) return { unit: "day", count: minutes / 1440 };
+  if (minutes % 60 === 0) return { unit: "hour", count: minutes / 60 };
+  return { unit: "minute", count: minutes };
+}
 
 // CSV columns, the same as in the original travel tracker (noname-app), so
 // its files and its database tables import as they are
@@ -203,16 +200,24 @@ export const journeyRoute = (j: Pick<Journey, "carrier" | "number" | "origin" | 
 export const journeyTitle = (j: Pick<Journey, "kind" | "carrier" | "number" | "origin" | "destination">) =>
   `${j.kind === "flight" ? "✈" : "🚆"} ${journeyRoute(j)}`;
 
+// Text for a journey shown as an event, in the interface language
+export interface JourneyEventText {
+  // The calendar it appears to come from ("Travel")
+  source: string;
+  // "Seat 23A" and the like
+  detail: (field: "seat" | "coach" | "gate" | "booking", value: string) => string;
+}
+
 // A journey as a read-only calendar event (like a subscribed calendar's),
 // so the calendar and the dashboard show it without storing a copy
-export function journeyToEvent(j: Journey): CalendarEvent {
+export function journeyToEvent(j: Journey, text: JourneyEventText): CalendarEvent {
   const times = journeyTimes(j);
   const details = [
     j.carrierName,
-    j.seat && `Seat ${j.seat}`,
-    j.coach && `Coach ${j.coach}`,
-    j.gate && `Gate ${j.gate}`,
-    j.bookingRef && `Booking ${j.bookingRef}`,
+    j.seat && text.detail("seat", j.seat),
+    j.coach && text.detail("coach", j.coach),
+    j.gate && text.detail("gate", j.gate),
+    j.bookingRef && text.detail("booking", j.bookingRef),
     j.notes,
   ].filter(Boolean);
   return {
@@ -234,22 +239,20 @@ export function journeyToEvent(j: Journey): CalendarEvent {
       subscriptionId: "travel",
       journeyId: j.id,
       journeyKind: j.kind,
-      name: "Travel",
+      name: text.source,
       color: "indigo",
       location: `${j.originName ?? j.originCity ?? j.origin} → ${j.destinationName ?? j.destinationCity ?? j.destination}`,
     },
   };
 }
 
-// "2h 45m"; null when the arrival time isn't known
+// How long the journey takes, for "2h 45m"; null when the arrival time isn't known
 export function journeyDuration(j: Parameters<typeof journeyTimes>[0]) {
   if (!j.arrivalTime) return null;
   const times = journeyTimes(j);
   if (!times) return null;
-  const minutes = Math.round((times.end.getTime() - times.start.getTime()) / 60_000);
-  const h = Math.floor(minutes / 60);
-  const m = minutes % 60;
-  return h ? `${h}h ${String(m).padStart(2, "0")}m` : `${m}m`;
+  const total = Math.round((times.end.getTime() - times.start.getTime()) / 60_000);
+  return { hours: Math.floor(total / 60), minutes: total % 60 };
 }
 
 // When to remind about a journey, or null (no reminder or no departure time)

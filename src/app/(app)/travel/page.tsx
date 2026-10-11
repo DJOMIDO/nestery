@@ -1,6 +1,7 @@
 // src/app/(app)/travel/page.tsx
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronDown, ChevronRight, ClipboardPaste, FileUp, Plus } from "lucide-react";
@@ -29,11 +30,8 @@ import { cn } from "@/lib/utils";
 
 type Filter = "all" | JourneyKind;
 
-const FILTERS: { value: Filter; label: string }[] = [
-  { value: "all", label: "All" },
-  { value: "flight", label: "Flights" },
-  { value: "train", label: "Trains" },
-];
+// Labels in messages (travel.filter.<value>)
+const FILTERS: Filter[] = ["all", "flight", "train"];
 
 // useSearchParams needs a Suspense boundary on a statically rendered page
 export default function TravelPage() {
@@ -54,6 +52,8 @@ function TravelPageContent() {
   const [importOpen, setImportOpen] = useState(false);
   const [showPast, setShowPast] = useState<boolean | null>(null);
   const assistant = useAssistant();
+  const t = useTranslations("travel");
+  const format = useFormat();
 
   const open = (journey: Journey) =>
     isWide ? setSelectedId(journey.id) : setDialog({ kind: journey.kind, journey });
@@ -94,7 +94,8 @@ function TravelPageContent() {
   const selected = isWide ? (journeys.find((j) => j.id === selectedId) ?? null) : null;
 
   const handleDelete = async (journey: Journey) => {
-    if (!window.confirm(`Delete ${journeyLabel(journey)} on ${journey.departureDate}?`)) return;
+    if (!window.confirm(t("deleteConfirm", { label: journeyLabel(journey), date: format.dayWithWeekday(journey.departureDate) })))
+      return;
     if (await deleteJourney(journey.id)) {
       if (selectedId === journey.id) setSelectedId(null);
       setDialog(null);
@@ -108,16 +109,16 @@ function TravelPageContent() {
     // short count like theirs, so it fits next to the button on phones
     <div className="flex items-center justify-between gap-3">
       <div className="min-w-0">
-        <h1 className="text-2xl font-bold">Travel</h1>
+        <h1 className="text-2xl font-bold">{t("title")}</h1>
         <p className="text-sm text-muted-foreground">
-          {journeys.length} {journeys.length === 1 ? "journey" : "journeys"}
-          {allUpcoming.length > 0 && ` · ${allUpcoming.length} upcoming`}
+          {t("subtitle", { count: journeys.length })}
+          {allUpcoming.length > 0 && t("upcomingCount", { count: allUpcoming.length })}
         </p>
       </div>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button>
-            <Plus className="mr-1 size-4" /> New Journey <ChevronDown className="ml-0.5 size-4 opacity-80" />
+            <Plus className="mr-1 size-4" /> {t("newJourney")} <ChevronDown className="ml-0.5 size-4 opacity-80" />
           </Button>
         </DropdownMenuTrigger>
         {/* Each choice focuses what it opens (a dialog, the assistant's
@@ -127,19 +128,19 @@ function TravelPageContent() {
             const Icon = journeyIcon(kind);
             return (
               <DropdownMenuItem key={kind} onSelect={() => setDialog({ kind, journey: null })}>
-                <Icon /> {kind === "flight" ? "Flight" : "Train"}
+                <Icon /> {kind === "flight" ? t("flight") : t("train")}
               </DropdownMenuItem>
             );
           })}
           <DropdownMenuSeparator />
           {/* The assistant reads a pasted confirmation or e-ticket and proposes the journeys */}
           <DropdownMenuItem
-            onSelect={() => assistant.openWithDraft("Add the journeys from this booking to Travel: ")}
+            onSelect={() => assistant.openWithDraft(t("pasteDraft"))}
           >
-            <ClipboardPaste /> Paste booking…
+            <ClipboardPaste /> {t("pasteBooking")}
           </DropdownMenuItem>
           <DropdownMenuItem onSelect={() => setImportOpen(true)}>
-            <FileUp /> Import from CSV…
+            <FileUp /> {t("importCsv")}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -153,8 +154,8 @@ function TravelPageContent() {
       <div className="min-w-0 space-y-6 lg:-ml-1 lg:min-h-0 lg:overflow-y-auto lg:pl-1 lg:pr-2">
         {header}
 
-        <div className="inline-flex rounded-md border p-0.5" role="group" aria-label="Show">
-          {FILTERS.map(({ value, label }) => (
+        <div className="inline-flex rounded-md border p-0.5" role="group" aria-label={t("filter.label")}>
+          {FILTERS.map((value) => (
             <button
               key={value}
               type="button"
@@ -165,38 +166,37 @@ function TravelPageContent() {
                 filter === value ? "bg-leaf-soft text-leaf" : "text-muted-foreground hover:text-foreground"
               )}
             >
-              {label}
+              {t(`filter.${value}`)}
             </button>
           ))}
         </div>
 
         {loading ? (
-          <ListSkeleton label="Loading journeys" icon />
+          <ListSkeleton label={t("loading")} icon />
         ) : journeys.length === 0 ? (
           <p className="py-12 text-center text-sm text-muted-foreground">
-            No journeys yet. Use New Journey to add a flight or a train, paste a booking confirmation for the
-            assistant to read, or import a CSV file.
+            {t("empty")}
           </p>
         ) : (
           <>
-            <section aria-label="Upcoming">
-              <h2 className="mb-2 text-sm font-semibold text-muted-foreground">Upcoming ({upcoming.length})</h2>
+            <section aria-label={t("upcomingLabel")}>
+              <h2 className="mb-2 text-sm font-semibold text-muted-foreground">{t("upcoming", { count: upcoming.length })}</h2>
               {upcoming.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Nothing planned.</p>
+                <p className="text-sm text-muted-foreground">{t("nothingPlanned")}</p>
               ) : (
                 <JourneyList journeys={upcoming} weather={weather} selectedId={selected?.id} onOpen={open} />
               )}
             </section>
 
             {past.length > 0 && (
-              <section aria-label="Past">
+              <section aria-label={t("pastLabel")}>
                 <button
                   onClick={() => setShowPast(!pastOpen)}
                   className="mb-2 flex items-center gap-1 text-sm font-semibold text-muted-foreground"
                   aria-expanded={pastOpen}
                 >
                   {pastOpen ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
-                  Past ({past.length})
+                  {t("past", { count: past.length })}
                 </button>
                 {pastOpen && <JourneyList journeys={past} selectedId={selected?.id} onOpen={open} />}
               </section>
@@ -206,7 +206,7 @@ function TravelPageContent() {
       </div>
 
       {/* Right: the selected journey, or an overview (wide screens only) */}
-      <aside aria-label={selected ? "Journey details" : "Travel overview"} className="hidden min-h-0 min-w-0 lg:block">
+      <aside aria-label={selected ? t("details") : t("overview")} className="hidden min-h-0 min-w-0 lg:block">
         <div className="h-full overflow-y-auto rounded-lg border bg-card p-5">
           {selected ? (
             <JourneyDetailPanel
