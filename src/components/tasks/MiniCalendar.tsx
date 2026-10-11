@@ -1,6 +1,7 @@
 // src/components/tasks/MiniCalendar.tsx
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -19,6 +20,7 @@ export function MiniCalendar({
   selectedDate,
   onSelectDate,
 }: MiniCalendarProps) {
+  const tCommon = useTranslations("common");
   const format = useFormat();
   const today = toDateKey(new Date());
   // First day of the displayed month
@@ -39,7 +41,7 @@ export function MiniCalendar({
         <button
           onClick={() => shiftMonth(-1)}
           className="p-1 rounded hover:bg-muted"
-          aria-label="Previous month"
+          aria-label={tCommon("previousMonth")}
         >
           <ChevronLeft className="w-4 h-4" />
         </button>
@@ -47,7 +49,7 @@ export function MiniCalendar({
         <button
           onClick={() => shiftMonth(1)}
           className="p-1 rounded hover:bg-muted"
-          aria-label="Next month"
+          aria-label={tCommon("nextMonth")}
         >
           <ChevronRight className="w-4 h-4" />
         </button>

@@ -4,6 +4,8 @@
 
 "use client";
 
+import { useTranslations } from "next-intl";
+import { useReminderLabel } from "@/components/travel/useReminderLabel";
 import { useMemo, useRef, useState } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -16,7 +18,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   DEFAULT_REMIND_BEFORE,
   REMINDER_OPTIONS,
-  reminderLabel,
   type Journey,
   type JourneyInput,
   type JourneyKind,
@@ -54,13 +55,14 @@ const EMPTY: Fields = {
 // a date typed field by field when React writes the value back
 const DATE_TIME_FIELDS = ["departureDate", "departureTime", "arrivalDate", "arrivalTime"] as const;
 
-const REQUIRED: { key: keyof Fields; message: string; flightsOnly?: boolean }[] = [
-  { key: "carrier", message: "Enter the airline or company" },
+// Each with its message in travel.form.required.<key>
+const REQUIRED: { key: "carrier" | "number" | "origin" | "destination" | "departureDate"; flightsOnly?: boolean }[] = [
+  { key: "carrier" },
   // Regional train tickets often have no number
-  { key: "number", message: "Enter the flight number", flightsOnly: true },
-  { key: "origin", message: "Enter where you leave from" },
-  { key: "destination", message: "Enter where you're going" },
-  { key: "departureDate", message: "Enter the departure date" },
+  { key: "number", flightsOnly: true },
+  { key: "origin" },
+  { key: "destination" },
+  { key: "departureDate" },
 ];
 
 const MORE: Record<JourneyKind, (keyof Fields)[]> = {
@@ -95,6 +97,9 @@ export function JourneyForm({ kind, journey, onSubmit, onCancel, extraActions }:
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
   // New journeys start with the usual reminder for their kind
+  const t = useTranslations("travel");
+  const tCommon = useTranslations("common");
+  const reminderLabel = useReminderLabel();
   const [remind, setRemind] = useState(() =>
     journey
       ? journey.remindBefore === null
@@ -103,9 +108,10 @@ export function JourneyForm({ kind, journey, onSubmit, onCancel, extraActions }:
       : String(DEFAULT_REMIND_BEFORE[kind])
   );
   // A value saved some other way (e.g. 45 minutes) stays selectable
-  const remindOptions = REMINDER_OPTIONS.some((o) => String(o.minutes) === remind) || remind === NO_REMINDER
-    ? REMINDER_OPTIONS
-    : [...REMINDER_OPTIONS, { minutes: Number(remind), label: reminderLabel(Number(remind)) }];
+  const remindOptions =
+    REMINDER_OPTIONS.some((minutes) => String(minutes) === remind) || remind === NO_REMINDER
+      ? REMINDER_OPTIONS
+      : [...REMINDER_OPTIONS, Number(remind)];
   const formRef = useRef<HTMLFormElement>(null);
   const currencyList = useMemo(currencies, []);
   const isFlight = kind === "flight";
@@ -134,11 +140,16 @@ export function JourneyForm({ kind, journey, onSubmit, onCancel, extraActions }:
       if (!input) continue;
       values[key] = input.value;
       if (input.validity.badInput) {
-        problems.push(`The ${key.startsWith("departure") ? "departure" : "arrival"} ${key.endsWith("Date") ? "date" : "time"} isn't complete`);
+        problems.push(
+          t("form.incomplete", {
+            end: key.startsWith("departure") ? "departure" : "arrival",
+            part: key.endsWith("Date") ? "date" : "time",
+          })
+        );
       }
     }
-    for (const { key, message, flightsOnly } of REQUIRED) {
-      if ((!flightsOnly || isFlight) && !values[key].trim()) problems.push(message);
+    for (const { key, flightsOnly } of REQUIRED) {
+      if ((!flightsOnly || isFlight) && !values[key].trim()) problems.push(t(`form.required.${key}`));
     }
     setErrors(problems);
     if (problems.length) return;
@@ -165,47 +176,47 @@ export function JourneyForm({ kind, journey, onSubmit, onCancel, extraActions }:
     <form ref={formRef} onSubmit={submit} noValidate className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <div className="min-w-0 space-y-2">
-          <Label htmlFor="journey-carrier">{isFlight ? "Airline" : "Company"}</Label>
+          <Label htmlFor="journey-carrier">{isFlight ? t("field.airline") : t("field.company")}</Label>
           {isFlight ? (
             <CodeInput
               id="journey-carrier"
               list="airlines"
               value={fields.carrier}
               onChange={set("carrier")}
-              placeholder="AF or Air France"
+              placeholder={t("form.airlinePlaceholder")}
               autoFocus={!journey}
             />
           ) : (
-            <Input {...bind("carrier")} placeholder="SNCF" autoFocus={!journey} />
+            <Input {...bind("carrier")} placeholder={t("form.example.company")} autoFocus={!journey} />
           )}
         </div>
         <div className="min-w-0 space-y-2">
-          <Label htmlFor="journey-number">{isFlight ? "Flight number" : "Train number (if any)"}</Label>
-          <Input {...bind("number")} placeholder={isFlight ? "1234" : "6201"} />
+          <Label htmlFor="journey-number">{isFlight ? t("form.flightNumber") : t("form.trainNumber")}</Label>
+          <Input {...bind("number")} placeholder={isFlight ? t("form.example.flightNumber") : t("form.example.trainNumber")} />
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div className="min-w-0 space-y-2">
-          <Label htmlFor="journey-origin">From</Label>
+          <Label htmlFor="journey-origin">{t("form.from")}</Label>
           {isFlight ? (
-            <CodeInput id="journey-origin" list="airports" value={fields.origin} onChange={set("origin")} placeholder="CDG" />
+            <CodeInput id="journey-origin" list="airports" value={fields.origin} onChange={set("origin")} placeholder={t("form.example.originAirport")} />
           ) : (
-            <Input {...bind("origin")} placeholder="Paris Gare de Lyon" />
+            <Input {...bind("origin")} placeholder={t("form.example.originStation")} />
           )}
         </div>
         <div className="min-w-0 space-y-2">
-          <Label htmlFor="journey-destination">To</Label>
+          <Label htmlFor="journey-destination">{t("form.to")}</Label>
           {isFlight ? (
             <CodeInput
               id="journey-destination"
               list="airports"
               value={fields.destination}
               onChange={set("destination")}
-              placeholder="PEK"
+              placeholder={t("form.example.destinationAirport")}
             />
           ) : (
-            <Input {...bind("destination")} placeholder="Grenoble" />
+            <Input {...bind("destination")} placeholder={t("form.example.destinationStation")} />
           )}
         </div>
       </div>
@@ -213,50 +224,50 @@ export function JourneyForm({ kind, journey, onSubmit, onCancel, extraActions }:
       {/* Times are local to each end (e.g. the arrival airport's time zone) */}
       <div className="grid grid-cols-2 gap-4">
         <div className="min-w-0 space-y-2">
-          <Label htmlFor="journey-departureDate">Departure</Label>
+          <Label htmlFor="journey-departureDate">{t("form.departure")}</Label>
           <Input {...bindDateTime("departureDate")} type="date" />
-          <Input {...bindDateTime("departureTime")} type="time" aria-label="Departure time" />
+          <Input {...bindDateTime("departureTime")} type="time" aria-label={t("form.departureTime")} />
         </div>
         <div className="min-w-0 space-y-2">
-          <Label htmlFor="journey-arrivalDate">Arrival</Label>
+          <Label htmlFor="journey-arrivalDate">{t("form.arrival")}</Label>
           <Input {...bindDateTime("arrivalDate")} type="date" />
-          <Input {...bindDateTime("arrivalTime")} type="time" aria-label="Arrival time" />
+          <Input {...bindDateTime("arrivalTime")} type="time" aria-label={t("form.arrivalTime")} />
         </div>
       </div>
-      <p className="-mt-2 text-xs text-muted-foreground">Local times at each end, as on the ticket.</p>
+      <p className="-mt-2 text-xs text-muted-foreground">{t("form.localTimes")}</p>
 
       <div className="grid grid-cols-2 gap-4">
         <div className="min-w-0 space-y-2">
-          <Label htmlFor="journey-seat">Seat</Label>
-          <Input {...bind("seat")} placeholder={isFlight ? "23A" : "54"} />
+          <Label htmlFor="journey-seat">{t("field.seat")}</Label>
+          <Input {...bind("seat")} placeholder={isFlight ? t("form.example.flightSeat") : t("form.example.trainSeat")} />
         </div>
         {!isFlight && (
           <div className="min-w-0 space-y-2">
-            <Label htmlFor="journey-coach">Coach</Label>
-            <Input {...bind("coach")} placeholder="7" />
+            <Label htmlFor="journey-coach">{t("field.coach")}</Label>
+            <Input {...bind("coach")} placeholder={t("form.example.coach")} />
           </div>
         )}
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="journey-remind">Remind me</Label>
+        <Label htmlFor="journey-remind">{t("form.remindMe")}</Label>
         <Select value={remind} onValueChange={setRemind} disabled={!fields.departureTime}>
           <SelectTrigger id="journey-remind" className="w-full sm:max-w-xs">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={NO_REMINDER}>Don&apos;t remind me</SelectItem>
-            {remindOptions.map((o) => (
-              <SelectItem key={o.minutes} value={String(o.minutes)}>
-                {o.label}
+            <SelectItem value={NO_REMINDER}>{t("form.noReminder")}</SelectItem>
+            {remindOptions.map((minutes) => (
+              <SelectItem key={minutes} value={String(minutes)}>
+                {reminderLabel(minutes)}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
         <p className="text-xs text-muted-foreground">
           {fields.departureTime
-            ? "Shown on the dashboard's Reminders card, and as an alert in calendar apps subscribed to Nestery."
-            : "Add a departure time to get a reminder."}
+            ? t("form.reminderHint")
+            : t("form.reminderNeedsTime")}
         </p>
       </div>
 
@@ -267,7 +278,7 @@ export function JourneyForm({ kind, journey, onSubmit, onCancel, extraActions }:
         aria-expanded={showMore}
       >
         {showMore ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
-        More details
+        {t("form.moreDetails")}
       </button>
 
       {showMore && (
@@ -276,51 +287,51 @@ export function JourneyForm({ kind, journey, onSubmit, onCancel, extraActions }:
             <>
               <div className="grid grid-cols-2 gap-4">
                 <div className="min-w-0 space-y-2">
-                  <Label htmlFor="journey-stopover">Stopover</Label>
+                  <Label htmlFor="journey-stopover">{t("field.stopover")}</Label>
                   <CodeInput id="journey-stopover" list="airports" value={fields.stopover} onChange={set("stopover")} />
                 </div>
                 <div className="min-w-0 space-y-2">
-                  <Label htmlFor="journey-gate">Gate</Label>
+                  <Label htmlFor="journey-gate">{t("field.gate")}</Label>
                   <Input {...bind("gate")} />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="min-w-0 space-y-2">
-                  <Label htmlFor="journey-vehicle">Aircraft</Label>
-                  <Input {...bind("vehicle")} placeholder="Airbus A350" />
+                  <Label htmlFor="journey-vehicle">{t("field.aircraft")}</Label>
+                  <Input {...bind("vehicle")} placeholder={t("form.example.aircraft")} />
                 </div>
                 <div className="min-w-0 space-y-2">
-                  <Label htmlFor="journey-aircraftReg">Registration</Label>
-                  <Input {...bind("aircraftReg")} placeholder="F-HTYA" />
+                  <Label htmlFor="journey-aircraftReg">{t("field.registration")}</Label>
+                  <Input {...bind("aircraftReg")} placeholder={t("form.example.registration")} />
                 </div>
               </div>
             </>
           ) : (
             <>
               <div className="space-y-2">
-                <Label htmlFor="journey-vehicle">Train type</Label>
-                <Input {...bind("vehicle")} placeholder="TGV INOUI" />
+                <Label htmlFor="journey-vehicle">{t("field.trainType")}</Label>
+                <Input {...bind("vehicle")} placeholder={t("form.example.trainType")} />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="min-w-0 space-y-2">
-                  <Label htmlFor="journey-originCity">From city</Label>
-                  <Input {...bind("originCity")} placeholder="Paris" />
+                  <Label htmlFor="journey-originCity">{t("form.fromCity")}</Label>
+                  <Input {...bind("originCity")} placeholder={t("form.example.originCity")} />
                 </div>
                 <div className="min-w-0 space-y-2">
-                  <Label htmlFor="journey-destinationCity">To city</Label>
-                  <Input {...bind("destinationCity")} placeholder="Grenoble" />
+                  <Label htmlFor="journey-destinationCity">{t("form.toCity")}</Label>
+                  <Input {...bind("destinationCity")} placeholder={t("form.example.destinationCity")} />
                 </div>
               </div>
             </>
           )}
           <div className="grid grid-cols-2 gap-4">
             <div className="min-w-0 space-y-2">
-              <Label htmlFor="journey-price">Price</Label>
+              <Label htmlFor="journey-price">{t("field.price")}</Label>
               <Input {...bind("price")} type="number" min="0" step="0.01" inputMode="decimal" />
             </div>
             <div className="min-w-0 space-y-2">
-              <Label htmlFor="journey-currency">Currency</Label>
-              <Input {...bind("currency")} list="journey-currencies" placeholder="EUR" maxLength={3} />
+              <Label htmlFor="journey-currency">{t("form.currency")}</Label>
+              <Input {...bind("currency")} list="journey-currencies" placeholder={t("form.example.currency")} maxLength={3} />
               <datalist id="journey-currencies">
                 {currencyList.map((c) => (
                   <option key={c} value={c} />
@@ -329,11 +340,11 @@ export function JourneyForm({ kind, journey, onSubmit, onCancel, extraActions }:
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="journey-bookingRef">Booking reference</Label>
+            <Label htmlFor="journey-bookingRef">{t("form.bookingRef")}</Label>
             <Input {...bind("bookingRef")} />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="journey-notes">Notes</Label>
+            <Label htmlFor="journey-notes">{t("form.notes")}</Label>
             <Textarea {...bind("notes")} />
           </div>
         </div>
@@ -350,11 +361,11 @@ export function JourneyForm({ kind, journey, onSubmit, onCancel, extraActions }:
       <div className="flex justify-end gap-2 pt-2">
         {extraActions && <div className="mr-auto">{extraActions}</div>}
         <Button type="button" variant="ghost" onClick={onCancel}>
-          Cancel
+          {tCommon("cancel")}
         </Button>
         <Button type="submit" disabled={saving}>
           {saving && <Spinner />}
-          {saving ? "Saving…" : journey ? "Save" : "Add"}
+          {saving ? tCommon("saving") : journey ? tCommon("save") : tCommon("add")}
         </Button>
       </div>
     </form>

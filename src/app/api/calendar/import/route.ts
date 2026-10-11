@@ -3,7 +3,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { ImportError, importIcs, previewImport } from "@/server/icsImport";
-import { getUserId, parseInput, unauthorized } from "@/server/session";
+import { errorResponse, getUserId, parseInput, unauthorized } from "@/server/session";
 import { isTimeZone } from "@/server/timeZones";
 
 const importInput = z.object({
@@ -31,7 +31,7 @@ export async function POST(request: Request) {
     return NextResponse.json(await importIcs(userId, ics, timeZone, unsupported));
   } catch (err) {
     // Problems with the file are the user's to fix; anything else is a real error
-    if (err instanceof ImportError) return NextResponse.json({ error: err.message }, { status: 400 });
+    if (err instanceof ImportError) return await errorResponse(err.message, 400);
     throw err;
   }
 }

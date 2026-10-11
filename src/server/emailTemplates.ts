@@ -1,9 +1,12 @@
 // src/server/emailTemplates.ts
-// The app's emails. Email clients support little CSS, so these use a table
+// The app's emails, in the recipient's language. Email clients support little CSS, so these use a table
 // layout, inline styles and hex colors from the forest palette (the theme's
 // oklch tokens don't work in most clients). Each has a plain-text version.
 
+import { createTranslator } from "next-intl";
+import type { Locale } from "@/i18n/config";
 import type { Email } from "@/server/email";
+import { messagesFor } from "@/server/i18n";
 
 // Hex equivalents of the theme's light-mode oklch tokens
 const COLORS = {
@@ -26,7 +29,7 @@ interface Layout {
   footer: string;
 }
 
-function render({ heading, paragraphs, button, footer }: Layout) {
+function render(t: EmailT, { heading, paragraphs, button, footer }: Layout) {
   const p = (text: string) =>
     `<p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:${COLORS.text}">${escapeHtml(text)}</p>`;
   const html = `<!doctype html>
@@ -42,7 +45,7 @@ function render({ heading, paragraphs, button, footer }: Layout) {
             <table role="presentation" cellpadding="0" cellspacing="0" style="margin:8px 0 24px"><tr><td style="border-radius:8px;background:${COLORS.forest}">
               <a href="${escapeHtml(button.url)}" style="display:inline-block;padding:12px 22px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none">${escapeHtml(button.label)}</a>
             </td></tr></table>
-            <p style="margin:0 0 8px;font-size:13px;line-height:1.5;color:${COLORS.muted}">If the button doesn't work, copy this link into your browser:</p>
+            <p style="margin:0 0 8px;font-size:13px;line-height:1.5;color:${COLORS.muted}">${escapeHtml(t("linkFallback"))}</p>
             <p style="margin:0 0 24px;font-size:13px;line-height:1.5;word-break:break-all"><a href="${escapeHtml(button.url)}" style="color:${COLORS.forest}">${escapeHtml(button.url)}</a></p>
           </td></tr>
           <tr><td style="padding:16px 28px 24px;border-top:1px solid ${COLORS.border}">
@@ -57,50 +60,60 @@ function render({ heading, paragraphs, button, footer }: Layout) {
   return { html, text };
 }
 
-const firstName = (name: string) => name.trim().split(/\s+/)[0] || "there";
+// Translates in the email's language, from the messages' "emails" section
+type EmailT = Awaited<ReturnType<typeof emailTranslator>>;
 
-export function verifyEmail(to: string, name: string, url: string): Email {
+async function emailTranslator(locale: Locale) {
+  return createTranslator({ locale, messages: await messagesFor(locale), namespace: "emails" });
+}
+
+const firstName = (name: string, t: EmailT) => name.trim().split(/\s+/)[0] || t("there");
+
+export async function verifyEmail(to: string, name: string, url: string, locale: Locale): Promise<Email> {
+  const t = await emailTranslator(locale);
   return {
     to,
-    subject: "Confirm your email for Nestery",
-    ...render({
-      heading: "Confirm your email",
-      paragraphs: [`Hi ${firstName(name)}, thanks for signing up. Confirm this is your email address to start using Nestery.`],
-      button: { label: "Confirm email", url },
-      footer: "The link works for 24 hours. If you didn't create a Nestery account, you can ignore this email.",
+    subject: t("verify.subject"),
+    ...render(t, {
+      heading: t("verify.heading"),
+      paragraphs: [t("verify.body", { name: firstName(name, t) })],
+      button: { label: t("verify.button"), url },
+      footer: t("verify.footer"),
     }),
   };
 }
 
-export function resetPasswordEmail(to: string, name: string, url: string): Email {
+export async function resetPasswordEmail(to: string, name: string, url: string, locale: Locale): Promise<Email> {
+  const t = await emailTranslator(locale);
   return {
     to,
-    subject: "Reset your Nestery password",
-    ...render({
-      heading: "Reset your password",
-      paragraphs: [
-        `Hi ${firstName(name)}, someone (hopefully you) asked to reset the password of your Nestery account.`,
-        "Choose a new password with the button below. Your other devices will be signed out.",
-      ],
-      button: { label: "Choose a new password", url },
-      footer: "The link works for 1 hour. If you didn't ask for this, you can ignore this email; your password stays the same.",
+    subject: t("reset.subject"),
+    ...render(t, {
+      heading: t("reset.heading"),
+      paragraphs: [t("reset.body1", { name: firstName(name, t) }), t("reset.body2")],
+      button: { label: t("reset.button"), url },
+      footer: t("reset.footer"),
     }),
   };
 }
 
 // Sent to the current address before an email change goes ahead
-export function confirmEmailChange(to: string, name: string, newEmail: string, url: string): Email {
+export async function confirmEmailChange(
+  to: string,
+  name: string,
+  newEmail: string,
+  url: string,
+  locale: Locale
+): Promise<Email> {
+  const t = await emailTranslator(locale);
   return {
     to,
-    subject: "Confirm your new email address for Nestery",
-    ...render({
-      heading: "Change your email?",
-      paragraphs: [
-        `Hi ${firstName(name)}, you asked to change the email of your Nestery account to ${newEmail}.`,
-        "Approve the change below. We'll then send a link to the new address to confirm it.",
-      ],
-      button: { label: "Approve the change", url },
-      footer: "If you didn't ask for this, ignore this email and your address stays the same. Consider changing your password.",
+    subject: t("change.subject"),
+    ...render(t, {
+      heading: t("change.heading"),
+      paragraphs: [t("change.body1", { name: firstName(name, t), email: newEmail }), t("change.body2")],
+      button: { label: t("change.button"), url },
+      footer: t("change.footer"),
     }),
   };
 }

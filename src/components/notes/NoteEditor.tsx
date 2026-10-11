@@ -3,6 +3,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { EditorContent, useEditor, type Editor } from "@tiptap/react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { ArrowLeft, Download, FileCode2, Pin, PinOff, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -54,11 +55,6 @@ function removeAttachment(editor: Editor, attachment: NoteAttachment) {
 
 type SaveStatus = "saved" | "unsaved" | "saving";
 
-const STATUS_LABELS: Record<SaveStatus, string> = {
-  saved: "Saved",
-  unsaved: "Edited",
-  saving: "Saving…",
-};
 
 interface NoteEditorProps {
   note: Note;
@@ -81,6 +77,7 @@ export function NoteEditor({
   onBack,
 }: NoteEditorProps) {
   const [title, setTitle] = useState(note.title);
+  const t = useTranslations("notes");
   const [status, setStatus] = useState<SaveStatus>("saved");
   // Link editor open in the bubble menu
   const [linkEditing, setLinkEditing] = useState(false);
@@ -147,11 +144,11 @@ export function NoteEditor({
   }, [flush]);
 
   const editor = useEditor({
-    extensions: noteExtensions,
+    extensions: noteExtensions(t("editor.startWriting")),
     content: withoutAttachmentEmoji(note.content),
     immediatelyRender: false,
     editorProps: {
-      attributes: { class: "note-content", "aria-label": "Note content" },
+      attributes: { class: "note-content", "aria-label": t("editor.contentLabel") },
       // Pasted files (e.g. a screenshot) are attached where the cursor is
       handlePaste: (_view, event) => {
         const files = Array.from(event.clipboardData?.files ?? []);
@@ -213,7 +210,7 @@ export function NoteEditor({
   });
 
   const handleDeleteAttachment = async (attachment: NoteAttachment) => {
-    if (!window.confirm(`Delete ${attachment.fileName}? It is removed from the note too.`)) return;
+    if (!window.confirm(t("editor.deleteFileConfirm", { name: attachment.fileName }))) return;
     try {
       await remove(attachment.id);
       if (editor) removeAttachment(editor, attachment);
@@ -249,7 +246,7 @@ export function NoteEditor({
   };
 
   const handleExport = () => {
-    if (editor) downloadMarkdown(title, noteToMarkdown(title, editor.getMarkdown()));
+    if (editor) downloadMarkdown(title, noteToMarkdown(title, editor.getMarkdown()), t("untitled"));
   };
 
   const handleDelete = async () => {
@@ -262,12 +259,12 @@ export function NoteEditor({
     <div className="flex flex-col h-full min-h-0">
       <div className="flex items-center gap-2 pb-2">
         {onBack && (
-          <Button variant="ghost" size="icon" className="size-8" onClick={onBack} aria-label="Back to notes">
+          <Button variant="ghost" size="icon" className="size-8" onClick={onBack} aria-label={t("editor.back")}>
             <ArrowLeft className="w-4 h-4" />
           </Button>
         )}
         <span className="flex-1 text-xs text-muted-foreground" aria-live="polite">
-          {STATUS_LABELS[status]}
+          {t(`editor.${status}`)}
         </span>
         <Button
           variant="ghost"
@@ -275,9 +272,9 @@ export function NoteEditor({
           className={cn("size-8", sourceMode && "bg-leaf-soft text-leaf hover:bg-leaf-soft hover:text-leaf")}
           onClick={toggleSource}
           disabled={!editor}
-          aria-label="Markdown source"
+          aria-label={t("editor.markdownSource")}
           aria-pressed={sourceMode}
-          title={sourceMode ? "Back to formatted view" : "Edit as Markdown"}
+          title={sourceMode ? t("editor.backToFormatted") : t("editor.editMarkdown")}
         >
           <FileCode2 className="w-4 h-4" />
         </Button>
@@ -287,8 +284,8 @@ export function NoteEditor({
           className="size-8"
           onClick={handleExport}
           disabled={!editor}
-          aria-label="Export as Markdown"
-          title="Export as Markdown (.md)"
+          aria-label={t("editor.export")}
+          title={t("editor.exportHint")}
         >
           <Download className="w-4 h-4" />
         </Button>
@@ -297,9 +294,9 @@ export function NoteEditor({
           size="icon"
           className={cn("size-8", note.pinned && "text-leaf")}
           onClick={() => onTogglePin(note)}
-          aria-label={note.pinned ? "Unpin note" : "Pin note"}
+          aria-label={note.pinned ? t("editor.unpin") : t("editor.pin")}
           aria-pressed={note.pinned}
-          title={note.pinned ? "Unpin" : "Pin"}
+          title={note.pinned ? t("editor.unpinShort") : t("editor.pinShort")}
         >
           {note.pinned ? <PinOff className="w-4 h-4" /> : <Pin className="w-4 h-4" />}
         </Button>
@@ -308,8 +305,8 @@ export function NoteEditor({
           size="icon"
           className="size-8 hover:text-destructive"
           onClick={handleDelete}
-          aria-label="Delete note"
-          title="Delete"
+          aria-label={t("editor.delete")}
+          title={t("editor.delete")}
         >
           <Trash2 className="w-4 h-4" />
         </Button>
@@ -317,7 +314,7 @@ export function NoteEditor({
 
       {sourceMode && (
         <div className="border-y py-2 px-1 text-xs text-muted-foreground">
-          Editing as Markdown. Changes apply to the note as you type.
+          {t("editor.markdownMode")}
         </div>
       )}
       {editor && !sourceMode && (
@@ -345,8 +342,8 @@ export function NoteEditor({
           }}
           autoFocus={autoFocusTitle}
           maxLength={200}
-          placeholder="Untitled"
-          aria-label="Note title"
+          placeholder={t("editor.titlePlaceholder")}
+          aria-label={t("editor.titleLabel")}
           className="w-full bg-transparent text-2xl font-bold outline-none placeholder:text-muted-foreground/60 mb-3"
         />
         {sourceMode && (
@@ -355,7 +352,7 @@ export function NoteEditor({
             value={source}
             onChange={(e) => handleSourceChange(e.target.value)}
             spellCheck={false}
-            aria-label="Markdown source"
+            aria-label={t("editor.markdownSource")}
             className="w-full min-h-[40vh] field-sizing-content resize-none bg-transparent font-mono text-sm leading-relaxed outline-none"
           />
         )}

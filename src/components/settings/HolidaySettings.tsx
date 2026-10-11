@@ -1,6 +1,7 @@
 // src/components/settings/HolidaySettings.tsx
 "use client";
 
+import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
 import { Search, X } from "lucide-react";
 import { toast } from "sonner";
@@ -16,6 +17,9 @@ import { cn } from "@/lib/utils";
 // Which countries and regions' public holidays appear on the calendar
 export function HolidaySettings() {
   const { settings, loading, save, guessedCountries } = useSettings();
+  const t = useTranslations("calendarSettings");
+  const tCommon = useTranslations("common");
+  const locale = useLocale();
   const [regions, setRegions] = useState<Region[]>([]);
   const [loadError, setLoadError] = useState(false);
   const [selected, setSelected] = useState<string[] | null>(null);
@@ -23,10 +27,10 @@ export function HolidaySettings() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    fetchHolidayRegions()
+    fetchHolidayRegions(locale)
       .then(setRegions)
       .catch(() => setLoadError(true));
-  }, []);
+  }, [locale]);
 
   // Start from the saved choice, or the browser guess the calendar is using
   useEffect(() => {
@@ -41,7 +45,12 @@ export function HolidaySettings() {
 
   const matches = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return q ? regions.filter((r) => r.name.toLowerCase().includes(q) || r.code.toLowerCase() === q) : regions;
+    return q
+      ? regions.filter(
+          (r) =>
+            r.name.toLowerCase().includes(q) || r.englishName.toLowerCase().includes(q) || r.code.toLowerCase() === q
+        )
+      : regions;
   }, [regions, query]);
 
   const toggle = (code: string) =>
@@ -52,23 +61,20 @@ export function HolidaySettings() {
 
   const handleSave = async () => {
     setSaving(true);
-    if (await save({ holidayCountries: chosen })) toast.success("Holiday settings saved");
+    if (await save({ holidayCountries: chosen })) toast.success(t("holidays.saved"));
     setSaving(false);
   };
 
   return (
     <section id="calendar-holidays" className="scroll-mt-4 space-y-4 rounded-lg border bg-card p-5">
       <div>
-        <h2 className="font-semibold">Public holidays</h2>
-        <p className="text-sm text-muted-foreground">
-          Public holidays of the countries and regions you choose appear on your calendar and dashboard. Choose up to{" "}
-          {MAX_HOLIDAY_COUNTRIES}.
-        </p>
+        <h2 className="font-semibold">{t("parts.holidays")}</h2>
+        <p className="text-sm text-muted-foreground">{t("holidays.description", { max: MAX_HOLIDAY_COUNTRIES })}</p>
       </div>
 
       <div className="flex min-h-8 flex-wrap items-center gap-2" aria-live="polite">
         {chosen.length === 0 ? (
-          <span className="text-sm text-muted-foreground">None selected.</span>
+          <span className="text-sm text-muted-foreground">{t("holidays.none")}</span>
         ) : (
           chosen.map((code) => (
             <button
@@ -76,16 +82,16 @@ export function HolidaySettings() {
               type="button"
               onClick={() => toggle(code)}
               className="flex items-center gap-1 rounded-full bg-leaf-soft px-3 py-1 text-xs font-medium text-leaf"
-              aria-label={`Remove ${regionName(code)}`}
+              aria-label={t("holidays.removeRegion", { name: regionName(code, locale) })}
             >
-              {regionName(code)} <X className="size-3" />
+              {regionName(code, locale)} <X className="size-3" />
             </button>
           ))
         )}
       </div>
 
       {loadError ? (
-        <p className="text-sm text-destructive">Could not load the list. Try again later.</p>
+        <p className="text-sm text-destructive">{t("holidays.loadError")}</p>
       ) : (
         <>
           <div className="relative">
@@ -93,12 +99,12 @@ export function HolidaySettings() {
             <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search countries and regions"
-              aria-label="Search countries and regions"
+              placeholder={t("holidays.search")}
+              aria-label={t("holidays.search")}
               className="pl-9"
             />
           </div>
-          <ul className="max-h-72 overflow-y-auto rounded-md border" aria-label="Countries and regions">
+          <ul className="max-h-72 overflow-y-auto rounded-md border" aria-label={t("holidays.list")}>
             {matches.map(({ code, name, available }) => {
               const checked = chosen.includes(code);
               // Unavailable ones stay listed so the list is complete, but can't be picked
@@ -119,14 +125,14 @@ export function HolidaySettings() {
                       className="size-4 accent-leaf"
                     />
                     <span className="flex-1">{name}</span>
-                    {!available && <span className="text-xs text-muted-foreground">No holiday data</span>}
+                    {!available && <span className="text-xs text-muted-foreground">{t("holidays.noData")}</span>}
                     <span className="w-6 text-right text-xs text-muted-foreground">{code}</span>
                   </label>
                 </li>
               );
             })}
             {regions.length > 0 && matches.length === 0 && (
-              <li className="px-3 py-2 text-sm text-muted-foreground">No matches.</li>
+              <li className="px-3 py-2 text-sm text-muted-foreground">{t("holidays.noMatches")}</li>
             )}
           </ul>
         </>
@@ -134,29 +140,32 @@ export function HolidaySettings() {
 
       <div className="flex items-center justify-between gap-3">
         <p className="text-xs text-muted-foreground">
-          Holiday data from{" "}
-          <a
-            href="https://github.com/commenthol/date-holidays"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline underline-offset-2 hover:text-foreground"
-          >
-            date-holidays
-          </a>{" "}
-          (
-          <a
-            href="https://creativecommons.org/licenses/by/3.0/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline underline-offset-2 hover:text-foreground"
-          >
-            CC BY 3.0
-          </a>
-          ). Nationwide public holidays only.
+          {t.rich("holidays.source", {
+            a1: (chunks) => (
+              <a
+                href="https://github.com/commenthol/date-holidays"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline underline-offset-2 hover:text-foreground"
+              >
+                {chunks}
+              </a>
+            ),
+            a2: (chunks) => (
+              <a
+                href="https://creativecommons.org/licenses/by/3.0/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline underline-offset-2 hover:text-foreground"
+              >
+                {chunks}
+              </a>
+            ),
+          })}
         </p>
         <Button onClick={handleSave} disabled={!dirty || saving}>
           {saving && <Spinner />}
-          {saving ? "Saving…" : "Save"}
+          {saving ? tCommon("saving") : tCommon("save")}
         </Button>
       </div>
     </section>

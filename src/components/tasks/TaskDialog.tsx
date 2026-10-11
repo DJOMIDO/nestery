@@ -1,6 +1,7 @@
 // src/components/tasks/TaskDialog.tsx
 "use client";
 
+import { useTranslations } from "next-intl";
 import {
   Dialog,
   DialogContent,
@@ -20,11 +21,12 @@ interface TaskDialogProps {
 }
 
 export function TaskDialog({ open, onOpenChange, task, onSubmit }: TaskDialogProps) {
+  const t = useTranslations("tasks");
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>{task ? "Edit Task" : "New Task"}</DialogTitle>
+          <DialogTitle>{task ? t("editTask") : t("newTask")}</DialogTitle>
         </DialogHeader>
         {/* The content unmounts when closed, so the form resets on each open */}
         <TaskForm

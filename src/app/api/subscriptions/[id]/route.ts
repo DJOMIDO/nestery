@@ -1,6 +1,7 @@
 // src/app/api/subscriptions/[id]/route.ts
 
 import { NextResponse } from "next/server";
+import { withLocalError } from "@/server/i18n";
 import { z } from "zod";
 import {
   deleteSubscription,
@@ -32,7 +33,7 @@ export async function PATCH(request: Request, { params }: Context) {
   if ("response" in input) return input.response;
 
   const subscription = await updateSubscription(userId, id, input.data);
-  return subscription ? NextResponse.json(subscription) : notFound();
+  return subscription ? NextResponse.json(await withLocalError(subscription)) : notFound();
 }
 
 export async function DELETE(_request: Request, { params }: Context) {

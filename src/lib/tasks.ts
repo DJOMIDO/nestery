@@ -7,12 +7,6 @@ export const TASK_PRIORITIES = ["low", "medium", "high"] as const;
 
 export type TaskStatus = (typeof TASK_STATUSES)[number];
 
-export const TASK_STATUS_LABELS: Record<TaskStatus, string> = {
-  todo: "To do",
-  in_progress: "In progress",
-  waiting: "Waiting",
-  done: "Done",
-};
 export type TaskPriority = (typeof TASK_PRIORITIES)[number];
 
 // A task as returned by /api/tasks
@@ -82,14 +76,6 @@ export function boardColumns(tasks: Task[]): Record<TaskStatus, Task[]> {
 }
 
 export type TaskGroupKey = "overdue" | "today" | "upcoming" | "noDate" | "done";
-
-export const TASK_GROUP_LABELS: Record<TaskGroupKey, string> = {
-  overdue: "Overdue",
-  today: "Today",
-  upcoming: "Upcoming",
-  noDate: "No date",
-  done: "Completed",
-};
 
 export function groupTasks(tasks: Task[], today = toDateKey(new Date())) {
   const groups: Record<TaskGroupKey, Task[]> = {
@@ -205,23 +191,4 @@ export function taskActivity(tasks: Task[], limit = 10): TaskActivity[] {
     }
   }
   return events.sort((a, b) => (a.at < b.at ? 1 : -1)).slice(0, limit);
-}
-
-const relativeFormat = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
-
-// "just now", "5 minutes ago", "yesterday", "3 days ago", or a date. The
-// words stay English (UI text); pass `formatDay` to write the date per settings.
-export function formatRelative(
-  iso: string,
-  now = new Date(),
-  formatDay: (iso: string) => string = (d) =>
-    new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric" })
-) {
-  const seconds = Math.round((new Date(iso).getTime() - now.getTime()) / 1000);
-  const abs = Math.abs(seconds);
-  if (abs < 60) return "just now";
-  if (abs < 3600) return relativeFormat.format(Math.round(seconds / 60), "minute");
-  if (abs < 86400) return relativeFormat.format(Math.round(seconds / 3600), "hour");
-  if (abs < 7 * 86400) return relativeFormat.format(Math.round(seconds / 86400), "day");
-  return formatDay(iso);
 }

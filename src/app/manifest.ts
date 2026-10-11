@@ -2,12 +2,18 @@
 // Makes Nestery installable as an app (PWA): Dock, home screen, its own window.
 
 import type { MetadataRoute } from "next";
+import { requestLocale } from "@/i18n/request";
+import { translatorFor } from "@/server/i18n";
 
-export default function manifest(): MetadataRoute.Manifest {
+// In the browser's language (installing sends no cookie, but Accept-Language)
+export default async function manifest(): Promise<MetadataRoute.Manifest> {
+  const locale = await requestLocale();
+  const t = await translatorFor(locale);
   return {
+    lang: locale,
     name: "Nestery",
     short_name: "Nestery",
-    description: "A calm, personal home for your tasks and notes.",
+    description: t("meta.description"),
     id: "/",
     // Signed-out users are sent on to the login page by the middleware
     start_url: "/dashboard",

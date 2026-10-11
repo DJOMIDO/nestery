@@ -192,6 +192,12 @@
   body {
     @apply bg-background text-foreground;
   }
+  /* Traditional Chinese: the Traditional cuts of the same fonts, so shared
+     characters take Taiwan's forms (the default list leads with Simplified) */
+  html:lang(zh-TW) {
+    font-family: var(--font-figtree), "PingFang TC", var(--font-noto-sans-tc), "Microsoft JhengHei", system-ui,
+      sans-serif;
+  }
 }
 
 

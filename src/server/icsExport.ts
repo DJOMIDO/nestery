@@ -3,6 +3,7 @@
 // (repeating ones expanded, see below), the due dates of open tasks and their
 // journeys from Travel.
 
+import { translatorFor, userLocale } from "@/server/i18n";
 import ICAL from "ical.js";
 import { and, eq, isNotNull, ne } from "drizzle-orm";
 import { db } from "@/db";
@@ -105,6 +106,8 @@ type TaskRow = { id: string; title: string; description: string | null; dueDate:
 type JourneyRow = typeof journeys.$inferSelect;
 
 export async function buildFeed(userId: string, timeZone: string, now = new Date()) {
+  // Calendar apps fetch the feed without the user's cookie: use their saved language
+  const t = await translatorFor(await userLocale(userId));
   const [eventRows, taskRows, journeyRows] = await Promise.all([
     db.select().from(events).where(eq(events.userId, userId)),
     db
@@ -113,7 +116,7 @@ export async function buildFeed(userId: string, timeZone: string, now = new Date
       .where(and(eq(tasks.userId, userId), ne(tasks.status, "done"), isNotNull(tasks.dueDate))),
     db.select().from(journeys).where(eq(journeys.userId, userId)),
   ]);
-  return feedFromRows(eventRows, taskRows, timeZone, now, journeyRows);
+  return feedFromRows(eventRows, taskRows, timeZone, now, journeyRows, (title) => t("feed.taskDue", { title }));
 }
 
 // Rows -> iCalendar text (separate from the queries so it can be tested alone)
@@ -122,7 +125,9 @@ export function feedFromRows(
   taskRows: TaskRow[],
   timeZone: string,
   now = new Date(),
-  journeyRows: JourneyRow[] = []
+  journeyRows: JourneyRow[] = [],
+  // A task's title as a due-date entry, e.g. "Due: Pay rent"
+  dueTitle: (title: string) => string = (title) => `Due: ${title}`
 ) {
   const today = dateKeyIn(now, timeZone);
   const from = shiftMonths(today, -MONTHS_BACK);
@@ -142,7 +147,7 @@ export function feedFromRows(
     if (task.dueDate! < from || task.dueDate! > to) continue;
     occurrences.push({
       uid: `task-${task.id}@nestery`,
-      title: `Due: ${task.title}`,
+      title: dueTitle(task.title),
       notes: task.description,
       allDay: true,
       start: task.dueDate!,

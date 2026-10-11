@@ -2,7 +2,7 @@
 
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getUserId, notFound, parseInput, unauthorized } from "@/server/session";
+import { errorResponse, getUserId, notFound, parseInput, unauthorized } from "@/server/session";
 import { deleteJourney, DuplicateJourneyError, journeyInput, updateJourney } from "@/server/travel";
 
 type Context = { params: Promise<{ id: string }> };
@@ -24,7 +24,7 @@ export async function PUT(request: Request, { params }: Context) {
     const journey = await updateJourney(userId, id, input.data);
     return journey ? NextResponse.json(journey) : notFound();
   } catch (err) {
-    if (err instanceof DuplicateJourneyError) return NextResponse.json({ error: err.message }, { status: 409 });
+    if (err instanceof DuplicateJourneyError) return await errorResponse(err.message, 409);
     throw err;
   }
 }

@@ -3,11 +3,13 @@
 // and repeat until it answers. Provider-neutral; see providers/types.ts.
 
 import type { AssistantImage, AssistantStreamEvent } from "@/lib/assistant";
+import type { Locale } from "@/i18n/config";
 import { createFormatter, type DateTimePrefs } from "@/lib/format";
 import { addDays, startOfWeek } from "@/lib/tasks";
 import type { WeatherPlace } from "@/lib/weather";
 import type { ChatProvider } from "@/server/assistant/providers/types";
 import { runTool, TOOL_SPECS, toolLabel, type ToolContext } from "@/server/assistant/tools";
+import { translatorFor } from "@/server/i18n";
 
 // Model calls per user message; stops runaway tool loops
 const MAX_STEPS = 8;
@@ -19,7 +21,7 @@ const EMPTY_REPLY_NUDGE =
 
 function systemPrompt(today: string, timeZone: string, prefs: DateTimePrefs) {
   const weekday = new Date(`${today}T12:00:00Z`).toLocaleDateString("en-US", { weekday: "long", timeZone: "UTC" });
-  // Weeks start on the day chosen in Settings > Date & time
+  // Weeks start on the day chosen in Settings > Language & time
   const thisWeek = startOfWeek(today, prefs.weekStart);
   const nextWeek = addDays(thisWeek, 7);
   return `You are the assistant inside Nestery, a personal app with tasks, notes, a calendar, travel (flights and trains) and the weather.
@@ -50,8 +52,10 @@ export interface AssistantRun {
   userId: string;
   timeZone: string;
   today: string;
-  // The user's "Date & time" settings, for how replies write dates
+  // The user's "Language & time" settings, for how replies write dates
   dateTime: DateTimePrefs;
+  // The interface language, which a date format left to follow it uses
+  locale: Locale;
   place: WeatherPlace | null;
   history: unknown[];
   message: string;
@@ -64,6 +68,8 @@ export interface AssistantRun {
 
 export async function runAssistant(run: AssistantRun) {
   const { provider, emit } = run;
+  // What the user sees of the run (status lines), in the interface language
+  const t = await translatorFor(run.locale);
   // A message can be just images
   const message = run.message || "(See the attached image.)";
   const text = run.notes.length ? `${run.notes.map((n) => `(${n})`).join("\n")}\n\n${message}` : message;
@@ -74,7 +80,7 @@ export async function runAssistant(run: AssistantRun) {
     timeZone: run.timeZone,
     today: run.today,
     place: run.place,
-    format: createFormatter(run.dateTime),
+    format: createFormatter(run.dateTime, run.locale),
     propose: (proposal) => emit({ type: "proposal", proposal }),
   };
 
@@ -117,14 +123,16 @@ export async function runAssistant(run: AssistantRun) {
         messages.push(provider.userMessage(EMPTY_REPLY_NUDGE));
         continue;
       }
-      emit({ type: "text", text: "(The model didn't give an answer. Try again, or choose a larger model in Settings.)" });
+      emit({ type: "text", text: t("assistant.noAnswer") });
       break;
     }
     if (turn.stop === "done") break;
 
     // Tool calls of one turn run together and are answered in one message
-    for (const label of new Set(turn.toolCalls.map((c) => toolLabel(c.name)))) {
-      emit({ type: "status", label });
+    for (const name of new Set(turn.toolCalls.map((c) => c.name))) {
+      // The status line in the interface language; English for an unknown tool
+      const key = `assistant.tools.${name}` as "assistant.tools.list_tasks";
+      emit({ type: "status", label: t.has(key) ? t(key) : toolLabel(name) });
     }
     const results = await Promise.all(
       turn.toolCalls.map(async (call) => ({ id: call.id, ...(await runTool(call.name, call.input, ctx)) }))

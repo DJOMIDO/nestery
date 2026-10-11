@@ -4,6 +4,7 @@
 
 import Link from "next/link";
 import { NatureGrid, NesteryMark } from "@/components/brand/NatureShapes";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 interface AuthShellProps {
   tagline: string;
@@ -22,8 +23,9 @@ export function AuthShell({ tagline, title, subtitle, seed, children }: AuthShel
         <NatureGrid seed={seed} cols={4} rows={6} />
       </div>
 
-      {/* Right: the form */}
-      <div className="flex flex-col">
+      {/* Right: the form, with the language picker (no settings before signing in) */}
+      <div className="relative flex flex-col">
+        <LanguageSwitcher className="absolute top-3 right-3 z-10" />
         {/* Narrow screens: a strip of the pattern in place of the left half */}
         <div className="relative h-24 overflow-hidden md:hidden">
           <NatureGrid seed={seed} cols={8} rows={1} />

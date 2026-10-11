@@ -3,7 +3,8 @@
 // doesn't cache the app: it only shows public/offline.html when a page can't
 // load without a connection. Registered in src/components/ServiceWorker.tsx.
 
-const CACHE = "nestery-offline-v1";
+// Bump the version whenever offline.html changes, so installed copies update
+const CACHE = "nestery-offline-v2";
 const OFFLINE_URL = "/offline.html";
 
 self.addEventListener("install", (event) => {

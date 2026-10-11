@@ -2,7 +2,9 @@
 
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
+import { useAuthErrorText } from "@/components/auth/useAuthErrorText";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
@@ -21,17 +23,22 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 
-type FormData = z.infer<typeof signUpSchema>;
+type FormData = z.infer<ReturnType<typeof signUpSchema>>;
 
 export default function SignupPage() {
   const router = useRouter();
+  const t = useTranslations("auth");
+  const tCommon = useTranslations("common");
+  const tValidation = useTranslations("auth.validation");
+  const errorText = useAuthErrorText();
+  const schema = useMemo(() => signUpSchema(tValidation), [tValidation]);
 
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<FormData>({
-    resolver: zodResolver(signUpSchema),
+    resolver: zodResolver(schema),
   });
 
   // Set when the account needs its email confirmed before signing in
@@ -46,14 +53,10 @@ export default function SignupPage() {
         setSentTo(data.email);
         return;
       }
-      toast.success("Account created successfully");
+      toast.success(t("signup.created"));
       router.push("/dashboard");
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        toast.error(err.message);
-      } else {
-        toast.error("Something went wrong.");
-      }
+      toast.error(errorText(err));
     }
   };
 
@@ -62,9 +65,9 @@ export default function SignupPage() {
     setResending(true);
     try {
       await resendVerificationEmail(sentTo);
-      toast.success("Sent another confirmation link");
+      toast.success(t("resent"));
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not send the email");
+      toast.error(err instanceof Error ? errorText(err) : t("couldNotSend"));
     } finally {
       setResending(false);
     }
@@ -74,25 +77,24 @@ export default function SignupPage() {
     return (
       <AuthShell
         seed={23}
-        tagline="Make yourself at home."
-        title="Check your inbox"
-        subtitle="One more step to finish creating your account."
+        tagline={t("signup.tagline")}
+        title={t("signup.checkInbox")}
+        subtitle={t("signup.oneMore")}
       >
         <div className="space-y-4 text-sm">
           <p>
-            We&apos;ve sent a confirmation link to <strong>{sentTo}</strong>. Open it to confirm your email and
-            you&apos;ll be signed in.
+            {t.rich("signup.sent", { email: sentTo, b: (chunks) => <strong>{chunks}</strong> })}
           </p>
           <p className="text-muted-foreground">
-            Nothing there after a few minutes? Check your spam folder, or send the link again.
+            {t("signup.spam")}
           </p>
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" onClick={resend} disabled={resending}>
               {resending && <Spinner />}
-              {resending ? "Sending…" : "Send it again"}
+              {resending ? tCommon("sending") : t("sendAgain")}
             </Button>
             <Button variant="ghost" asChild>
-              <Link href="/login">Back to sign in</Link>
+              <Link href="/login">{t("backToSignIn")}</Link>
             </Button>
           </div>
         </div>
@@ -103,14 +105,14 @@ export default function SignupPage() {
   return (
     <AuthShell
       seed={23}
-      tagline="Make yourself at home."
-      title="Create your account"
-      subtitle="Your tasks and notes, all in one place."
+      tagline={t("signup.tagline")}
+      title={t("signup.title")}
+      subtitle={t("signup.subtitle")}
     >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="username">Username</Label>
-          <Input id="username" {...register("username")} placeholder="Your Name" />
+          <Label htmlFor="username">{t("signup.username")}</Label>
+          <Input id="username" {...register("username")} placeholder={t("signup.usernamePlaceholder")} />
           {errors.username && (
             <p className="text-red-500 text-sm">
               {errors.username.message}
@@ -119,15 +121,15 @@ export default function SignupPage() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
-          <Input id="email" type="email" {...register("email")} placeholder="you@example.com" />
+          <Label htmlFor="email">{tCommon("email")}</Label>
+          <Input id="email" type="email" {...register("email")} placeholder={t("emailPlaceholder")} />
           {errors.email && (
             <p className="text-red-500 text-sm">{errors.email.message}</p>
           )}
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="password">Password</Label>
+          <Label htmlFor="password">{tCommon("password")}</Label>
           <Input id="password" type="password" {...register("password")} placeholder="••••••••" />
           {errors.password && (
             <p className="text-red-500 text-sm">
@@ -137,7 +139,7 @@ export default function SignupPage() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="confirmPassword">Confirm Password</Label>
+          <Label htmlFor="confirmPassword">{t("signup.confirm")}</Label>
           <Input
             id="confirmPassword"
             type="password"
@@ -152,17 +154,20 @@ export default function SignupPage() {
         </div>
 
         <Button type="submit" className="w-full" disabled={isSubmitting}>
-          {isSubmitting ? "Signing up..." : "Sign up"}
+          {isSubmitting ? t("signup.signingUp") : t("signup.signUp")}
         </Button>
       </form>
 
       <SocialLoginButtons />
 
       <div className="text-center text-sm">
-        Already have an account?{" "}
-        <Link href="/login" className="font-medium text-leaf underline-offset-4 hover:underline">
-          Sign in
-        </Link>
+        {t.rich("signup.haveAccount", {
+          link: (chunks) => (
+            <Link href="/login" className="font-medium text-leaf underline-offset-4 hover:underline">
+              {chunks}
+            </Link>
+          ),
+        })}
       </div>
     </AuthShell>
   );

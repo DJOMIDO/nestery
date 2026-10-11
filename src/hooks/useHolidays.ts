@@ -45,15 +45,21 @@ export function useHolidays(countries: string[], years: number[]) {
 
 export interface Region {
   code: string;
+  // In the interface language, and in English so either can be searched
   name: string;
+  englishName: string;
   // Whether holiday data exists for it
   available: boolean;
 }
 
-// Every country and region, sorted by name, marking the ones with holiday data
-export async function fetchHolidayRegions(): Promise<Region[]> {
+// Every country and region, sorted by name in `locale`, marking the ones
+// with holiday data
+export async function fetchHolidayRegions(locale: string): Promise<Region[]> {
   const withData = new Set(await request<string[]>("/api/holidays/regions"));
-  return REGION_CODES.map((code) => ({ code, name: regionName(code), available: withData.has(code) })).sort(
-    (a, b) => a.name.localeCompare(b.name)
-  );
+  return REGION_CODES.map((code) => ({
+    code,
+    name: regionName(code, locale),
+    englishName: regionName(code),
+    available: withData.has(code),
+  })).sort((a, b) => a.name.localeCompare(b.name, locale));
 }

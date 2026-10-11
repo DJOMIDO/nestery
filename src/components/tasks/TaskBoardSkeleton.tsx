@@ -1,5 +1,7 @@
 // src/components/tasks/TaskBoardSkeleton.tsx
+"use client";
 
+import { useTranslations } from "next-intl";
 import { Skeleton } from "@/components/ui/skeleton";
 
 // Cards per column, so the lanes don't all look alike
@@ -7,10 +9,11 @@ const CARDS = [3, 2, 1, 2];
 
 // The board's four lanes with placeholder cards, while tasks load
 export function TaskBoardSkeleton() {
+  const t = useTranslations("tasks");
   return (
     <div
       role="status"
-      aria-label="Loading tasks"
+      aria-label={t("loading")}
       className="appear-late grid grid-cols-1 gap-4 md:grid-cols-2 lg:flex-1 lg:min-h-0 lg:grid-cols-4"
     >
       {CARDS.map((count, lane) => (

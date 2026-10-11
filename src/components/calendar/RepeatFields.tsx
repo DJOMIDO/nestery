@@ -1,6 +1,7 @@
 // src/components/calendar/RepeatFields.tsx
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useFormat } from "@/components/SettingsProvider";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,16 +12,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { describeRule, type Frequency, type RecurrenceRule } from "@/lib/recurrence";
+import { useDescribeRule } from "@/components/calendar/useDescribeRule";
+import type { Frequency, RecurrenceRule } from "@/lib/recurrence";
 import { addDays } from "@/lib/tasks";
 import { cn } from "@/lib/utils";
 
-const UNITS: Record<Frequency, [string, string]> = {
-  DAILY: ["day", "days"],
-  WEEKLY: ["week", "weeks"],
-  MONTHLY: ["month", "months"],
-  YEARLY: ["year", "years"],
-};
 
 type Ends = "never" | "until" | "count";
 
@@ -36,6 +32,8 @@ interface RepeatFieldsProps {
 // "Does not repeat", or how often and until when
 export function RepeatFields({ rule, onChange, startDate }: RepeatFieldsProps) {
   const format = useFormat();
+  const t = useTranslations("calendar.repeat");
+  const describeRule = useDescribeRule();
   const ends: Ends = rule?.until ? "until" : rule?.count ? "count" : "never";
 
   const setFrequency = (value: string) => {
@@ -77,24 +75,24 @@ export function RepeatFields({ rule, onChange, startDate }: RepeatFieldsProps) {
       {/* Each group is a label above its control, so the controls line up */}
       <div className="flex flex-wrap items-start gap-3">
         <div className="space-y-2">
-          <Label htmlFor="event-repeat">Repeat</Label>
+          <Label htmlFor="event-repeat">{t("label")}</Label>
           <Select value={rule?.freq ?? "none"} onValueChange={setFrequency}>
             <SelectTrigger id="event-repeat" className="w-40">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="none">Does not repeat</SelectItem>
-              <SelectItem value="DAILY">Daily</SelectItem>
-              <SelectItem value="WEEKLY">Weekly</SelectItem>
-              <SelectItem value="MONTHLY">Monthly</SelectItem>
-              <SelectItem value="YEARLY">Yearly</SelectItem>
+              <SelectItem value="none">{t("none")}</SelectItem>
+              <SelectItem value="DAILY">{t("daily")}</SelectItem>
+              <SelectItem value="WEEKLY">{t("weekly")}</SelectItem>
+              <SelectItem value="MONTHLY">{t("monthly")}</SelectItem>
+              <SelectItem value="YEARLY">{t("yearly")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
         {rule && (
           <div className="space-y-2">
-            <Label htmlFor="event-interval">Every</Label>
+            <Label htmlFor="event-interval">{t("every")}</Label>
             <div className="flex items-center gap-2 text-sm">
               <Input
                 id="event-interval"
@@ -105,14 +103,14 @@ export function RepeatFields({ rule, onChange, startDate }: RepeatFieldsProps) {
                 onChange={(e) => update({ interval: Math.min(Math.max(Number(e.target.value) || 1, 1), 99) })}
                 className="w-16"
               />
-              <span>{UNITS[rule.freq][rule.interval === 1 ? 0 : 1]}</span>
+              <span>{t("unit", { freq: rule.freq, count: rule.interval })}</span>
             </div>
           </div>
         )}
       </div>
 
       {rule?.freq === "WEEKLY" && (
-        <div role="group" aria-label="Repeat on" className="flex gap-1">
+        <div role="group" aria-label={t("on")} className="flex gap-1">
           {weekdays.map(({ label, value, name }) => {
             const on = rule.byDay?.includes(value) ?? false;
             return (
@@ -137,16 +135,16 @@ export function RepeatFields({ rule, onChange, startDate }: RepeatFieldsProps) {
       {rule && (
         <div className="space-y-2">
           {/* When the series stops; not the event's own end (Starts/Ends above) */}
-          <Label htmlFor="event-repeat-ends">Repeat ends</Label>
+          <Label htmlFor="event-repeat-ends">{t("ends")}</Label>
           <div className="flex flex-wrap items-center gap-2 text-sm">
             <Select value={ends} onValueChange={(v) => setEnds(v as Ends)}>
               <SelectTrigger id="event-repeat-ends" className="w-40">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="never">Never</SelectItem>
-                <SelectItem value="until">On a date</SelectItem>
-                <SelectItem value="count">After a number of times</SelectItem>
+                <SelectItem value="never">{t("never")}</SelectItem>
+                <SelectItem value="until">{t("onDate")}</SelectItem>
+                <SelectItem value="count">{t("afterCount")}</SelectItem>
               </SelectContent>
             </Select>
             {ends === "until" && (
@@ -155,7 +153,7 @@ export function RepeatFields({ rule, onChange, startDate }: RepeatFieldsProps) {
                 value={rule.until}
                 min={startDate}
                 onChange={(e) => e.target.value && update({ until: e.target.value })}
-                aria-label="Repeat until"
+                aria-label={t("until")}
                 className="w-40"
               />
             )}
@@ -167,10 +165,10 @@ export function RepeatFields({ rule, onChange, startDate }: RepeatFieldsProps) {
                   max={999}
                   value={rule.count}
                   onChange={(e) => update({ count: Math.min(Math.max(Number(e.target.value) || 1, 1), 999) })}
-                  aria-label="Number of times"
+                  aria-label={t("times")}
                   className="w-20"
                 />
-                <span>times</span>
+                <span>{t("timesUnit")}</span>
               </>
             )}
           </div>
@@ -179,10 +177,7 @@ export function RepeatFields({ rule, onChange, startDate }: RepeatFieldsProps) {
 
       {rule && (
         <p className="text-xs text-muted-foreground">
-          {describeRule(rule, {
-            weekdayName: (d) => format.weekday(new Date(2024, 0, 7 + d)),
-            formatDay: format.dayWithYear,
-          })}
+          {describeRule(rule)}
         </p>
       )}
     </div>

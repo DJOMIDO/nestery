@@ -1,10 +1,10 @@
 // src/components/notes/NoteListItem.tsx
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Pin } from "lucide-react";
 import { noteTitle, type Note } from "@/lib/notes";
 import { NotePreview } from "@/components/notes/NotePreview";
-import { formatRelative } from "@/lib/tasks";
 import { cn } from "@/lib/utils";
 import { useFormat } from "@/components/SettingsProvider";
 
@@ -15,6 +15,8 @@ interface NoteListItemProps {
 }
 
 export function NoteListItem({ note, selected, onSelect }: NoteListItemProps) {
+  const t = useTranslations("notes");
+  const tCommon = useTranslations("common");
   const format = useFormat();
   return (
     <li>
@@ -30,12 +32,12 @@ export function NoteListItem({ note, selected, onSelect }: NoteListItemProps) {
         )}
       >
         <div className="flex items-center gap-1.5">
-          {note.pinned && <Pin className="w-3.5 h-3.5 shrink-0 text-leaf" aria-label="Pinned" />}
+          {note.pinned && <Pin className="w-3.5 h-3.5 shrink-0 text-leaf" aria-label={tCommon("pinned")} />}
           <span className={cn("flex-1 truncate font-medium", !note.title.trim() && "text-muted-foreground")}>
-            {noteTitle(note)}
+            {noteTitle(note, t("untitled"))}
           </span>
           <span className="shrink-0 text-xs text-muted-foreground">
-            {formatRelative(note.updatedAt, undefined, format.day)}
+            {format.relative(note.updatedAt)}
           </span>
         </div>
         <NotePreview note={note} className="mt-0.5 text-sm" />

@@ -3,12 +3,13 @@
 
 import { Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   ArrowLeft,
   CalendarDays,
   ChevronRight,
-  Clock,
   CloudSun,
+  Languages,
   Sparkles,
   UserRound,
   type LucideIcon,
@@ -17,15 +18,15 @@ import { Button } from "@/components/ui/button";
 import { AccountSettings } from "@/components/settings/AccountSettings";
 import { AssistantSettings } from "@/components/settings/AssistantSettings";
 import { CALENDAR_PARTS, CalendarSettings, type CalendarPart } from "@/components/settings/CalendarSettings";
-import { DateTimeSettings } from "@/components/settings/DateTimeSettings";
+import { LanguageTimeSettings } from "@/components/settings/LanguageTimeSettings";
 import { WeatherSettings } from "@/components/settings/WeatherSettings";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { cn } from "@/lib/utils";
 
 interface Section {
   id: string;
-  label: string;
-  description: string;
+  // Its label and description in messages (settings.sections.<key>)
+  key: "account" | "assistant" | "languageTime" | "calendar" | "weather";
   icon: LucideIcon;
   // `focus`: a part of the section to scroll to (only Calendar has parts)
   content: React.ComponentType<{ focus?: CalendarPart | null }>;
@@ -42,36 +43,32 @@ const MOVED_TO_CALENDAR: Record<string, CalendarPart> = {
 const SECTIONS: Section[] = [
   {
     id: "account",
-    label: "Account",
-    description: "Profile, password, sign-in, devices",
+    key: "account",
     icon: UserRound,
     content: AccountSettings,
   },
   {
     id: "assistant",
-    label: "Assistant",
-    description: "AI model and your API key",
+    key: "assistant",
     icon: Sparkles,
     content: AssistantSettings,
   },
   {
+    // Was "Date & time"; the id stays so links to it keep working
     id: "date-time",
-    label: "Date & time",
-    description: "Date format, 12/24-hour time, week start",
-    icon: Clock,
-    content: DateTimeSettings,
+    key: "languageTime",
+    icon: Languages,
+    content: LanguageTimeSettings,
   },
   {
     id: "calendar",
-    label: "Calendar",
-    description: "Holidays, other calendars, sharing",
+    key: "calendar",
     icon: CalendarDays,
     content: CalendarSettings,
   },
   {
     id: "weather",
-    label: "Weather",
-    description: "Place for the dashboard's weather",
+    key: "weather",
     icon: CloudSun,
     content: WeatherSettings,
   },
@@ -88,6 +85,7 @@ export default function SettingsPage() {
 }
 
 function SettingsView() {
+  const t = useTranslations("settings");
   const router = useRouter();
   const params = useSearchParams();
   // List and details side by side from `md` up; one at a time below
@@ -100,7 +98,7 @@ function SettingsView() {
   const requested = SECTIONS.find((s) => s.id === (moved ? "calendar" : sectionParam));
   const current = requested ?? (isWide ? SECTIONS[0] : null);
   const focusParam = params.get("focus");
-  const focus = moved ?? CALENDAR_PARTS.find((p) => p.id === focusParam)?.id ?? null;
+  const focus = moved ?? CALENDAR_PARTS.find((p) => p === focusParam) ?? null;
 
   const open = (id: string | null) =>
     router.replace(id ? `/settings?section=${id}` : "/settings", { scroll: false });
@@ -110,13 +108,13 @@ function SettingsView() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Settings</h1>
-        <p className="text-sm text-muted-foreground">Preferences for your Nestery.</p>
+        <h1 className="text-2xl font-bold">{t("title")}</h1>
+        <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
       </div>
 
       <div className="grid gap-6 md:grid-cols-[16rem_minmax(0,1fr)] md:items-start">
         {showList && (
-          <nav aria-label="Settings sections" className="rounded-lg border bg-card p-1.5 md:sticky md:top-0">
+          <nav aria-label={t("sectionsLabel")} className="rounded-lg border bg-card p-1.5 md:sticky md:top-0">
             <ul className="space-y-0.5">
               {SECTIONS.map((section) => {
                 const Icon = section.icon;
@@ -134,9 +132,9 @@ function SettingsView() {
                     >
                       <Icon className="size-4 shrink-0" />
                       <span className="min-w-0 flex-1">
-                        <span className="block text-sm font-medium">{section.label}</span>
+                        <span className="block text-sm font-medium">{t(`sections.${section.key}.label`)}</span>
                         <span className={cn("block truncate text-xs", active ? "text-leaf/80" : "text-muted-foreground")}>
-                          {section.description}
+                          {t(`sections.${section.key}.description`)}
                         </span>
                       </span>
                       {/* On narrow screens the list leads to a separate page */}
@@ -153,7 +151,7 @@ function SettingsView() {
           <div className="min-w-0 space-y-3">
             {!isWide && (
               <Button variant="ghost" size="sm" className="-ml-2" onClick={() => open(null)}>
-                <ArrowLeft className="size-4 mr-1" /> All settings
+                <ArrowLeft className="size-4 mr-1" /> {t("allSettings")}
               </Button>
             )}
             <current.content focus={focus} />

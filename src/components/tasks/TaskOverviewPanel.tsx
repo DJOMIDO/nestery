@@ -1,6 +1,7 @@
 // src/components/tasks/TaskOverviewPanel.tsx
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useMemo } from "react";
 import { MiniCalendar } from "@/components/tasks/MiniCalendar";
 import { WeekStats } from "@/components/tasks/WeekStats";
@@ -27,6 +28,7 @@ export function TaskOverviewPanel({
   onTagFilter,
   loading,
 }: TaskOverviewPanelProps) {
+  const t = useTranslations("tasks.overviewPanel");
   const openTasks = useMemo(() => tasks.filter((t) => t.status !== "done"), [tasks]);
   const markedDates = useMemo(
     () => new Set(openTasks.flatMap((t) => (t.dueDate ? [t.dueDate] : []))),
@@ -36,7 +38,7 @@ export function TaskOverviewPanel({
 
   return (
     <div className="flex flex-col h-full gap-6">
-      <section aria-label="Calendar">
+      <section aria-label={t("calendar")}>
         <MiniCalendar
           markedDates={markedDates}
           selectedDate={dateFilter}
@@ -44,17 +46,17 @@ export function TaskOverviewPanel({
         />
       </section>
 
-      <section aria-label="Tags">
-        <h3 className="mb-3 text-base font-semibold text-muted-foreground">Tags</h3>
+      <section aria-label={t("tags")}>
+        <h3 className="mb-3 text-base font-semibold text-muted-foreground">{t("tags")}</h3>
         {loading ? (
-          <div role="status" aria-label="Loading tags" className="appear-late flex flex-wrap gap-2">
+          <div role="status" aria-label={t("loadingTags")} className="appear-late flex flex-wrap gap-2">
             {["w-16", "w-20", "w-14"].map((w) => (
               <Skeleton key={w} className={`h-6 rounded-full ${w}`} />
             ))}
           </div>
         ) : tags.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            Add tags to your tasks to filter them here.
+            {t("tagsEmpty")}
           </p>
         ) : (
           <div className="flex flex-wrap gap-2">
@@ -81,8 +83,8 @@ export function TaskOverviewPanel({
       </section>
 
       {/* Pinned to the bottom of the panel */}
-      <section aria-label="This week" className="mt-auto">
-        <h3 className="mb-3 text-base font-semibold text-muted-foreground">This week</h3>
+      <section aria-label={t("thisWeek")} className="mt-auto">
+        <h3 className="mb-3 text-base font-semibold text-muted-foreground">{t("thisWeek")}</h3>
         <WeekStats tasks={tasks} loading={loading} />
       </section>
     </div>

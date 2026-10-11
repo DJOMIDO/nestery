@@ -8,7 +8,7 @@ import {
   saveAssistantSettings,
   saveAssistantSettingsInput,
 } from "@/server/assistant/settings";
-import { getSessionUser, parseInput, unauthorized } from "@/server/session";
+import { errorResponse, getSessionUser, parseInput, unauthorized } from "@/server/session";
 
 // GET /api/assistant/settings: provider and model, never the key itself
 export async function GET() {
@@ -28,7 +28,7 @@ export async function PUT(request: Request) {
   try {
     return NextResponse.json(await saveAssistantSettings(user, input.data));
   } catch (err) {
-    if (err instanceof ProviderError) return NextResponse.json({ error: err.message }, { status: err.status });
+    if (err instanceof ProviderError) return await errorResponse(err.message, err.status);
     throw err;
   }
 }

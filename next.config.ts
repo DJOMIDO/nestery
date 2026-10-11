@@ -1,4 +1,8 @@
 import type { NextConfig } from "next";
+import createNextIntlPlugin from "next-intl/plugin";
+
+// Picks up the per-request language setup in src/i18n/request.ts
+const withNextIntl = createNextIntlPlugin();
 
 const nextConfig: NextConfig = {
   /* config options here */
@@ -12,4 +16,4 @@ const nextConfig: NextConfig = {
   htmlLimitedBots: /.*/,
 };
 
-export default nextConfig;
+export default withNextIntl(nextConfig);

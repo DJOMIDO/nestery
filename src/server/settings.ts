@@ -6,6 +6,7 @@ import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
 import { userSettings } from "@/db/schema";
+import { LOCALES, type Locale } from "@/i18n/config";
 import { MAX_HOLIDAY_COUNTRIES } from "@/lib/calendar";
 import {
   DATE_LOCALES,
@@ -26,7 +27,8 @@ export const updateSettingsInput = z
       .array(z.string().regex(/^[A-Z]{2}$/, "Use two-letter country codes"))
       .max(MAX_HOLIDAY_COUNTRIES, `Choose at most ${MAX_HOLIDAY_COUNTRIES} countries`)
       .transform((codes) => [...new Set(codes)]),
-    dateLocale: z.enum(localeValues),
+    language: z.enum(LOCALES).nullable(),
+    dateLocale: z.enum(localeValues).nullable(),
     hourCycle: z.enum(["h12", "h23"]).nullable(),
     weekStart: z.union([z.literal(0), z.literal(1)]),
     timeZone: z.string().max(64).refine(isTimeZone, "Unknown time zone"),
@@ -42,7 +44,8 @@ export async function getSettings(userId: string) {
   const [row] = await db.select().from(userSettings).where(eq(userSettings.userId, userId));
   return {
     holidayCountries: row?.holidayCountries ?? [],
-    dateLocale: (row?.dateLocale ?? DEFAULT_DATE_TIME.dateLocale) as DateLocale,
+    language: (row?.language ?? null) as Locale | null,
+    dateLocale: (row?.dateLocale ?? DEFAULT_DATE_TIME.dateLocale) as DateLocale | null,
     hourCycle: (row?.hourCycle ?? DEFAULT_DATE_TIME.hourCycle) as HourCycle | null,
     weekStart: (row?.weekStart ?? DEFAULT_DATE_TIME.weekStart) as WeekStart,
     timeZone: row?.timeZone ?? null,

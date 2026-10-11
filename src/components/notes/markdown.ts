@@ -14,7 +14,7 @@ export function markdownToNote(markdown: string, fileName: string) {
   // A throwaway headless editor with the note extensions, so imported notes
   // match what the editor itself produces
   const editor = new Editor({
-    extensions: noteExtensions,
+    extensions: noteExtensions(),
     content: markdown,
     contentType: "markdown",
   });
@@ -42,8 +42,9 @@ export function noteToMarkdown(title: string, body: string) {
   return heading ? `# ${heading}\n\n${body}` : body;
 }
 
-export function downloadMarkdown(title: string, markdown: string) {
-  const name = title.trim().replace(/[\\/:*?"<>|]+/g, "-") || "Untitled";
+// `untitled`: the file name for a note without a title
+export function downloadMarkdown(title: string, markdown: string, untitled: string) {
+  const name = title.trim().replace(/[\\/:*?"<>|]+/g, "-") || untitled;
   const url = URL.createObjectURL(new Blob([markdown], { type: "text/markdown;charset=utf-8" }));
   const link = document.createElement("a");
   link.href = url;

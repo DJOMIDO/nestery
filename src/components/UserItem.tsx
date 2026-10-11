@@ -5,6 +5,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
+import { useTranslations } from "next-intl";
 import { ChevronsUpDown, LogOut, Monitor, Moon, Settings, Sun } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -18,11 +19,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+// Labels in messages (nav.<label>)
 const themeOptions = [
-  { value: "light", label: "Light", icon: Sun },
-  { value: "dark", label: "Dark", icon: Moon },
-  { value: "system", label: "System", icon: Monitor },
-];
+  { value: "light", label: "themeLight", icon: Sun },
+  { value: "dark", label: "themeDark", icon: Moon },
+  { value: "system", label: "themeSystem", icon: Monitor },
+] as const;
 
 interface UserItemProps {
   collapsed: boolean;
@@ -32,6 +34,7 @@ interface UserItemProps {
 
 // Sidebar user button; opens a menu with account actions
 export function UserItem({ collapsed, name, onLogout }: UserItemProps) {
+  const t = useTranslations("nav");
   const { theme = "system", setTheme } = useTheme();
   // Settings lives in this menu, so highlight the trigger while on that page
   const isSettings = usePathname().startsWith("/settings");
@@ -53,7 +56,7 @@ export function UserItem({ collapsed, name, onLogout }: UserItemProps) {
           collapsed ? "justify-center px-0" : "justify-start",
           isSettings && "bg-muted text-foreground"
         )}
-        aria-label="Account menu"
+        aria-label={t("accountMenu")}
       >
         <div className="w-8 h-8 rounded-full bg-forest text-white font-bold flex items-center justify-center text-sm shrink-0">
           {initials}
@@ -77,26 +80,26 @@ export function UserItem({ collapsed, name, onLogout }: UserItemProps) {
         <DropdownMenuItem asChild>
           <Link href="/settings">
             <Settings />
-            Settings
+            {t("settings")}
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         {/* Theme; "System" follows the OS light/dark setting */}
         <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
-          Theme
+          {t("theme")}
         </DropdownMenuLabel>
         <DropdownMenuRadioGroup value={theme} onValueChange={setTheme}>
           {themeOptions.map(({ value, label, icon: Icon }) => (
             <DropdownMenuRadioItem key={value} value={value}>
               <Icon />
-              {label}
+              {t(label)}
             </DropdownMenuRadioItem>
           ))}
         </DropdownMenuRadioGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={onLogout}>
           <LogOut />
-          Log out
+          {t("logOut")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -1,6 +1,7 @@
 // src/components/tasks/TaskBoard.tsx
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 import {
   DndContext,
@@ -17,7 +18,6 @@ import { TaskBoardColumn } from "@/components/tasks/TaskBoardColumn";
 import { TaskCardBody } from "@/components/tasks/TaskCard";
 import {
   boardColumns,
-  TASK_STATUS_LABELS,
   TASK_STATUSES,
   type Task,
   type TaskStatus,
@@ -36,6 +36,7 @@ interface TaskBoardProps {
 // columns changes the task's status.
 export function TaskBoard({ tasks, onMove, onAdd, onOpen, onDelete, onTagClick }: TaskBoardProps) {
   const columns = useMemo(() => boardColumns(tasks), [tasks]);
+  const t = useTranslations("tasks");
   const [activeId, setActiveId] = useState<string | null>(null);
   const byId = (id: unknown) => tasks.find((t) => t.id === id);
   const active = activeId ? byId(activeId) : undefined;
@@ -52,16 +53,16 @@ export function TaskBoard({ tasks, onMove, onAdd, onOpen, onDelete, onTagClick }
   );
 
   // Screen reader messages with task titles and column names instead of ids
-  const columnName = (id: unknown) => TASK_STATUS_LABELS[id as TaskStatus] ?? "";
+  const columnName = (id: unknown) => t(`status.${id as TaskStatus}`);
   const announcements: Announcements = {
-    onDragStart: ({ active }) => `Picked up "${byId(active.id)?.title}".`,
+    onDragStart: ({ active }) => t("board.pickedUp", { title: byId(active.id)?.title ?? "" }),
     onDragOver: ({ active, over }) =>
-      over ? `"${byId(active.id)?.title}" is over ${columnName(over.id)}.` : undefined,
+      over ? t("board.over", { title: byId(active.id)?.title ?? "", column: columnName(over.id) }) : undefined,
     onDragEnd: ({ active, over }) =>
       over
-        ? `"${byId(active.id)?.title}" moved to ${columnName(over.id)}.`
-        : `"${byId(active.id)?.title}" was dropped.`,
-    onDragCancel: ({ active }) => `Moving "${byId(active.id)?.title}" was cancelled.`,
+        ? t("board.moved", { title: byId(active.id)?.title ?? "", column: columnName(over.id) })
+        : t("board.dropped", { title: byId(active.id)?.title ?? "" }),
+    onDragCancel: ({ active }) => t("board.cancelled", { title: byId(active.id)?.title ?? "" }),
   };
 
   const handleDragEnd = ({ active, over }: DragEndEvent) => {

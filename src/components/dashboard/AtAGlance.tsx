@@ -5,6 +5,7 @@
 import Link from "next/link";
 import { CalendarDays, ChevronRight, LayoutGrid, ListTodo, NotebookPen, Plane, type LucideIcon } from "lucide-react";
 import { CardHeading } from "./CardHeading";
+import { useTranslations } from "next-intl";
 import { useFormat } from "@/components/SettingsProvider";
 import { eventDays, type CalendarEvent } from "@/lib/calendar";
 import type { Note } from "@/lib/notes";
@@ -31,6 +32,8 @@ interface AtAGlanceProps {
 // Rendered inside the Welcome card, below the greeting.
 export function AtAGlance({ tasks, notes, events, journeys, today, loading }: AtAGlanceProps) {
   const format = useFormat();
+  const t = useTranslations("dashboard.glance");
+  const tNav = useTranslations("nav");
   const lastDay = addDays(today, 6);
   const now = Date.now();
 
@@ -61,33 +64,33 @@ export function AtAGlance({ tasks, notes, events, journeys, today, loading }: At
 
   return (
     <>
-      <CardHeading title="At a glance" icon={LayoutGrid} />
+      <CardHeading title={t("title")} icon={LayoutGrid} />
 
       <ul className="divide-y">
-        <GlanceRow href="/tasks" icon={ListTodo} title="Tasks" loading={loading}>
-          <Stat value={open.length} label="open" />
-          <Stat value={overdue} label="overdue" alert={overdue > 0} />
-          <Stat value={dueSoon} label="due in 7 days" />
+        <GlanceRow href="/tasks" icon={ListTodo} title={tNav("tasks")} loading={loading}>
+          <Stat value={open.length} label={t("open", { count: open.length })} />
+          <Stat value={overdue} label={t("overdue")} alert={overdue > 0} />
+          <Stat value={dueSoon} label={t("dueSoon")} />
         </GlanceRow>
-        <GlanceRow href="/notes" icon={NotebookPen} title="Notes" loading={loading}>
-          <Stat value={notes.length} label={notes.length === 1 ? "note" : "notes"} />
-          <Stat value={pinned} label="pinned" />
-          <Stat value={editedRecently} label="edited in 7 days" />
+        <GlanceRow href="/notes" icon={NotebookPen} title={tNav("notes")} loading={loading}>
+          <Stat value={notes.length} label={t("notes", { count: notes.length })} />
+          <Stat value={pinned} label={t("pinned", { count: pinned })} />
+          <Stat value={editedRecently} label={t("editedRecently", { count: editedRecently })} />
         </GlanceRow>
-        <GlanceRow href="/calendar" icon={CalendarDays} title="Calendar" loading={loading}>
-          <Stat value={upcoming.length} label={`${upcoming.length === 1 ? "event" : "events"} in 7 days`} />
+        <GlanceRow href="/calendar" icon={CalendarDays} title={tNav("calendar")} loading={loading}>
+          <Stat value={upcoming.length} label={t("events", { count: upcoming.length })} />
           {next && (
             <span className="min-w-0 truncate text-muted-foreground">
-              Next: <span className="text-foreground">{next.title}</span> ·{" "}
+              {t("next")} <span className="text-foreground">{next.title}</span> ·{" "}
               {next.allDay ? format.dayWithWeekday(next.startDate!) : `${format.weekday(next.startsAt!)} ${format.time(next.startsAt!)}`}
             </span>
           )}
         </GlanceRow>
-        <GlanceRow href="/travel" icon={Plane} title="Travel" loading={loading}>
-          <Stat value={upcomingTrips.length} label={upcomingTrips.length === 1 ? "trip ahead" : "trips ahead"} />
+        <GlanceRow href="/travel" icon={Plane} title={tNav("travel")} loading={loading}>
+          <Stat value={upcomingTrips.length} label={t("trips", { count: upcomingTrips.length })} />
           {nextTrip && (
             <span className="min-w-0 truncate text-muted-foreground">
-              Next:{" "}
+              {t("next")}{" "}
               <span className="text-foreground">
                 {journeyLabel(nextTrip)} → {nextTrip.destinationName ?? nextTrip.destinationCity ?? nextTrip.destination}
               </span>{" "}
@@ -99,7 +102,7 @@ export function AtAGlance({ tasks, notes, events, journeys, today, loading }: At
 
       {!loading && tags.length > 0 && (
         <div className="mt-auto pt-4">
-          <p className="mb-2 text-xs font-medium text-muted-foreground">Tags on open tasks</p>
+          <p className="mb-2 text-xs font-medium text-muted-foreground">{t("tags")}</p>
           <div className="flex flex-wrap gap-1.5">
             {tags.map(({ tag, count }) => (
               <span key={tag} className="rounded bg-bark-soft px-2 py-0.5 text-xs text-bark">

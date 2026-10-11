@@ -1,20 +1,23 @@
 // src/components/calendar/CalendarItemView.tsx
 "use client";
 
+import { useLocale, useTranslations } from "next-intl";
 import { Bell, CalendarClock, CheckCircle2, Circle, PartyPopper, Repeat } from "lucide-react";
 import { useFormat } from "@/components/SettingsProvider";
 import { eventDays, type CalendarEvent, type CalendarItem } from "@/lib/calendar";
 import type { Formatter } from "@/lib/format";
-import { describeRule, parseRRule } from "@/lib/recurrence";
+import { parseRRule } from "@/lib/recurrence";
+import { useDescribeRule } from "@/components/calendar/useDescribeRule";
 import { SUBSCRIPTION_COLORS } from "@/lib/subscriptions";
 import { journeyIcon } from "@/components/travel/journeyIcon";
 import { toDateKey } from "@/lib/tasks";
 import { cn } from "@/lib/utils";
 
 // "All day", "Oct 1 – Oct 3", "09:00 – 10:00" or "Oct 1 09:00 – Oct 2 11:00"
-export function eventWhen(event: CalendarEvent, format: Formatter) {
+// `allDay`: "All day" in the interface language
+export function eventWhen(event: CalendarEvent, format: Formatter, allDay: string) {
   const { first, last } = eventDays(event);
-  if (event.allDay) return first === last ? "All day" : `${format.day(first)} – ${format.day(last)}`;
+  if (event.allDay) return first === last ? allDay : `${format.day(first)} – ${format.day(last)}`;
   const start = format.time(event.startsAt!);
   const end = format.time(event.endsAt!);
   return first === last ? `${start} – ${end}` : `${format.day(first)} ${start} – ${format.day(last)} ${end}`;
@@ -68,6 +71,7 @@ export const dotOf = (item: CalendarItem) =>
 // One-line chip for a month grid cell
 export function CalendarChip({ item }: { item: CalendarItem }) {
   const format = useFormat();
+  const t = useTranslations("calendar");
   const label = chipLabel(item, format);
   const done = item.kind === "task" && item.task.status === "done";
   return (
@@ -84,7 +88,7 @@ export function CalendarChip({ item }: { item: CalendarItem }) {
       {item.kind === "event" && <EventKindIcon event={item.event} className="size-3 shrink-0" />}
       <span className="truncate">{label}</span>
       {item.kind === "event" && item.event.rrule && (
-        <Repeat className="ml-auto size-3 shrink-0 opacity-70" aria-label="Repeats" />
+        <Repeat className="ml-auto size-3 shrink-0 opacity-70" aria-label={t("repeats")} />
       )}
     </span>
   );
@@ -100,7 +104,18 @@ export function EventKindIcon({ event, className }: { event: CalendarEvent; clas
 
 // Full row for the day agenda
 export function CalendarRow({ item }: { item: CalendarItem }) {
-  const { icon: Icon, title, detail } = rowContent(item, useFormat());
+  const t = useTranslations("calendar");
+  const locale = useLocale();
+  const describeRule = useDescribeRule();
+  const { icon: Icon, title, detail } = rowContent(item, useFormat(), {
+    t,
+    // Holidays' English names help only an English reader
+    englishNames: locale === "en",
+    repeatText: (event) => {
+      const rule = event.rrule ? parseRRule(event.rrule) : null;
+      return rule ? describeRule(rule) : null;
+    },
+  });
   const done = item.kind === "task" && item.task.status === "done";
   return (
     <div className="flex items-start gap-3">
@@ -111,7 +126,7 @@ export function CalendarRow({ item }: { item: CalendarItem }) {
         <p className={cn("flex items-center gap-1.5 text-sm font-medium break-words", done && "line-through text-muted-foreground")}>
           {title}
           {item.kind === "event" && item.event.rrule && (
-            <Repeat className="size-3.5 shrink-0 text-muted-foreground" aria-label="Repeats" />
+            <Repeat className="size-3.5 shrink-0 text-muted-foreground" aria-label={t("repeats")} />
           )}
         </p>
         <p className={cn("line-clamp-2 text-xs text-muted-foreground wrap-anywhere", isOverdue(item) && "text-rose-600")}>
@@ -122,15 +137,28 @@ export function CalendarRow({ item }: { item: CalendarItem }) {
   );
 }
 
-function rowContent(item: CalendarItem, format: Formatter) {
+function rowContent(
+  item: CalendarItem,
+  format: Formatter,
+  {
+    t,
+    englishNames,
+    repeatText,
+  }: {
+    t: ReturnType<typeof useTranslations<"calendar">>;
+    englishNames: boolean;
+    // "Every week on Mon", or null for events that do not repeat
+    repeatText: (event: CalendarEvent) => string | null;
+  }
+) {
   switch (item.kind) {
     case "event":
       return {
         icon: item.event.source?.journeyKind ? journeyIcon(item.event.source.journeyKind) : CalendarClock,
         title: item.event.title,
         detail: [
-          eventWhen(item.event, format),
-          repeatText(item.event, format),
+          eventWhen(item.event, format, t("allDay")),
+          repeatText(item.event),
           item.event.source?.location,
           item.event.source?.name,
           item.event.source ? null : firstLine(item.event.notes),
@@ -143,18 +171,18 @@ function rowContent(item: CalendarItem, format: Formatter) {
         icon: PartyPopper,
         title: item.holiday.localName,
         detail:
-          item.holiday.name !== item.holiday.localName
+          englishNames && item.holiday.name !== item.holiday.localName
             ? `${item.holiday.name} · ${item.holiday.countryCode}`
-            : `Public holiday · ${item.holiday.countryCode}`,
+            : t("publicHoliday", { country: item.holiday.countryCode }),
       };
     case "task":
       return {
         icon: item.task.status === "done" ? CheckCircle2 : Circle,
         title: item.task.title,
-        detail: item.task.status === "done" ? "Task completed" : isOverdue(item) ? "Task overdue" : "Task due",
+        detail: item.task.status === "done" ? t("taskCompleted") : isOverdue(item) ? t("taskOverdue") : t("taskDue"),
       };
     case "reminder":
-      return { icon: Bell, title: item.task.title, detail: `Reminder at ${format.time(item.time)}` };
+      return { icon: Bell, title: item.task.title, detail: t("reminderAt", { time: format.time(item.time) }) };
   }
 }
 
@@ -162,14 +190,4 @@ function rowContent(item: CalendarItem, format: Formatter) {
 // notes can be long blocks of links that belong in the event dialog
 function firstLine(notes: string | null | undefined) {
   return notes?.split("\n").map((line) => line.replace(/\s+/g, " ").trim()).find(Boolean) ?? null;
-}
-
-// "Every week on Mon", or null for events that do not repeat
-function repeatText(event: CalendarEvent, format: Formatter) {
-  const rule = event.rrule ? parseRRule(event.rrule) : null;
-  if (!rule) return null;
-  return describeRule(rule, {
-    weekdayName: (d) => format.weekday(new Date(2024, 0, 7 + d)),
-    formatDay: format.dayWithYear,
-  });
 }

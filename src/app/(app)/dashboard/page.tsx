@@ -15,7 +15,7 @@ import { useFormat } from "@/components/SettingsProvider";
 import { useTasks } from "@/hooks/useTasks";
 import { useNotes } from "@/hooks/useNotes";
 import { useEvents, type EventInput } from "@/hooks/useEvents";
-import { journeyEventsBetween, useJourneys } from "@/hooks/useJourneys";
+import { journeyEventsBetween, useJourneyEventText, useJourneys } from "@/hooks/useJourneys";
 import { useSubscriptionEvents } from "@/hooks/useSubscriptions";
 import { request } from "@/lib/api";
 import { eventDays, type CalendarEvent } from "@/lib/calendar";
@@ -49,9 +49,10 @@ export default function DashboardPage() {
   // The cards show placeholders until the data they count is in; these load
   // side by side, so they wait for each other
   const loading = tasksLoading || notesLoading || eventsLoading || journeysLoading;
+  const journeyText = useJourneyEventText();
   const upcomingEvents = useMemo(
-    () => [...occurrences, ...subscribedEvents, ...journeyEventsBetween(journeys, today, lastDay)],
-    [occurrences, subscribedEvents, journeys, today, lastDay]
+    () => [...occurrences, ...subscribedEvents, ...journeyEventsBetween(journeys, today, lastDay, journeyText)],
+    [occurrences, subscribedEvents, journeys, today, lastDay, journeyText]
   );
   const recent = useRecentEvents();
 

@@ -4,6 +4,7 @@
 
 import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 
 import { SideBarItem } from "@/components/SideBarItem";
@@ -23,6 +24,7 @@ export function Sidebar({ className = "" }: { className?: string }) {
   const username = useCurrentUserName();
   const assistant = useAssistant();
   const shortcut = useShortcut();
+  const t = useTranslations("nav");
 
   // Cmd/Ctrl+\ toggles the sidebar (Cmd/Ctrl+B is bold in the note editor)
   useEffect(() => {
@@ -57,21 +59,21 @@ export function Sidebar({ className = "" }: { className?: string }) {
           onClick={toggle}
           className="absolute -right-3 top-18 flex size-6 items-center justify-center rounded-full border bg-background text-muted-foreground shadow-sm
             opacity-0 transition-opacity hover:text-foreground group-hover/sidebar:opacity-100 focus-visible:opacity-100"
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          aria-label={collapsed ? t("expandSidebar") : t("collapseSidebar")}
           aria-expanded={!collapsed}
-          title={`${collapsed ? "Expand" : "Collapse"} sidebar (${shortcut("\\")})`}
+          title={t(collapsed ? "expandSidebarHint" : "collapseSidebarHint", { shortcut: shortcut("\\") })}
         >
           {collapsed ? <ChevronRight className="size-3.5" /> : <ChevronLeft className="size-3.5" />}
         </button>
 
         <nav className="mt-2 space-y-1 px-2">
-          {navItems.map(({ href, label, icon }) => {
+          {navItems.map(({ href, key, icon }) => {
             const isActive = pathname.startsWith(href);
             return (
               <SideBarItem
                 key={href}
                 icon={icon}
-                label={label}
+                label={t(key)}
                 href={href}
                 collapsed={collapsed}
                 isActive={isActive}
@@ -82,9 +84,9 @@ export function Sidebar({ className = "" }: { className?: string }) {
       </div>
 
       <div className="px-2 pb-6 space-y-3">
-        <SideBarItem icon={Sparkles} label={`Assistant (${shortcut("J")})`} onClick={assistant.toggle} collapsed={collapsed} />
+        <SideBarItem icon={Sparkles} label={t("assistant", { shortcut: shortcut("J") })} onClick={assistant.toggle} collapsed={collapsed} />
         <UserItem
-          name={username || "User"}
+          name={username || t("user")}
           collapsed={collapsed}
           onLogout={async () => {
             await signOut();

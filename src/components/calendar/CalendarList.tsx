@@ -1,6 +1,7 @@
 // src/components/calendar/CalendarList.tsx
 "use client";
 
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { Settings } from "lucide-react";
 import { SUBSCRIPTION_COLORS, type CalendarSubscription } from "@/lib/subscriptions";
@@ -15,15 +16,16 @@ interface CalendarListProps {
 // its calendar, and its dot is the color its events have on the grid. It
 // grows downward, so many calendars never push the grid down.
 export function CalendarList({ subscriptions, onToggle }: CalendarListProps) {
+  const t = useTranslations("calendar");
   return (
-    <section aria-label="Calendars" className="shrink-0 rounded-lg border bg-card p-4">
+    <section aria-label={t("calendars")} className="shrink-0 rounded-lg border bg-card p-4">
       <div className="mb-2 flex items-center justify-between gap-2">
-        <h2 className="font-semibold">Calendars</h2>
+        <h2 className="font-semibold">{t("calendars")}</h2>
         <Link
           href="/settings?section=calendar&focus=calendars"
           className="rounded-md p-2 text-muted-foreground hover:bg-muted hover:text-foreground"
-          aria-label="Manage calendars"
-          title="Manage calendars"
+          aria-label={t("manageCalendars")}
+          title={t("manageCalendars")}
         >
           <Settings className="size-4" />
         </Link>
@@ -35,7 +37,7 @@ export function CalendarList({ subscriptions, onToggle }: CalendarListProps) {
               type="button"
               onClick={() => onToggle(sub)}
               aria-pressed={sub.enabled}
-              title={sub.lastError ? `Last refresh failed: ${sub.lastError}` : undefined}
+              title={sub.lastError ? t("lastRefreshFailed", { error: sub.lastError }) : undefined}
               className={cn(
                 "flex w-full items-center gap-3 rounded-md px-2 py-1.5 text-left text-sm transition-colors hover:bg-muted",
                 !sub.enabled && "text-muted-foreground"
@@ -50,7 +52,7 @@ export function CalendarList({ subscriptions, onToggle }: CalendarListProps) {
               />
               <span className="min-w-0 flex-1 truncate">{sub.name}</span>
               {sub.lastError && (
-                <span className="text-xs font-semibold text-destructive" aria-label="Last refresh failed">
+                <span className="text-xs font-semibold text-destructive" aria-label={t("refreshFailed")}>
                   !
                 </span>
               )}

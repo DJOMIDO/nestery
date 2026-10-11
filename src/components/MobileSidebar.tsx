@@ -5,6 +5,7 @@
 import { Dispatch, SetStateAction, useEffect } from "react";
 import { X } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { SideBarItem } from "@/components/SideBarItem";
 import { UserItem } from "@/components/UserItem";
 import { useCurrentUserName } from "@/lib/useCurrentUserName";
@@ -20,6 +21,7 @@ export function MobileSidebar({
   setOpen: Dispatch<SetStateAction<boolean>>;
 }) {
   const pathname = usePathname();
+  const t = useTranslations("nav");
   const router = useRouter();
   const username = useCurrentUserName();
 
@@ -47,20 +49,20 @@ export function MobileSidebar({
           <button
             onClick={() => setOpen(false)}
             className="p-2 text-muted-foreground"
-            aria-label="Close menu"
+            aria-label={t("closeMenu")}
           >
             <X className="w-6 h-6" />
           </button>
         </div>
 
         <nav className="flex-1 overflow-auto space-y-1 p-2">
-          {navItems.map(({ href, label, icon: Icon }) => {
+          {navItems.map(({ href, key, icon: Icon }) => {
             const isActive = pathname.startsWith(href);
             return (
               <SideBarItem
                 key={href}
                 icon={Icon}
-                label={label}
+                label={t(key)}
                 href={href}
                 collapsed={false}
                 isActive={isActive}
@@ -72,7 +74,7 @@ export function MobileSidebar({
 
         <div className="p-2 border-t space-y-1 border-sidebar-border">
           <UserItem
-            name={username || "User"}
+            name={username || t("user")}
             collapsed={false}
             onLogout={async () => {
               await signOut();

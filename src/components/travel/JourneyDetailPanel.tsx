@@ -5,6 +5,9 @@
 
 "use client";
 
+import { useTranslations } from "next-intl";
+import { useWeatherLabel } from "@/components/weather/useWeatherLabel";
+import { useReminderLabel } from "@/components/travel/useReminderLabel";
 import { useState } from "react";
 import { Pencil, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -13,12 +16,12 @@ import { JourneyForm } from "@/components/travel/JourneyForm";
 import { JourneyWeatherBadge } from "@/components/travel/JourneyWeatherBadge";
 import { journeyIcon } from "@/components/travel/journeyIcon";
 import type { Formatter } from "@/lib/format";
+import { toDateKey } from "@/lib/tasks";
 import {
   journeyDuration,
   journeyLabel,
   journeyReminderAt,
   journeyTimes,
-  reminderLabel,
   type Journey,
   type JourneyInput,
   type JourneyWeather,
@@ -42,6 +45,10 @@ interface JourneyDetailPanelProps {
 
 export function JourneyDetailPanel({ journey: j, weather, onSave, onDelete, onClose }: JourneyDetailPanelProps) {
   const format = useFormat();
+  const t = useTranslations("travel");
+  const tCommon = useTranslations("common");
+  const weatherLabel = useWeatherLabel();
+  const reminderLabel = useReminderLabel();
   const [editing, setEditing] = useState(false);
   const isFlight = j.kind === "flight";
   const Icon = journeyIcon(j.kind);
@@ -49,7 +56,7 @@ export function JourneyDetailPanel({ journey: j, weather, onSave, onDelete, onCl
   if (editing) {
     return (
       <div className="flex flex-col gap-4">
-        <h2 className="text-lg font-semibold">Edit {isFlight ? "flight" : "train journey"}</h2>
+        <h2 className="text-lg font-semibold">{isFlight ? t("editFlight") : t("editTrain")}</h2>
         <JourneyForm
           key={`${j.id}-${j.updatedAt}`}
           kind={j.kind}
@@ -70,29 +77,41 @@ export function JourneyDetailPanel({ journey: j, weather, onSave, onDelete, onCl
   const zone = viewerZone();
   const yourTime = (moment: Date | undefined, endZone: string | null) =>
     moment && endZone && endZone !== zone ? format.time(moment) : null;
-  const duration = journeyDuration(j);
+  const span = journeyDuration(j);
+  const duration = span && t("duration", span);
+
+  // "3 hours before (Oct 18, 2:40 PM)", on the viewer's clock. Left out once
+  // the journey has left: a reminder for it no longer means anything.
+  const departed = times ? times.start.getTime() <= Date.now() : j.departureDate < toDateKey(new Date());
+  const reminderAt = journeyReminderAt(j);
+  const reminder =
+    j.remindBefore === null || departed
+      ? null
+      : reminderAt
+        ? t("remind.at", { before: reminderLabel(j.remindBefore), time: format.dayTime(reminderAt) })
+        : t("remind.needsTime", { before: reminderLabel(j.remindBefore) });
 
   const facts: [string, string | null | undefined][] = [
-    [isFlight ? "Airline" : "Company", j.carrierName ? `${j.carrierName} (${j.carrier})` : j.carrier],
-    [isFlight ? "Flight" : "Train", j.number ? journeyLabel(j) : null],
-    ["Stopover", j.stopover],
-    [isFlight ? "Aircraft" : "Train type", j.vehicle],
-    ["Registration", j.aircraftReg],
-    ["Seat", j.seat],
-    ["Gate", j.gate],
-    ["Coach", j.coach],
-    ["Booking", j.bookingRef],
-    ["Price", j.price ? `${j.price}${j.currency ? ` ${j.currency}` : ""}` : null],
-    ["Reminder", reminderText(j, format)],
+    [isFlight ? t("field.airline") : t("field.company"), j.carrierName ? `${j.carrierName} (${j.carrier})` : j.carrier],
+    [isFlight ? t("field.flight") : t("field.train"), j.number ? journeyLabel(j) : null],
+    [t("field.stopover"), j.stopover],
+    [isFlight ? t("field.aircraft") : t("field.trainType"), j.vehicle],
+    [t("field.registration"), j.aircraftReg],
+    [t("field.seat"), j.seat],
+    [t("field.gate"), j.gate],
+    [t("field.coach"), j.coach],
+    [t("field.booking"), j.bookingRef],
+    [t("field.price"), j.price ? `${j.price}${j.currency ? ` ${j.currency}` : ""}` : null],
+    [t("field.reminder"), reminder],
   ];
 
   return (
     <div className="flex h-full flex-col gap-5">
       <div className="flex items-center justify-between">
         <h2 className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
-          <Icon className="size-4 text-leaf" /> {isFlight ? "Flight" : "Train"}
+          <Icon className="size-4 text-leaf" /> {isFlight ? t("flight") : t("train")}
         </h2>
-        <button onClick={onClose} className="rounded p-1.5 hover:bg-muted" aria-label="Close details">
+        <button onClick={onClose} className="rounded p-1.5 hover:bg-muted" aria-label={tCommon("close")}>
           <X className="size-4" />
         </button>
       </div>
@@ -133,8 +152,10 @@ export function JourneyDetailPanel({ journey: j, weather, onSave, onDelete, onCl
         <p className="flex items-center gap-2 rounded-md bg-muted/50 px-3 py-2 text-sm">
           <JourneyWeatherBadge weather={weather} className="text-sm" />
           <span className="text-muted-foreground">
-            {weather.conditions} in {weather.place} on arrival
-            {weather.precipitation !== null && weather.precipitation >= 30 && ` · ${weather.precipitation}% rain`}
+            {t("weatherOnArrival", { conditions: weatherLabel(weather.code), place: weather.place })}
+            {weather.precipitation !== null &&
+              weather.precipitation >= 30 &&
+              t("rainShort", { percent: weather.precipitation })}
           </span>
         </p>
       )}
@@ -158,21 +179,14 @@ export function JourneyDetailPanel({ journey: j, weather, onSave, onDelete, onCl
 
       <div className="mt-auto flex justify-end gap-2">
         <Button variant="outline" onClick={onDelete}>
-          <Trash2 className="mr-1 size-4" /> Delete
+          <Trash2 className="mr-1 size-4" /> {tCommon("delete")}
         </Button>
         <Button onClick={() => setEditing(true)}>
-          <Pencil className="mr-1 size-4" /> Edit
+          <Pencil className="mr-1 size-4" /> {tCommon("edit")}
         </Button>
       </div>
     </div>
   );
-}
-
-// "3 hours before (Oct 18, 2:40 PM)", on the viewer's clock
-function reminderText(j: Journey, format: Formatter) {
-  if (j.remindBefore === null) return null;
-  const at = journeyReminderAt(j);
-  return at ? `${reminderLabel(j.remindBefore)} (${format.dayTime(at)})` : `${reminderLabel(j.remindBefore)} (needs a departure time)`;
 }
 
 function End({
@@ -196,13 +210,14 @@ function End({
   format: Formatter;
   alignEnd?: boolean;
 }) {
+  const t = useTranslations("travel");
   return (
     <div className={alignEnd ? "min-w-0 text-right" : "min-w-0"}>
       <p className={big ? "text-3xl font-bold tracking-tight" : "break-words text-lg font-semibold"}>{place}</p>
       {name && <p className="truncate text-sm text-muted-foreground">{name}</p>}
       {time && <p className="mt-2 text-lg font-medium">{formatClock(format, time)}</p>}
       {date && <p className="text-xs text-muted-foreground">{format.dayWithWeekday(date)}</p>}
-      {yours && <p className="text-xs text-muted-foreground">{yours} your time</p>}
+      {yours && <p className="text-xs text-muted-foreground">{t("yourTime", { time: yours })}</p>}
     </div>
   );
 }

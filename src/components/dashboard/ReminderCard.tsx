@@ -9,6 +9,7 @@ import { dueReminders, type Task } from "@/lib/tasks";
 import { journeyReminderAt, journeyRoute, journeyTimes, type Journey } from "@/lib/travel";
 import { journeyIcon } from "@/components/travel/journeyIcon";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useTranslations } from "next-intl";
 import { CardHeading } from "./CardHeading";
 import { useFormat } from "@/components/SettingsProvider";
 
@@ -35,6 +36,7 @@ export function ReminderCard({
   // Tasks and journeys still on their way
   loading?: boolean;
 }) {
+  const t = useTranslations("dashboard.reminders");
   const format = useFormat();
   const now = new Date();
   const endOfToday = new Date(now);
@@ -58,7 +60,7 @@ export function ReminderCard({
           icon: journeyIcon(j.kind),
           at,
           href: `/travel?journey=${j.id}`,
-          detail: `Departs ${format.time(departs)}`,
+          detail: t("departs", { time: format.time(departs) }),
         },
       ];
     }),
@@ -68,11 +70,11 @@ export function ReminderCard({
   return (
     <Card className="w-full h-full rounded-lg bg-card">
       <CardContent className="p-4">
-        <CardHeading title="Reminders" icon={Bell} />
+        <CardHeading title={t("title")} icon={Bell} />
 
         <div className="flex items-start space-x-4">
           <div className="flex flex-col items-center flex-shrink-0">
-            <p className="text-sm font-bold text-bark">DUE</p>
+            <p className="text-sm font-bold text-bark">{t("due")}</p>
             {loading ? (
               <Skeleton className="appear-late mt-1 h-8 w-6" />
             ) : (
@@ -82,7 +84,7 @@ export function ReminderCard({
 
           <div className="flex-1 min-w-0">
             {loading ? (
-              <div role="status" aria-label="Loading reminders" className="appear-late space-y-2 pt-0.5">
+              <div role="status" aria-label={t("loading")} className="appear-late space-y-2 pt-0.5">
                 <Skeleton className="h-3 w-1/3" />
                 <Skeleton className="h-7 w-3/4" />
               </div>
@@ -98,12 +100,12 @@ export function ReminderCard({
                 </p>
                 {reminders.length > 1 && (
                   <p className="text-xs text-muted-foreground mt-1">
-                    +{reminders.length - 1} more today
+                    {t("moreToday", { count: reminders.length - 1 })}
                   </p>
                 )}
               </Link>
             ) : (
-              <p className="text-sm text-muted-foreground">All reminders completed.</p>
+              <p className="text-sm text-muted-foreground">{t("allDone")}</p>
             )}
           </div>
         </div>

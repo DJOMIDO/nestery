@@ -1,10 +1,11 @@
 // src/components/tasks/TaskItem.tsx
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Bell, CalendarDays, Pencil, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { TASK_STATUS_LABELS, toDateKey, type Task } from "@/lib/tasks";
+import { toDateKey, type Task } from "@/lib/tasks";
 import { useFormat } from "@/components/SettingsProvider";
 
 export const priorityStyles: Record<Task["priority"], string> = {
@@ -32,6 +33,7 @@ export function TaskItem({
   onDelete,
   onTagClick,
 }: TaskItemProps) {
+  const t = useTranslations("tasks");
   const done = task.status === "done";
   const format = useFormat();
   const overdue = !done && !!task.dueDate && task.dueDate < toDateKey(new Date());
@@ -47,7 +49,7 @@ export function TaskItem({
         type="checkbox"
         checked={done}
         onChange={() => onToggle(task)}
-        aria-label={done ? `Mark "${task.title}" as not done` : `Complete "${task.title}"`}
+        aria-label={done ? t("uncomplete", { title: task.title }) : t("complete", { title: task.title })}
         className="mt-1 h-4 w-4 shrink-0 cursor-pointer accent-primary"
       />
 
@@ -69,11 +71,11 @@ export function TaskItem({
           </p>
         )}
         <div className="flex flex-wrap items-center gap-2 mt-1.5 text-xs text-muted-foreground">
-          <Badge className={cn("border-transparent capitalize", priorityStyles[task.priority])}>
-            {task.priority}
+          <Badge className={cn("border-transparent", priorityStyles[task.priority])}>
+            {t(`priority.${task.priority}`)}
           </Badge>
           {(task.status === "in_progress" || task.status === "waiting") && (
-            <Badge variant="outline">{TASK_STATUS_LABELS[task.status]}</Badge>
+            <Badge variant="outline">{t(`status.${task.status}`)}</Badge>
           )}
           {task.dueDate && (
             <span className={cn("flex items-center gap-1", overdue && "text-rose-600")}>
@@ -106,14 +108,14 @@ export function TaskItem({
         <button
           onClick={() => onEdit(task)}
           className="p-1.5 rounded hover:bg-muted"
-          aria-label={`Edit "${task.title}"`}
+          aria-label={t("editNamed", { title: task.title })}
         >
           <Pencil className="w-4 h-4 text-muted-foreground" />
         </button>
         <button
           onClick={() => onDelete(task)}
           className="p-1.5 rounded hover:bg-muted"
-          aria-label={`Delete "${task.title}"`}
+          aria-label={t("deleteNamed", { title: task.title })}
         >
           <Trash2 className="w-4 h-4 text-muted-foreground" />
         </button>

@@ -2,8 +2,9 @@
 
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getUserId, parseInput, unauthorized } from "@/server/session";
+import { errorResponse, getUserId, parseInput, unauthorized } from "@/server/session";
 import { searchPlaces } from "@/server/weather";
+import { requestLocale } from "@/i18n/request";
 
 const placesInput = z.object({
   q: z.string().trim().min(2, "Type at least 2 letters").max(100),
@@ -19,8 +20,10 @@ export async function GET(request: Request) {
   if ("response" in input) return input.response;
 
   try {
-    return NextResponse.json(await searchPlaces(input.data.q));
+    // Place names in the interface language: GeoNames has "zh", "fr", "en"…
+    const language = (await requestLocale()).split("-")[0];
+    return NextResponse.json(await searchPlaces(input.data.q, language));
   } catch {
-    return NextResponse.json({ error: "Place search is unavailable right now" }, { status: 502 });
+    return await errorResponse("Place search is unavailable right now", 502);
   }
 }

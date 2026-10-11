@@ -1,6 +1,7 @@
 // src/components/calendar/WeekView.tsx
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CalendarChip, EventKindIcon } from "@/components/calendar/CalendarItemView";
 import { SUBSCRIPTION_COLORS } from "@/lib/subscriptions";
@@ -40,6 +41,8 @@ interface WeekViewProps {
 }
 
 export function WeekView({ days, items, events, today, selected, onSelect, onOpen, onCreateAt, resizing }: WeekViewProps) {
+  const t = useTranslations("calendar");
+  const tCommon = useTranslations("common");
   const format = useFormat();
   const segments = useMemo(() => timedSegments(events, days), [events, days]);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -100,7 +103,7 @@ export function WeekView({ days, items, events, today, selected, onSelect, onOpe
 
       {/* All-day row: holidays, all-day events, tasks due */}
       <div className={cn(columns, gutter, "border-b")}>
-        <span className="self-center pr-2 text-right text-[10px] text-muted-foreground">All day</span>
+        <span className="self-center pr-2 text-right text-[10px] text-muted-foreground">{t("allDay")}</span>
         {days.map((day) => {
           const list = allDayItems(day);
           const hidden = list.length - MAX_ALL_DAY;
@@ -117,7 +120,7 @@ export function WeekView({ days, items, events, today, selected, onSelect, onOpe
                   onClick={() => onSelect(day)}
                   className="px-1.5 text-left text-[11px] text-muted-foreground hover:text-foreground"
                 >
-                  +{hidden} more
+                  {tCommon("moreCount", { count: hidden })}
                 </button>
               )}
             </DayDrop>

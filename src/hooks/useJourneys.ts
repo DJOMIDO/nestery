@@ -1,11 +1,18 @@
 // src/hooks/useJourneys.ts
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { request } from "@/lib/api";
 import { onDataChanged } from "@/lib/dataChanged";
 import { eventDays } from "@/lib/calendar";
-import { journeyToEvent, type Journey, type JourneyInput, type JourneyWeather } from "@/lib/travel";
+import {
+  journeyToEvent,
+  type Journey,
+  type JourneyEventText,
+  type JourneyInput,
+  type JourneyWeather,
+} from "@/lib/travel";
 
 // Loads the user's journeys and exposes create/update/delete helpers that
 // keep the list in sync. Errors are shown as toasts.
@@ -66,9 +73,18 @@ export function useJourneys() {
   return { journeys, loading, reload, createJourney, updateJourney, deleteJourney };
 }
 
+// How a journey shown as an event is labelled, in the interface language
+export function useJourneyEventText(): JourneyEventText {
+  const t = useTranslations("travel");
+  return useMemo(
+    () => ({ source: t("title"), detail: (field, value) => t(`event.${field}`, { value }) }),
+    [t]
+  );
+}
+
 // Journeys overlapping the days from..to as read-only calendar events
-export function journeyEventsBetween(journeys: Journey[], from: string, to: string) {
-  return journeys.map(journeyToEvent).filter((e) => {
+export function journeyEventsBetween(journeys: Journey[], from: string, to: string, text: JourneyEventText) {
+  return journeys.map((j) => journeyToEvent(j, text)).filter((e) => {
     const { first, last } = eventDays(e);
     return first <= to && last >= from;
   });
@@ -77,7 +93,8 @@ export function journeyEventsBetween(journeys: Journey[], from: string, to: stri
 // The same, loading the journeys itself (for pages that don't list them)
 export function useJourneyEvents(from: string, to: string) {
   const { journeys } = useJourneys();
-  return useMemo(() => journeyEventsBetween(journeys, from, to), [journeys, from, to]);
+  const text = useJourneyEventText();
+  return useMemo(() => journeyEventsBetween(journeys, from, to, text), [journeys, from, to, text]);
 }
 
 // Forecasts at the destinations of journeys arriving in the next two weeks,

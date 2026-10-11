@@ -1,6 +1,7 @@
 // src/components/calendar/CalendarTransferSettings.tsx
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useRef, useState } from "react";
 import { Check, Copy, FileUp, Link2, Upload } from "lucide-react";
 import { toast } from "sonner";
@@ -35,6 +36,9 @@ export function ImportCalendarFile() {
   const [unsupported, setUnsupported] = useState<Unsupported>("first");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const t = useTranslations("calendarSettings.import");
+  const tCommon = useTranslations("common");
+  const b = (chunks: React.ReactNode) => <strong className="text-foreground">{chunks}</strong>;
 
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
@@ -60,7 +64,7 @@ export function ImportCalendarFile() {
   const chooseFile = async (picked: File | undefined) => {
     if (!picked) return;
     if (picked.size > MAX_FILE_BYTES) {
-      setError("The file is too large (over 5 MB)");
+      setError(t("tooLarge"));
       return;
     }
     const text = await picked.text();
@@ -78,7 +82,7 @@ export function ImportCalendarFile() {
     setBusy(true);
     try {
       const { created } = await send(file.text, unsupported, false);
-      toast.success(`Imported ${created} ${created === 1 ? "event" : "events"} from ${file.name}`);
+      toast.success(t("done", { count: created ?? 0, file: file.name }));
       reset();
     } catch (err) {
       setError((err as Error).message);
@@ -97,11 +101,8 @@ export function ImportCalendarFile() {
   return (
     <div className="space-y-3">
       <div>
-        <h3 className="text-sm font-medium">Import a file</h3>
-        <p className="text-sm text-muted-foreground">
-          Events from an .ics file become your own events that you can edit. Importing the same file again skips
-          events it already added.
-        </p>
+        <h3 className="text-sm font-medium">{t("title")}</h3>
+        <p className="text-sm text-muted-foreground">{t("description")}</p>
       </div>
 
       <input
@@ -114,7 +115,7 @@ export function ImportCalendarFile() {
 
       {!file ? (
         <Button variant="outline" size="sm" onClick={() => fileInput.current?.click()} disabled={busy}>
-          <FileUp className="size-4 mr-1" /> Choose .ics file
+          <FileUp className="size-4 mr-1" /> {t("choose")}
         </Button>
       ) : (
         <div className="space-y-3 rounded-md border p-3" aria-live="polite">
@@ -123,24 +124,22 @@ export function ImportCalendarFile() {
             <>
               <ul className="space-y-0.5 text-sm text-muted-foreground">
                 <li>
-                  <strong className="text-foreground">{summary.toImport}</strong>{" "}
-                  {summary.toImport === 1 ? "event" : "events"} to import
-                  {summary.repeating > 0 && `, ${summary.repeating} of them repeating`}
+                  {t.rich("toImport", { count: summary.toImport, b })}
+                  {summary.repeating > 0 && t("repeating", { count: summary.repeating })}
                 </li>
-                {summary.alreadyImported > 0 && <li>{summary.alreadyImported} already imported (skipped)</li>}
-                {summary.cancelled > 0 && <li>{summary.cancelled} cancelled (skipped)</li>}
+                {summary.alreadyImported > 0 && <li>{t("already", { count: summary.alreadyImported })}</li>}
+                {summary.cancelled > 0 && <li>{t("cancelled", { count: summary.cancelled })}</li>}
               </ul>
 
               {summary.unsupported > 0 && (
                 <fieldset className="space-y-1.5 rounded-md bg-muted/50 p-3 text-sm">
                   <legend className="float-left mb-1.5 w-full">
-                    {summary.unsupported} repeating {summary.unsupported === 1 ? "event uses" : "events use"} a
-                    pattern Nestery can&apos;t repeat (for example &ldquo;last Friday of the month&rdquo;):
+                    {t("unsupported", { count: summary.unsupported })}
                   </legend>
                   {(
                     [
-                      ["first", "Import just the first occurrence"],
-                      ["skip", "Skip them"],
+                      ["first", t("first")],
+                      ["skip", t("skip")],
                     ] as const
                   ).map(([value, label]) => (
                     <label key={value} className="flex items-center gap-2">
@@ -160,11 +159,11 @@ export function ImportCalendarFile() {
           )}
           <div className="flex justify-end gap-2">
             <Button variant="ghost" size="sm" onClick={reset} disabled={busy}>
-              Cancel
+              {tCommon("cancel")}
             </Button>
             <Button size="sm" onClick={runImport} disabled={busy || !summary || summary.toImport === 0}>
               <Upload className="size-4 mr-1" />
-              {busy ? "Working…" : summary?.toImport === 0 ? "Nothing to import" : "Import"}
+              {busy ? t("working") : summary?.toImport === 0 ? t("nothing") : t("import")}
             </Button>
           </div>
         </div>
@@ -186,6 +185,8 @@ export function CalendarFeedSettings() {
   const { settings, loading, setFeed } = useSettings();
   const [confirm, setConfirm] = useState<"regenerate" | "off" | null>(null);
   const [busy, setBusy] = useState(false);
+  const t = useTranslations("calendarSettings");
+  const tCommon = useTranslations("common");
 
   const https =
     settings.feedToken && typeof window !== "undefined"
@@ -198,38 +199,34 @@ export function CalendarFeedSettings() {
     const next = await setFeed(on);
     setBusy(false);
     setConfirm(null);
-    if (next) toast.success(on ? "New calendar link created" : "Calendar link turned off");
+    if (next) toast.success(on ? t("feed.created") : t("feed.turnedOff"));
   };
 
   return (
     <section id="calendar-share" className="scroll-mt-4 space-y-3 rounded-lg border bg-card p-5">
       <div>
-        <h2 className="font-semibold">Nestery in other apps</h2>
-        <p className="text-sm text-muted-foreground">
-          A private link to your events, open tasks&apos; due dates and journeys, for Apple Calendar (iPhone: Settings
-          → Apps → Calendar → Calendar Accounts → Add Account → Other → Add Subscribed Calendar), Google Calendar or
-          Outlook. Apps check it for changes every few hours; anyone with the link can see your calendar.
-        </p>
+        <h2 className="font-semibold">{t("parts.share")}</h2>
+        <p className="text-sm text-muted-foreground">{t("feed.description")}</p>
       </div>
 
       {loading ? null : !https ? (
         <Button variant="outline" size="sm" onClick={() => change(true)} disabled={busy}>
-          <Link2 className="size-4 mr-1" /> Create calendar link
+          <Link2 className="size-4 mr-1" /> {t("feed.create")}
         </Button>
       ) : (
         <div className="space-y-3">
-          <CopyField label="For Apple Calendar and phones (opens the app)" value={webcal!} />
-          <CopyField label="For Google Calendar (Other calendars → From URL) and Outlook" value={https} />
+          <CopyField label={t("feed.forApple")} value={webcal!} />
+          <CopyField label={t("feed.forGoogle")} value={https} />
 
           {confirm ? (
             <div className="flex flex-wrap items-center gap-2 rounded-md bg-muted/50 p-3 text-sm">
               <span className="flex-1">
                 {confirm === "regenerate"
-                  ? "The current link will stop working. Apps using it need the new one."
-                  : "The link will stop working and apps will stop updating."}
+                  ? t("feed.regenerateWarning")
+                  : t("feed.offWarning")}
               </span>
               <Button variant="ghost" size="sm" onClick={() => setConfirm(null)} disabled={busy}>
-                Cancel
+                {tCommon("cancel")}
               </Button>
               <Button
                 variant="destructive"
@@ -237,16 +234,16 @@ export function CalendarFeedSettings() {
                 onClick={() => change(confirm === "regenerate")}
                 disabled={busy}
               >
-                {confirm === "regenerate" ? "Create new link" : "Turn off"}
+                {confirm === "regenerate" ? t("feed.createNew") : t("feed.turnOff")}
               </Button>
             </div>
           ) : (
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={() => setConfirm("regenerate")}>
-                New link
+                {t("feed.newLink")}
               </Button>
               <Button variant="ghost" size="sm" onClick={() => setConfirm("off")}>
-                Turn off
+                {t("feed.turnOff")}
               </Button>
             </div>
           )}
@@ -258,6 +255,7 @@ export function CalendarFeedSettings() {
 
 function CopyField({ label, value }: { label: string; value: string }) {
   const [copied, setCopied] = useState(false);
+  const t = useTranslations("calendarSettings.feed");
 
   const copy = async () => {
     try {
@@ -265,7 +263,7 @@ function CopyField({ label, value }: { label: string; value: string }) {
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
     } catch {
-      toast.error("Could not copy; select the link and copy it instead");
+      toast.error(t("copyFailed"));
     }
   };
 
@@ -279,7 +277,7 @@ function CopyField({ label, value }: { label: string; value: string }) {
           size="icon"
           className={cn("size-8 shrink-0", copied && "text-leaf")}
           onClick={copy}
-          aria-label={copied ? "Copied" : "Copy link"}
+          aria-label={copied ? t("copied") : t("copy")}
         >
           {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
         </Button>

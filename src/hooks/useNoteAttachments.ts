@@ -1,6 +1,7 @@
 // src/hooks/useNoteAttachments.ts
 
 import { useCallback, useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { request } from "@/lib/api";
 import { MAX_ATTACHMENT_BYTES, type NoteAttachment } from "@/lib/attachments";
 import { shrinkForNote } from "@/lib/imageAttachment";
@@ -8,6 +9,7 @@ import { shrinkForNote } from "@/lib/imageAttachment";
 // A note's files, and uploading new ones: the browser sends the file straight
 // to storage through a signed URL, then the server checks it
 export function useNoteAttachments(noteId: string) {
+  const t = useTranslations("notes.attachments");
   const [attachments, setAttachments] = useState<NoteAttachment[]>([]);
 
   const reload = useCallback(async () => {
@@ -27,7 +29,7 @@ export function useNoteAttachments(noteId: string) {
     async (original: File) => {
       const file = await shrinkForNote(original);
       if (file.size > MAX_ATTACHMENT_BYTES) {
-        throw new Error(`${file.name} is larger than ${MAX_ATTACHMENT_BYTES / 1024 / 1024} MB.`);
+        throw new Error(t("tooLarge", { name: file.name, size: MAX_ATTACHMENT_BYTES / 1024 / 1024 }));
       }
       const contentType = file.type || "application/octet-stream";
       const { attachment, uploadUrl, uploadHeaders } = await request<{
@@ -40,12 +42,12 @@ export function useNoteAttachments(noteId: string) {
         { method: "POST", body: JSON.stringify({ fileName: file.name || "file", contentType, size: file.size }) }
       );
       const put = await fetch(uploadUrl, { method: "PUT", body: file, headers: uploadHeaders });
-      if (!put.ok) throw new Error(`Uploading ${file.name} failed (${put.status}).`);
+      if (!put.ok) throw new Error(t("uploadFailed", { name: file.name, status: put.status }));
       const saved = await request<NoteAttachment>(`/api/attachments/${attachment.id}/complete`, { method: "POST" });
       setAttachments((prev) => [...prev, saved]);
       return saved;
     },
-    [noteId]
+    [noteId, t]
   );
 
   const remove = useCallback(async (id: string) => {

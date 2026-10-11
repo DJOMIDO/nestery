@@ -1,6 +1,8 @@
 // app/reset-password/page.tsx
 "use client";
 
+import { useTranslations } from "next-intl";
+import { useAuthErrorText } from "@/components/auth/useAuthErrorText";
 import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -31,37 +33,40 @@ function ResetPasswordForm() {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
+  const t = useTranslations("auth");
+  const tCommon = useTranslations("common");
+  const errorText = useAuthErrorText();
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password.length < 8) return setError("Use at least 8 characters");
-    if (password !== confirm) return setError("The passwords don't match");
+    if (password.length < 8) return setError(t("reset.tooShort"));
+    if (password !== confirm) return setError(t("reset.mismatch"));
     setError(null);
     setSaving(true);
     try {
       await resetPassword(token!, password);
       setDone(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      setError(errorText(err));
     } finally {
       setSaving(false);
     }
   };
 
   const shell = (title: string, subtitle: string, children: React.ReactNode) => (
-    <AuthShell seed={37} tagline="Back to your nest in a moment." title={title} subtitle={subtitle}>
+    <AuthShell seed={37} tagline={t("forgot.tagline")} title={title} subtitle={subtitle}>
       {children}
     </AuthShell>
   );
 
   if (!token || linkError) {
     return shell(
-      "This link doesn't work",
-      "Reset links work once, for 1 hour.",
+      t("reset.badLink"),
+      t("reset.badLinkSubtitle"),
       <div className="space-y-4 text-sm">
-        <p>The link has expired or was already used. Ask for a new one and use the latest email.</p>
+        <p>{t("reset.badLinkText")}</p>
         <Button asChild>
-          <Link href="/forgot-password">Send a new link</Link>
+          <Link href="/forgot-password">{t("reset.newLink")}</Link>
         </Button>
       </div>
     );
@@ -69,23 +74,23 @@ function ResetPasswordForm() {
 
   if (done) {
     return shell(
-      "Password changed",
-      "You can sign in with your new password.",
+      t("reset.done"),
+      t("reset.doneSubtitle"),
       <div className="space-y-4 text-sm">
-        <p>For your security, any other devices signed in to your account have been signed out.</p>
+        <p>{t("reset.doneText")}</p>
         <Button asChild>
-          <Link href="/login">Sign in</Link>
+          <Link href="/login">{t("signIn")}</Link>
         </Button>
       </div>
     );
   }
 
   return shell(
-    "Choose a new password",
-    "Use at least 8 characters.",
+    t("reset.title"),
+    t("reset.subtitle"),
     <form onSubmit={submit} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="password">New password</Label>
+        <Label htmlFor="password">{t("reset.new")}</Label>
         <Input
           id="password"
           type="password"
@@ -95,7 +100,7 @@ function ResetPasswordForm() {
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="confirm">Confirm new password</Label>
+        <Label htmlFor="confirm">{t("reset.confirm")}</Label>
         <Input
           id="confirm"
           type="password"
@@ -107,7 +112,7 @@ function ResetPasswordForm() {
       </div>
       <Button type="submit" className="w-full" disabled={saving || !password || !confirm}>
         {saving && <Spinner />}
-        {saving ? "Saving…" : "Change password"}
+        {saving ? tCommon("saving") : t("reset.change")}
       </Button>
     </form>
   );

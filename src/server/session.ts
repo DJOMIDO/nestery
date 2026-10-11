@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import type { z } from "zod";
 import { auth } from "@/lib/auth";
+import { translateError } from "@/server/i18n";
 
 // Returns the signed-in user's id, or null when there is no valid session.
 export async function getUserId() {
@@ -25,6 +26,11 @@ export const notFound = () =>
 
 // Parses a JSON body (or other input) with a zod schema. On failure, returns a
 // 400 response carrying the first validation message.
+// A JSON error response, its message in the request's language
+export async function errorResponse(message: string, status: number) {
+  return NextResponse.json({ error: await translateError(message) }, { status });
+}
+
 export async function parseInput<T extends z.ZodTypeAny>(
   schema: T,
   input: unknown
@@ -32,10 +38,7 @@ export async function parseInput<T extends z.ZodTypeAny>(
   const parsed = schema.safeParse(input);
   if (!parsed.success) {
     return {
-      response: NextResponse.json(
-        { error: parsed.error.issues[0]?.message ?? "Invalid request" },
-        { status: 400 }
-      ),
+      response: await errorResponse(parsed.error.issues[0]?.message ?? "Invalid request", 400),
     };
   }
   return { data: parsed.data };
