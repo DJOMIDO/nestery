@@ -98,7 +98,7 @@ function SettingsView() {
   const requested = SECTIONS.find((s) => s.id === (moved ? "calendar" : sectionParam));
   const current = requested ?? (isWide ? SECTIONS[0] : null);
   const focusParam = params.get("focus");
-  const focus = moved ?? CALENDAR_PARTS.find((p) => p.id === focusParam)?.id ?? null;
+  const focus = moved ?? CALENDAR_PARTS.find((p) => p === focusParam) ?? null;
 
   const open = (id: string | null) =>
     router.replace(id ? `/settings?section=${id}` : "/settings", { scroll: false });

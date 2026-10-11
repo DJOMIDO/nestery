@@ -24,9 +24,10 @@ export const REGION_CODES = [
   "VI", "VN", "VU", "WF", "WS", "XK", "YE", "YT", "ZA", "ZM", "ZW",
 ] as const;
 
-export function regionName(code: string) {
+// A country or region's name in `locale`, e.g. "France", "法国"
+export function regionName(code: string, locale = "en") {
   try {
-    return new Intl.DisplayNames(["en"], { type: "region" }).of(code) ?? code;
+    return new Intl.DisplayNames([locale], { type: "region" }).of(code) ?? code;
   } catch {
     return code;
   }

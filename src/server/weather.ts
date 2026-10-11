@@ -86,10 +86,11 @@ interface GeocodingResponse {
   }[];
 }
 
-// Places matching `query`, best first
-export async function searchPlaces(query: string): Promise<WeatherPlace[]> {
+// Places matching `query`, best first, named in `language` where a
+// translation exists ("en", "fr", "zh"…)
+export async function searchPlaces(query: string, language = "en"): Promise<WeatherPlace[]> {
   const url = new URL(GEOCODING_URL);
-  url.search = new URLSearchParams({ name: query, count: "8", language: "en", format: "json" }).toString();
+  url.search = new URLSearchParams({ name: query, count: "8", language, format: "json" }).toString();
 
   const data = await getJson<GeocodingResponse>(url, 24 * 60 * 60);
   return (data.results ?? []).map((r) => ({

@@ -4,6 +4,7 @@
 
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { KeyRound, Sparkles, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -29,6 +30,8 @@ export function AssistantSettings() {
   const [status, setStatus] = useState<AssistantStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const shortcut = useShortcut();
+  const t = useTranslations("assistantSettings");
+  const tCommon = useTranslations("common");
 
   const [provider, setProvider] = useState<AssistantProvider>("anthropic");
   const [apiKey, setApiKey] = useState("");
@@ -106,7 +109,7 @@ export function AssistantSettings() {
       });
       setApiKey("");
       await refresh();
-      toast.success("Assistant settings saved");
+      toast.success(t("saved"));
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -122,7 +125,7 @@ export function AssistantSettings() {
       setModels(null);
       setModel(SUGGESTED_MODELS[provider][0] ?? "");
       await refresh();
-      toast.success("Assistant settings removed");
+      toast.success(t("removed"));
     } catch (err) {
       toast.error((err as Error).message);
     } finally {
@@ -135,29 +138,30 @@ export function AssistantSettings() {
   return (
     <section className="space-y-4 rounded-lg border bg-card p-5">
       <div>
-        <h2 className="font-semibold">Assistant</h2>
+        <h2 className="font-semibold">{t("title")}</h2>
         <p className="text-sm text-muted-foreground">
-          {/* The same icon as the sidebar's Assistant item */}
-          The assistant (<Sparkles className="inline size-3.5 -translate-y-px" aria-label="Assistant icon" /> in the
-          sidebar, or {shortcut("J")}) uses an AI model with your own API key; the provider bills you
-          for what you use. What the assistant looks up (tasks, events, notes) is sent to that provider.
+          {t.rich("intro", {
+            shortcut: shortcut("J"),
+            // The same icon as the sidebar's Assistant item
+            icon: () => <Sparkles className="inline size-3.5 -translate-y-px" aria-label={t("iconLabel")} />,
+          })}
         </p>
       </div>
 
       {status?.source === "server" && !saved?.apiKeyHint && (
         <p className="rounded-md bg-leaf-soft px-3 py-2 text-sm text-leaf">
-          You can use the app&apos;s own key ({status.dailyLimit} messages a day). Add yours to use it without a limit.
+          {t("serverKey", { limit: status.dailyLimit })}
         </p>
       )}
       {!status?.canSaveKey && (
         <p className="rounded-md border border-destructive/40 px-3 py-2 text-sm text-destructive">
-          This server can&apos;t store API keys yet (ASSISTANT_ENCRYPTION_KEY is not set).
+          {t("cantStore")}
         </p>
       )}
 
       <form onSubmit={save} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="assistant-provider">Provider</Label>
+          <Label htmlFor="assistant-provider">{t("provider")}</Label>
           <Select
             value={provider}
             onValueChange={(v) => {
@@ -173,7 +177,7 @@ export function AssistantSettings() {
             <SelectContent>
               {ASSISTANT_PROVIDERS.map((p) => (
                 <SelectItem key={p} value={p}>
-                  {ASSISTANT_PROVIDER_LABELS[p]}
+                  {p === "custom" ? t("customProvider") : ASSISTANT_PROVIDER_LABELS[p]}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -182,7 +186,7 @@ export function AssistantSettings() {
 
         {isCustom && (
           <div className="space-y-2">
-            <Label htmlFor="assistant-base-url">Base URL</Label>
+            <Label htmlFor="assistant-base-url">{t("baseUrl")}</Label>
             <Input
               id="assistant-base-url"
               type="url"
@@ -196,14 +200,13 @@ export function AssistantSettings() {
               className="sm:max-w-sm"
             />
             <p className="text-xs text-muted-foreground">
-              Any service with an OpenAI-compatible chat API. A server on your own computer (LM Studio:{" "}
-              <code>http://localhost:1234/v1</code>) only works while developing Nestery locally.
+              {t.rich("baseUrlHint", { code: (chunks) => <code>{chunks}</code> })}
             </p>
           </div>
         )}
 
         <div className="space-y-2">
-          <Label htmlFor="assistant-key">API key{isCustom && " (if the server needs one)"}</Label>
+          <Label htmlFor="assistant-key">{isCustom ? t("apiKeyOptional") : t("apiKey")}</Label>
           <div className="flex gap-2 sm:max-w-sm">
             <Input
               id="assistant-key"
@@ -215,36 +218,36 @@ export function AssistantSettings() {
                 setApiKey(e.target.value);
                 setModels(null);
               }}
-              placeholder={hasSavedKey ? `Saved key ${saved!.apiKeyHint}` : ""}
+              placeholder={hasSavedKey ? t("savedKey", { hint: saved!.apiKeyHint! }) : ""}
             />
             {saved && (
-              <Button type="button" variant="outline" size="icon" onClick={remove} disabled={saving} title="Remove key and settings">
+              <Button type="button" variant="outline" size="icon" onClick={remove} disabled={saving} title={t("removeHint")}>
                 <Trash2 className="size-4" />
-                <span className="sr-only">Remove key</span>
+                <span className="sr-only">{t("remove")}</span>
               </Button>
             )}
           </div>
           <p className="text-xs text-muted-foreground">
-            {PROVIDER_KEY_PAGES[provider] && (
-              <>
-                <a
-                  href={PROVIDER_KEY_PAGES[provider]}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="underline underline-offset-2 hover:text-foreground"
-                >
-                  Create a key
-                </a>
-                .{" "}
-              </>
-            )}
-            It&apos;s stored encrypted and only used for your own requests.
-            {hasSavedKey && " Leave empty to keep the saved key."}
+            {PROVIDER_KEY_PAGES[provider] &&
+              t.rich("createKey", {
+                link: (chunks) => (
+                  <a
+                    href={PROVIDER_KEY_PAGES[provider]}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline underline-offset-2 hover:text-foreground"
+                  >
+                    {chunks}
+                  </a>
+                ),
+              })}
+            {t("stored")}
+            {hasSavedKey && t("keepKey")}
           </p>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="assistant-model">Model</Label>
+          <Label htmlFor="assistant-model">{t("model")}</Label>
           <div className="flex gap-2 sm:max-w-sm">
             {models ? (
               <Select value={model} onValueChange={setModel}>
@@ -264,7 +267,7 @@ export function AssistantSettings() {
                 id="assistant-model"
                 value={model}
                 onChange={(e) => setModel(e.target.value)}
-                placeholder="Load the list, or type a model id"
+                placeholder={t("modelPlaceholder")}
                 spellCheck={false}
               />
             )}
@@ -275,12 +278,11 @@ export function AssistantSettings() {
               disabled={loadingModels || !ready || (isCustom && !baseUrl.trim())}
             >
               {loadingModels ? <Spinner className="mr-1" /> : <KeyRound className="size-4 mr-1" />}
-              {loadingModels ? "Loading…" : "Load models"}
+              {loadingModels ? tCommon("loading") : t("loadModels")}
             </Button>
           </div>
           <p className="text-xs text-muted-foreground">
-            Lists the models your key can use, which also checks the key. Pick one that supports tool calling;
-            small local models may misuse the tools.
+            {t("modelsHint")}
           </p>
         </div>
 
@@ -293,7 +295,7 @@ export function AssistantSettings() {
         <div className="flex justify-end">
           <Button type="submit" disabled={saving || !model.trim() || !ready || (isCustom && !baseUrl.trim())}>
             {saving && <Spinner />}
-            {saving ? "Saving…" : "Save"}
+            {saving ? tCommon("saving") : tCommon("save")}
           </Button>
         </div>
       </form>

@@ -1,6 +1,7 @@
 // src/components/settings/WeatherSettings.tsx
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { MapPin, Search, X } from "lucide-react";
 import { toast } from "sonner";
@@ -20,6 +21,8 @@ export function WeatherSettings() {
   const [results, setResults] = useState<WeatherPlace[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const t = useTranslations("weatherSettings");
+  const tCommon = useTranslations("common");
 
   useEffect(() => {
     const q = query.trim();
@@ -47,7 +50,7 @@ export function WeatherSettings() {
   const choose = async (place: WeatherPlace | null) => {
     setSaving(true);
     if (await save({ weatherPlace: place })) {
-      toast.success(place ? `Weather set to ${place.name}` : "Weather location removed");
+      toast.success(place ? t("set", { name: place.name }) : t("removed"));
       setQuery("");
     }
     setSaving(false);
@@ -58,10 +61,8 @@ export function WeatherSettings() {
   return (
     <section className="space-y-4 rounded-lg border bg-card p-5">
       <div>
-        <h2 className="font-semibold">Weather</h2>
-        <p className="text-sm text-muted-foreground">
-          The place whose weather appears on your dashboard&apos;s Today card.
-        </p>
+        <h2 className="font-semibold">{t("title")}</h2>
+        <p className="text-sm text-muted-foreground">{t("description")}</p>
       </div>
 
       {!loading && (
@@ -71,11 +72,11 @@ export function WeatherSettings() {
               <MapPin className="size-4 shrink-0 text-leaf" />
               <span className="flex-1 truncate">{describePlace(current)}</span>
               <Button variant="ghost" size="sm" onClick={() => choose(null)} disabled={saving}>
-                <X className="size-4 mr-1" /> Remove
+                <X className="size-4 mr-1" /> {tCommon("remove")}
               </Button>
             </>
           ) : (
-            <span className="text-muted-foreground">No place chosen.</span>
+            <span className="text-muted-foreground">{t("none")}</span>
           )}
         </div>
       )}
@@ -85,15 +86,15 @@ export function WeatherSettings() {
         <Input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder={current ? "Search for another city" : "Search for a city"}
-          aria-label="Search for a city"
+          placeholder={current ? t("searchAnother") : t("search")}
+          aria-label={t("search")}
           className="pl-9"
         />
       </div>
 
       {error && <p className="text-sm text-destructive">{error}</p>}
       {results && !error && (
-        <ul className="max-h-72 overflow-y-auto rounded-md border" aria-label="Matching places">
+        <ul className="max-h-72 overflow-y-auto rounded-md border" aria-label={t("matches")}>
           {results.map((place) => (
             <li key={`${place.latitude},${place.longitude}`}>
               <button
@@ -107,30 +108,23 @@ export function WeatherSettings() {
               </button>
             </li>
           ))}
-          {results.length === 0 && <li className="px-3 py-2 text-sm text-muted-foreground">No matches.</li>}
+          {results.length === 0 && <li className="px-3 py-2 text-sm text-muted-foreground">{t("noMatches")}</li>}
         </ul>
       )}
 
       <p className="text-xs text-muted-foreground">
-        Weather data by{" "}
-        <a
-          href="https://open-meteo.com/"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="underline underline-offset-2 hover:text-foreground"
-        >
-          Open-Meteo
-        </a>{" "}
-        (
-        <a
-          href="https://creativecommons.org/licenses/by/4.0/"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="underline underline-offset-2 hover:text-foreground"
-        >
-          CC BY 4.0
-        </a>
-        ).
+        {t.rich("source", {
+          a1: (chunks) => (
+              <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-foreground">
+                {chunks}
+              </a>
+            ),
+          a2: (chunks) => (
+              <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-foreground">
+                {chunks}
+              </a>
+            ),
+        })}
       </p>
     </section>
   );
