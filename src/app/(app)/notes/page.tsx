@@ -4,6 +4,7 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { NotebookPen, Plus, Search, Upload } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ListSkeleton } from "@/components/ui/skeleton";
@@ -30,6 +31,8 @@ export default function NotesPage() {
 function NotesView() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const t = useTranslations("notes");
+  const tCommon = useTranslations("common");
   const { notes, loading, createNote, updateNote, deleteNote } = useNotes();
   // List and editor side by side on large screens (Tailwind `lg`), one at a time otherwise
   const isWide = useMediaQuery("(min-width: 1024px)");
@@ -90,7 +93,7 @@ function NotesView() {
     if (!last) return;
     setQuery("");
     setSelectedId(last.id);
-    toast.success(`Imported ${count} ${count === 1 ? "note" : "notes"}`);
+    toast.success(t("imported", { count }));
   };
 
   const handleTogglePin = (note: Note) =>
@@ -99,9 +102,9 @@ function NotesView() {
   const handleDelete = async (note: Note) => {
     if (!(await deleteNote(note.id))) return;
     if (selectedId === note.id) setSelectedId(null);
-    toast("Note deleted", {
+    toast(t("deleted"), {
       action: {
-        label: "Undo",
+        label: tCommon("undo"),
         onClick: async () => {
           const restored = await createNote({
             title: note.title,
@@ -125,18 +128,16 @@ function NotesView() {
         <div className="flex flex-col min-h-0 space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold">Notes</h1>
-              <p className="text-sm text-muted-foreground">
-                {notes.length} {notes.length === 1 ? "note" : "notes"}
-              </p>
+              <h1 className="text-2xl font-bold">{t("title")}</h1>
+              <p className="text-sm text-muted-foreground">{t("count", { count: notes.length })}</p>
             </div>
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
                 size="icon"
                 onClick={() => fileInput.current?.click()}
-                aria-label="Import Markdown files"
-                title="Import Markdown (.md)"
+                aria-label={t("import")}
+                title={t("importHint")}
               >
                 <Upload className="w-4 h-4" />
               </Button>
@@ -154,7 +155,7 @@ function NotesView() {
                 }}
               />
               <Button onClick={handleCreate}>
-                <Plus className="w-4 h-4 mr-1" /> New Note
+                <Plus className="w-4 h-4 mr-1" /> {t("newNote")}
               </Button>
             </div>
           </div>
@@ -164,18 +165,18 @@ function NotesView() {
             <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search notes"
-              aria-label="Search notes"
+              placeholder={t("search")}
+              aria-label={t("search")}
               className="pl-9"
             />
           </div>
 
           {loading ? (
             // Fits the column like the list it stands in for, which scrolls on its own
-            <ListSkeleton label="Loading notes" className="flex-1 min-h-0 overflow-hidden" />
+            <ListSkeleton label={t("loading")} className="flex-1 min-h-0 overflow-hidden" />
           ) : visible.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              {query ? "No notes match your search." : "No notes yet."}
+              {query ? t("noMatch") : t("empty")}
             </p>
           ) : (
             <ul className="flex-1 min-h-0 overflow-y-auto space-y-1 lg:pr-2">
@@ -211,9 +212,9 @@ function NotesView() {
         !loading && (
           <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed text-muted-foreground">
             <NotebookPen className="w-8 h-8" />
-            <p className="text-sm">Create your first note to get started.</p>
+            <p className="text-sm">{t("firstNote")}</p>
             <Button variant="outline" onClick={handleCreate}>
-              <Plus className="w-4 h-4 mr-1" /> New Note
+              <Plus className="w-4 h-4 mr-1" /> {t("newNote")}
             </Button>
           </div>
         )

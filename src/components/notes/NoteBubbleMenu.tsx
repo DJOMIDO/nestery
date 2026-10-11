@@ -1,6 +1,7 @@
 // src/components/notes/NoteBubbleMenu.tsx
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { useEditorState, type Editor } from "@tiptap/react";
 import { BubbleMenu } from "@tiptap/react/menus";
@@ -51,6 +52,8 @@ export function NoteBubbleMenu({
   onLinkEditingChange,
   scrollTarget,
 }: NoteBubbleMenuProps) {
+  const t = useTranslations("notes.link");
+  const tToolbar = useTranslations("notes.toolbar");
   const state = useEditorState({
     editor,
     selector: ({ editor }) => ({
@@ -65,10 +68,10 @@ export function NoteBubbleMenu({
   });
 
   const marks: { label: string; icon: LucideIcon; active: boolean; run: () => void }[] = [
-    { label: "Bold", icon: Bold, active: state.bold, run: () => editor.chain().focus().toggleBold().run() },
-    { label: "Italic", icon: Italic, active: state.italic, run: () => editor.chain().focus().toggleItalic().run() },
-    { label: "Strikethrough", icon: Strikethrough, active: state.strike, run: () => editor.chain().focus().toggleStrike().run() },
-    { label: "Highlight", icon: Highlighter, active: state.highlight, run: () => editor.chain().focus().toggleHighlight().run() },
+    { label: tToolbar("bold"), icon: Bold, active: state.bold, run: () => editor.chain().focus().toggleBold().run() },
+    { label: tToolbar("italic"), icon: Italic, active: state.italic, run: () => editor.chain().focus().toggleItalic().run() },
+    { label: tToolbar("strikethrough"), icon: Strikethrough, active: state.strike, run: () => editor.chain().focus().toggleStrike().run() },
+    { label: tToolbar("highlight"), icon: Highlighter, active: state.highlight, run: () => editor.chain().focus().toggleHighlight().run() },
   ];
 
   return (
@@ -107,9 +110,9 @@ export function NoteBubbleMenu({
             <span className="truncate">{state.href}</span>
             <ExternalLink className="w-3.5 h-3.5 shrink-0" />
           </a>
-          <MenuButton label="Edit link" icon={Pencil} onClick={() => onLinkEditingChange(true)} />
+          <MenuButton label={t("edit")} icon={Pencil} onClick={() => onLinkEditingChange(true)} />
           <MenuButton
-            label="Remove link"
+            label={t("remove")}
             icon={Unlink}
             onClick={() => editor.chain().focus().extendMarkRange("link").unsetLink().run()}
           />
@@ -120,7 +123,7 @@ export function NoteBubbleMenu({
             <MenuButton key={m.label} label={m.label} icon={m.icon} active={m.active} onClick={m.run} />
           ))}
           <div className="mx-1 h-5 w-px bg-border" aria-hidden />
-          <MenuButton label="Link" icon={Link2} active={state.link} onClick={() => onLinkEditingChange(true)} />
+          <MenuButton label={t("link")} icon={Link2} active={state.link} onClick={() => onLinkEditingChange(true)} />
         </>
       )}
     </BubbleMenu>
@@ -164,6 +167,8 @@ function LinkForm({
   onSubmit: (url: string) => void;
   onCancel: () => void;
 }) {
+  const t = useTranslations("notes.link");
+  const tCommon = useTranslations("common");
   const [url, setUrl] = useState(initialUrl);
 
   return (
@@ -184,12 +189,12 @@ function LinkForm({
             onCancel();
           }
         }}
-        placeholder="Paste or type a link"
-        aria-label="Link URL"
+        placeholder={t("placeholder")}
+        aria-label={t("url")}
         className="h-7 w-56 rounded-sm bg-transparent px-2 text-sm outline-none"
       />
-      <MenuButton label="Apply link" icon={Check} onClick={() => onSubmit(url)} />
-      <MenuButton label="Cancel" icon={X} onClick={onCancel} />
+      <MenuButton label={t("apply")} icon={Check} onClick={() => onSubmit(url)} />
+      <MenuButton label={tCommon("cancel")} icon={X} onClick={onCancel} />
     </form>
   );
 }

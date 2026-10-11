@@ -1,6 +1,7 @@
 // src/components/notes/NoteToolbar.tsx
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useEditorState, type Editor } from "@tiptap/react";
 import {
   Bold,
@@ -34,9 +35,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useShortcut } from "@/hooks/useShortcut";
 import { cn } from "@/lib/utils";
+import type messages from "@/i18n/messages/en.json";
+
+type Label = keyof (typeof messages)["notes"]["toolbar"];
 
 interface ToolbarAction {
-  label: string;
+  // Its label in messages (notes.toolbar.<label>)
+  label: Label;
   icon: LucideIcon;
   isActive: (editor: Editor) => boolean;
   run: (editor: Editor) => void;
@@ -45,51 +50,51 @@ interface ToolbarAction {
 // Block types, in the order they are detected: wrappers (quote, code) win
 // over the heading or paragraph inside them
 const BLOCK_TYPES: ToolbarAction[] = [
-  { label: "Code block", icon: SquareCode, isActive: (e) => e.isActive("codeBlock"), run: (e) => e.chain().focus().setCodeBlock().run() },
-  { label: "Quote", icon: Quote, isActive: (e) => e.isActive("blockquote"), run: (e) => e.chain().focus().clearNodes().toggleBlockquote().run() },
-  { label: "Heading 1", icon: Heading1, isActive: (e) => e.isActive("heading", { level: 1 }), run: (e) => e.chain().focus().setHeading({ level: 1 }).run() },
-  { label: "Heading 2", icon: Heading2, isActive: (e) => e.isActive("heading", { level: 2 }), run: (e) => e.chain().focus().setHeading({ level: 2 }).run() },
-  { label: "Heading 3", icon: Heading3, isActive: (e) => e.isActive("heading", { level: 3 }), run: (e) => e.chain().focus().setHeading({ level: 3 }).run() },
-  { label: "Text", icon: Pilcrow, isActive: () => true, run: (e) => e.chain().focus().clearNodes().run() },
+  { label: "codeBlock", icon: SquareCode, isActive: (e) => e.isActive("codeBlock"), run: (e) => e.chain().focus().setCodeBlock().run() },
+  { label: "quote", icon: Quote, isActive: (e) => e.isActive("blockquote"), run: (e) => e.chain().focus().clearNodes().toggleBlockquote().run() },
+  { label: "heading1", icon: Heading1, isActive: (e) => e.isActive("heading", { level: 1 }), run: (e) => e.chain().focus().setHeading({ level: 1 }).run() },
+  { label: "heading2", icon: Heading2, isActive: (e) => e.isActive("heading", { level: 2 }), run: (e) => e.chain().focus().setHeading({ level: 2 }).run() },
+  { label: "heading3", icon: Heading3, isActive: (e) => e.isActive("heading", { level: 3 }), run: (e) => e.chain().focus().setHeading({ level: 3 }).run() },
+  { label: "text", icon: Pilcrow, isActive: () => true, run: (e) => e.chain().focus().clearNodes().run() },
 ];
 
 // Menu order for the block type dropdown
-const BLOCK_MENU = ["Text", "Heading 1", "Heading 2", "Heading 3", "Quote", "Code block"].map(
+const BLOCK_MENU = ["text", "heading1", "heading2", "heading3", "quote", "codeBlock"].map(
   (label) => BLOCK_TYPES.find((b) => b.label === label)!
 );
 
 // Button groups, separated by a divider
 const GROUPS: ToolbarAction[][] = [
   [
-    { label: "Bold", icon: Bold, isActive: (e) => e.isActive("bold"), run: (e) => e.chain().focus().toggleBold().run() },
-    { label: "Italic", icon: Italic, isActive: (e) => e.isActive("italic"), run: (e) => e.chain().focus().toggleItalic().run() },
-    { label: "Underline", icon: Underline, isActive: (e) => e.isActive("underline"), run: (e) => e.chain().focus().toggleUnderline().run() },
-    { label: "Strikethrough", icon: Strikethrough, isActive: (e) => e.isActive("strike"), run: (e) => e.chain().focus().toggleStrike().run() },
-    { label: "Highlight", icon: Highlighter, isActive: (e) => e.isActive("highlight"), run: (e) => e.chain().focus().toggleHighlight().run() },
-    { label: "Inline code", icon: Code, isActive: (e) => e.isActive("code"), run: (e) => e.chain().focus().toggleCode().run() },
+    { label: "bold", icon: Bold, isActive: (e) => e.isActive("bold"), run: (e) => e.chain().focus().toggleBold().run() },
+    { label: "italic", icon: Italic, isActive: (e) => e.isActive("italic"), run: (e) => e.chain().focus().toggleItalic().run() },
+    { label: "underline", icon: Underline, isActive: (e) => e.isActive("underline"), run: (e) => e.chain().focus().toggleUnderline().run() },
+    { label: "strikethrough", icon: Strikethrough, isActive: (e) => e.isActive("strike"), run: (e) => e.chain().focus().toggleStrike().run() },
+    { label: "highlight", icon: Highlighter, isActive: (e) => e.isActive("highlight"), run: (e) => e.chain().focus().toggleHighlight().run() },
+    { label: "inlineCode", icon: Code, isActive: (e) => e.isActive("code"), run: (e) => e.chain().focus().toggleCode().run() },
   ],
   [
-    { label: "Bullet list", icon: List, isActive: (e) => e.isActive("bulletList"), run: (e) => e.chain().focus().toggleBulletList().run() },
-    { label: "Numbered list", icon: ListOrdered, isActive: (e) => e.isActive("orderedList"), run: (e) => e.chain().focus().toggleOrderedList().run() },
-    { label: "Checklist", icon: ListChecks, isActive: (e) => e.isActive("taskList"), run: (e) => e.chain().focus().toggleTaskList().run() },
+    { label: "bulletList", icon: List, isActive: (e) => e.isActive("bulletList"), run: (e) => e.chain().focus().toggleBulletList().run() },
+    { label: "numberedList", icon: ListOrdered, isActive: (e) => e.isActive("orderedList"), run: (e) => e.chain().focus().toggleOrderedList().run() },
+    { label: "checklist", icon: ListChecks, isActive: (e) => e.isActive("taskList"), run: (e) => e.chain().focus().toggleTaskList().run() },
   ],
 ];
 
 const ACTIONS = GROUPS.flat();
 
 // Table operations, available while the cursor is in a table
-const TABLE_ACTIONS: { label: string; run: (editor: Editor) => void; destructive?: boolean }[][] = [
+const TABLE_ACTIONS: { label: Label; run: (editor: Editor) => void; destructive?: boolean }[][] = [
   [
-    { label: "Add row above", run: (e) => e.chain().focus().addRowBefore().run() },
-    { label: "Add row below", run: (e) => e.chain().focus().addRowAfter().run() },
-    { label: "Add column left", run: (e) => e.chain().focus().addColumnBefore().run() },
-    { label: "Add column right", run: (e) => e.chain().focus().addColumnAfter().run() },
+    { label: "addRowAbove", run: (e) => e.chain().focus().addRowBefore().run() },
+    { label: "addRowBelow", run: (e) => e.chain().focus().addRowAfter().run() },
+    { label: "addColumnLeft", run: (e) => e.chain().focus().addColumnBefore().run() },
+    { label: "addColumnRight", run: (e) => e.chain().focus().addColumnAfter().run() },
   ],
-  [{ label: "Toggle header row", run: (e) => e.chain().focus().toggleHeaderRow().run() }],
+  [{ label: "toggleHeaderRow", run: (e) => e.chain().focus().toggleHeaderRow().run() }],
   [
-    { label: "Delete row", run: (e) => e.chain().focus().deleteRow().run(), destructive: true },
-    { label: "Delete column", run: (e) => e.chain().focus().deleteColumn().run(), destructive: true },
-    { label: "Delete table", run: (e) => e.chain().focus().deleteTable().run(), destructive: true },
+    { label: "deleteRow", run: (e) => e.chain().focus().deleteRow().run(), destructive: true },
+    { label: "deleteColumn", run: (e) => e.chain().focus().deleteColumn().run(), destructive: true },
+    { label: "deleteTable", run: (e) => e.chain().focus().deleteTable().run(), destructive: true },
   ],
 ];
 
@@ -105,6 +110,7 @@ interface NoteToolbarProps {
 
 export function NoteToolbar({ editor, onEditLink, onAttach }: NoteToolbarProps) {
   const shortcut = useShortcut();
+  const t = useTranslations("notes.toolbar");
   // Re-render only when something shown here changes, not on every keystroke
   const state = useEditorState({
     editor,
@@ -129,7 +135,7 @@ export function NoteToolbar({ editor, onEditLink, onAttach }: NoteToolbarProps) 
   return (
     <div
       role="toolbar"
-      aria-label="Formatting"
+      aria-label={t("formatting")}
       className={cn(
         "flex items-center gap-0.5",
         // Phones: one line that scrolls sideways, fading out on the right to
@@ -146,11 +152,11 @@ export function NoteToolbar({ editor, onEditLink, onAttach }: NoteToolbarProps) 
             variant="ghost"
             size="sm"
             className="h-8 shrink-0 justify-between sm:w-32"
-            aria-label={`Block type: ${block.label}`}
+            aria-label={t("blockType", { type: t(block.label) })}
           >
             <span className="flex items-center gap-1.5 truncate">
               <block.icon className="w-4 h-4" />
-              {block.label}
+              {t(block.label)}
             </span>
             <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
           </Button>
@@ -163,7 +169,7 @@ export function NoteToolbar({ editor, onEditLink, onAttach }: NoteToolbarProps) 
               className={cn(b.label === block.label && "bg-leaf-soft text-leaf")}
             >
               <b.icon />
-              {b.label}
+              {t(b.label)}
             </DropdownMenuItem>
           ))}
         </DropdownMenuContent>
@@ -177,7 +183,7 @@ export function NoteToolbar({ editor, onEditLink, onAttach }: NoteToolbarProps) 
             return (
               <ToolbarButton
                 key={action.label}
-                label={action.label}
+                label={t(action.label)}
                 icon={action.icon}
                 active={isActive}
                 onClick={() => action.run(editor)}
@@ -189,7 +195,7 @@ export function NoteToolbar({ editor, onEditLink, onAttach }: NoteToolbarProps) 
 
       <Divider />
       <ToolbarButton
-        label={`Link (${shortcut("K")})`}
+        label={t("link", { shortcut: shortcut("K") })}
         icon={Link2}
         active={state.link}
         disabled={!state.canLink}
@@ -205,8 +211,8 @@ export function NoteToolbar({ editor, onEditLink, onAttach }: NoteToolbarProps) 
             variant="ghost"
             size="sm"
             className={cn("h-8 gap-0.5 px-2", state.inTable && activeClass)}
-            aria-label="Table"
-            title="Table"
+            aria-label={t("table")}
+            title={t("table")}
           >
             <Table className="w-4 h-4" />
             <ChevronDown className="w-3 h-3" />
@@ -219,7 +225,7 @@ export function NoteToolbar({ editor, onEditLink, onAttach }: NoteToolbarProps) 
               editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
             }
           >
-            Insert table
+            {t("insertTable")}
           </DropdownMenuItem>
           {TABLE_ACTIONS.map((group, g) => (
             <div key={g}>
@@ -231,7 +237,7 @@ export function NoteToolbar({ editor, onEditLink, onAttach }: NoteToolbarProps) 
                   variant={action.destructive ? "destructive" : "default"}
                   onSelect={() => action.run(editor)}
                 >
-                  {action.label}
+                  {t(action.label)}
                 </DropdownMenuItem>
               ))}
             </div>
@@ -241,7 +247,7 @@ export function NoteToolbar({ editor, onEditLink, onAttach }: NoteToolbarProps) 
       {onAttach && (
         <>
           <Divider />
-          <ToolbarButton label="Attach image or file" icon={Paperclip} onClick={onAttach} />
+          <ToolbarButton label={t("attach")} icon={Paperclip} onClick={onAttach} />
         </>
       )}
     </div>

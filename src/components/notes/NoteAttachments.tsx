@@ -5,6 +5,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { ChevronDown, ChevronRight, FileText, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { attachmentHref, formatBytes, isImage, type NoteAttachment } from "@/lib/attachments";
@@ -17,11 +18,13 @@ interface NoteAttachmentsProps {
 }
 
 export function NoteAttachments({ attachments, uploading, onDelete }: NoteAttachmentsProps) {
+  const t = useTranslations("notes.attachments");
+  const tCommon = useTranslations("common");
   const [open, setOpen] = useState(true);
   if (attachments.length === 0 && uploading === 0) return null;
 
   return (
-    <section aria-label="Attachments" className="mt-8 border-t pt-3">
+    <section aria-label={t("label")} className="mt-8 border-t pt-3">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -29,8 +32,8 @@ export function NoteAttachments({ attachments, uploading, onDelete }: NoteAttach
         aria-expanded={open}
       >
         {open ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
-        Attachments ({attachments.length})
-        {uploading > 0 && <span className="font-normal"> · uploading {uploading}…</span>}
+        {t("title", { count: attachments.length })}
+        {uploading > 0 && <span className="font-normal">{t("uploading", { count: uploading })}</span>}
       </button>
       {open && (
         <ul className="mt-2 space-y-1">
@@ -55,8 +58,8 @@ export function NoteAttachments({ attachments, uploading, onDelete }: NoteAttach
                   size="icon"
                   className="size-8 shrink-0 hover:text-destructive"
                   onClick={() => onDelete(a)}
-                  title="Delete"
-                  aria-label={`Delete ${a.fileName}`}
+                  title={tCommon("delete")}
+                  aria-label={t("delete", { name: a.fileName })}
                 >
                   <Trash2 className="size-4" />
                 </Button>

@@ -22,8 +22,9 @@ export interface Note {
   updatedAt: string;
 }
 
-export const noteTitle = (note: Pick<Note, "title">) =>
-  note.title.trim() || "Untitled";
+// The title, or `untitled` (in the interface language) for a note without one
+export const noteTitle = (note: Pick<Note, "title">, untitled: string) =>
+  note.title.trim() || untitled;
 
 const TEXT_BLOCKS = new Set(["paragraph", "heading", "codeBlock"]);
 
@@ -45,7 +46,8 @@ export function notePreview(note: Pick<Note, "content">): { text: string; file: 
     const file = parts.every((n) => n.marks?.some((m) => m.type === "link" && isAttachmentHref(m.attrs?.href)));
     return { text, file };
   }
-  return { text: "No additional text", file: false };
+  // Nothing but the title: callers show their own "no text" line
+  return { text: "", file: false };
 }
 
 // Pinned first, then most recently edited
@@ -76,10 +78,10 @@ const EDIT_GRACE_MS = 60_000;
 
 // Recent note events, newest first: one "created" per note, plus its latest
 // edit. Derived from createdAt / updatedAt, so deleted notes do not appear.
-export function noteActivity(notes: Note[], limit = 10): NoteActivity[] {
+export function noteActivity(notes: Note[], untitled: string, limit = 10): NoteActivity[] {
   const events: NoteActivity[] = [];
   for (const note of notes) {
-    const title = noteTitle(note);
+    const title = noteTitle(note, untitled);
     events.push({ id: `${note.id}-created`, kind: "created", noteId: note.id, title, at: note.createdAt });
     const editedLater =
       new Date(note.updatedAt).getTime() - new Date(note.createdAt).getTime() > EDIT_GRACE_MS;

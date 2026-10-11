@@ -42,7 +42,13 @@ interface ActivityRow {
 
 // Tasks, notes and events activity of the last 7 days merged, newest first.
 // Each tool has its own tone: tasks leaf, notes bark, events sky.
-function recentActivity(tasks: Task[], notes: Note[], events: CalendarEvent[], t: ActivityT): ActivityRow[] {
+function recentActivity(
+  tasks: Task[],
+  notes: Note[],
+  events: CalendarEvent[],
+  t: ActivityT,
+  untitled: string
+): ActivityRow[] {
   const taskRows = taskActivity(tasks, MAX_ITEMS).map((a) => ({
     id: `task-${a.id}`,
     label: t(a.kind === "completed" ? "completed" : "created", { title: a.title }),
@@ -52,7 +58,7 @@ function recentActivity(tasks: Task[], notes: Note[], events: CalendarEvent[], t
     iconClass: a.kind === "completed" ? "text-leaf" : "text-bark",
     chipClass: "bg-leaf-soft text-leaf",
   }));
-  const noteRows = noteActivity(notes, MAX_ITEMS).map((a) => ({
+  const noteRows = noteActivity(notes, untitled, MAX_ITEMS).map((a) => ({
     id: `note-${a.id}`,
     label: t(a.kind === "edited" ? "editedNote" : "newNote", { title: a.title }),
     at: a.at,
@@ -92,7 +98,8 @@ export function RecentActivityCard({
   loading?: boolean;
 }) {
   const t = useTranslations("dashboard.activity");
-  const activities = recentActivity(tasks, notes, events, t);
+  const tNotes = useTranslations("notes");
+  const activities = recentActivity(tasks, notes, events, t, tNotes("untitled"));
   const format = useFormat();
 
   return (
