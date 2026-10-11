@@ -21,6 +21,7 @@ import {
 import { CalendarDays, CalendarRange, ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { CalendarList } from "@/components/calendar/CalendarList";
 import { DayAgenda } from "@/components/calendar/DayAgenda";
 import { EventDialog, type EditScope } from "@/components/calendar/EventDialog";
 import { EventDetailsDialog } from "@/components/calendar/EventDetailsDialog";
@@ -33,7 +34,6 @@ import { useHolidays } from "@/hooks/useHolidays";
 import { useStoredChoice } from "@/hooks/useStoredChoice";
 import { useJourneyEvents } from "@/hooks/useJourneys";
 import { useSubscriptionEvents, useSubscriptions } from "@/hooks/useSubscriptions";
-import { SUBSCRIPTION_COLORS } from "@/lib/subscriptions";
 import { useFormat, useHolidayCountries } from "@/components/SettingsProvider";
 import { useTasks } from "@/hooks/useTasks";
 import {
@@ -377,36 +377,6 @@ function CalendarPageContent() {
             </div>
           </div>
 
-          {subscriptions.length > 0 && (
-            <div role="group" aria-label="Subscribed calendars" className="flex flex-wrap items-center gap-2 text-xs">
-              {subscriptions.map((sub) => (
-                <button
-                  key={sub.id}
-                  type="button"
-                  onClick={() => updateSubscription(sub.id, { enabled: !sub.enabled })}
-                  aria-pressed={sub.enabled}
-                  title={sub.lastError ? `Last refresh failed: ${sub.lastError}` : undefined}
-                  className={cn(
-                    "flex items-center gap-1.5 rounded-full border px-2.5 py-1 transition-colors",
-                    sub.enabled ? "bg-card" : "text-muted-foreground opacity-60 hover:opacity-100"
-                  )}
-                >
-                  <span
-                    className={cn(
-                      "size-2 rounded-full",
-                      sub.enabled ? SUBSCRIPTION_COLORS[sub.color].dot : "border border-current"
-                    )}
-                  />
-                  {sub.name}
-                  {sub.lastError && <span className="text-destructive">!</span>}
-                </button>
-              ))}
-              <Link href="/settings?section=calendar&focus=calendars" className="text-muted-foreground underline-offset-2 hover:underline">
-                Manage
-              </Link>
-            </div>
-          )}
-
           {guessed && (
             <p className="text-xs text-muted-foreground">
               {countries.length > 0
@@ -446,12 +416,22 @@ function CalendarPageContent() {
           )}
         </div>
 
-        <DayAgenda
-          day={selected}
-          items={items.get(selected) ?? []}
-          onOpen={openItem}
-          onNewEvent={() => openNewEvent()}
-        />
+        {/* The side column on large screens (below the grid on smaller ones):
+            the day's agenda, which scrolls, then the subscribed calendars */}
+        <div className="flex min-h-0 flex-col gap-6">
+          <DayAgenda
+            day={selected}
+            items={items.get(selected) ?? []}
+            onOpen={openItem}
+            onNewEvent={() => openNewEvent()}
+          />
+          {subscriptions.length > 0 && (
+            <CalendarList
+              subscriptions={subscriptions}
+              onToggle={(sub) => updateSubscription(sub.id, { enabled: !sub.enabled })}
+            />
+          )}
+        </div>
       </div>
 
       {/* Follows the pointer while moving an item, with where it would land */}
