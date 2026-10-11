@@ -23,7 +23,6 @@ import {
   isSocialProvider,
   type SocialProviderId,
 } from "@/lib/socialProviders";
-import { formatRelative } from "@/lib/tasks";
 
 // Better Auth client calls resolve to { data, error }; this throws the error
 // so callers can use try/catch
@@ -563,7 +562,7 @@ function SessionsCard({ currentToken }: { currentToken: string }) {
                   </p>
                   {/* A long address wraps rather than running past the card */}
                   <p className="text-xs text-muted-foreground wrap-anywhere">
-                    Active {formatRelative(new Date(s.updatedAt).toISOString(), undefined, format.day)}
+                    Active {format.relative(new Date(s.updatedAt).toISOString())}
                     {s.ipAddress && ` · ${formatIp(s.ipAddress)}`}
                   </p>
                 </div>

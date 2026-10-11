@@ -10,7 +10,6 @@ import { ImportCalendarFile } from "@/components/calendar/CalendarTransferSettin
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useSubscriptions } from "@/hooks/useSubscriptions";
-import { formatRelative } from "@/lib/tasks";
 import { useFormat } from "@/components/SettingsProvider";
 import {
   SUBSCRIPTION_COLOR_KEYS,
@@ -211,7 +210,7 @@ function SubscriptionRow({
         {sub.lastError
           ? `Last refresh failed: ${sub.lastError}. Showing the last copy that worked.`
           : sub.lastFetchedAt
-            ? `Updated ${formatRelative(sub.lastFetchedAt, undefined, format.day)}`
+            ? `Updated ${format.relative(sub.lastFetchedAt)}`
             : "Not fetched yet"}
         {!sub.enabled && " · Hidden on the calendar"}
       </p>

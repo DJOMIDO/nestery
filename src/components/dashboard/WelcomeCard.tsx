@@ -4,6 +4,7 @@
 
 import { CalendarPlus, ClipboardList, NotebookPen, type LucideIcon } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { useTranslations } from "next-intl";
 import { useCurrentUserName } from "@/lib/useCurrentUserName";
 import { NatureGrid } from "@/components/brand/NatureShapes";
 import { AtAGlance } from "./AtAGlance";
@@ -48,20 +49,24 @@ interface WelcomeCardProps {
 // On phones the next event gets its own line ("Next: Algo at 10:00"), and the
 // time never breaks in two.
 function DayDescription({ summary: { events, tasksDue, next } }: { summary: DaySummary }) {
+  const t = useTranslations("dashboard.welcome");
   const counts = [
-    events > 0 && `${events} ${events === 1 ? "event" : "events"}`,
-    tasksDue > 0 && `${tasksDue} ${tasksDue === 1 ? "task" : "tasks"} due`,
+    events > 0 && t("events", { count: events }),
+    tasksDue > 0 && t("tasksDue", { count: tasksDue }),
   ].filter(Boolean);
-  if (counts.length === 0) return <>Nothing planned today. Enjoy the calm.</>;
+  if (counts.length === 0) return <>{t("nothing")}</>;
+  const time = (chunks: React.ReactNode) => <span className="whitespace-nowrap">{chunks}</span>;
   return (
     <>
-      Today: {counts.join(" · ")}
+      {t("today", { counts: counts.join(" · ") })}
       {/* A next event is one of today's, so there's always a count before it */}
       {next && (
         <span className="block sm:inline">
-          <span className="hidden sm:inline"> · next</span>
-          <span className="sm:hidden">Next</span>: {next.title} at{" "}
-          <span className="whitespace-nowrap">{next.time}</span>
+          <span className="hidden sm:inline">
+            {" · "}
+            {t.rich("nextInline", { title: next.title, time: next.time, t: time })}
+          </span>
+          <span className="sm:hidden">{t.rich("nextLine", { title: next.title, time: next.time, t: time })}</span>
         </span>
       )}
     </>
@@ -82,6 +87,7 @@ export function WelcomeCard({
   loading,
   className,
 }: WelcomeCardProps) {
+  const t = useTranslations("dashboard.welcome");
   const name = useCurrentUserName();
 
   return (
@@ -97,7 +103,7 @@ export function WelcomeCard({
           <NatureGrid seed={5} cols={4} rows={2} colors={PATTERN_COLORS} />
         </div>
         <div className="relative px-4 py-6">
-          <h2 className="text-2xl md:text-3xl font-semibold">Hello, {name}!</h2>
+          <h2 className="text-2xl md:text-3xl font-semibold">{t("greeting", { name })}</h2>
           {loading ? (
             <Skeleton className="appear-late mt-2 mb-0.5 h-3.5 w-56 max-w-full bg-white/25" />
           ) : (
@@ -107,9 +113,9 @@ export function WelcomeCard({
           )}
           {/* Quick add, formerly its own card */}
           <div className="mt-3 flex flex-wrap gap-2">
-            <QuickAdd icon={ClipboardList} label="Task" onClick={onAddTask} />
-            <QuickAdd icon={NotebookPen} label="Note" onClick={onAddNote} />
-            <QuickAdd icon={CalendarPlus} label="Event" onClick={onAddEvent} />
+            <QuickAdd icon={ClipboardList} label={t("task")} ariaLabel={t("newTask")} onClick={onAddTask} />
+            <QuickAdd icon={NotebookPen} label={t("note")} ariaLabel={t("newNote")} onClick={onAddNote} />
+            <QuickAdd icon={CalendarPlus} label={t("event")} ariaLabel={t("newEvent")} onClick={onAddEvent} />
           </div>
         </div>
       </div>
@@ -121,12 +127,22 @@ export function WelcomeCard({
   );
 }
 
-function QuickAdd({ icon: Icon, label, onClick }: { icon: LucideIcon; label: string; onClick: () => void }) {
+function QuickAdd({
+  icon: Icon,
+  label,
+  ariaLabel,
+  onClick,
+}: {
+  icon: LucideIcon;
+  label: string;
+  ariaLabel: string;
+  onClick: () => void;
+}) {
   return (
     <button
       type="button"
       onClick={onClick}
-      aria-label={`New ${label.toLowerCase()}`}
+      aria-label={ariaLabel}
       className="flex items-center gap-1.5 rounded-full border border-white/30 bg-white/15 px-3 py-1 text-xs font-medium text-white outline-none transition-colors hover:bg-white/25 focus-visible:ring-2 focus-visible:ring-white/70"
     >
       <Icon className="size-3.5" /> {label}

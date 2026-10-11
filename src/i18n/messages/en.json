@@ -1,6 +1,13 @@
 {
   "common": {
-    "saved": "Saved"
+    "saved": "Saved",
+    "saving": "Saving…",
+    "listSeparator": ", ",
+    "loading": "Loading…",
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "allDay": "All day",
+    "pinned": "Pinned"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -31,11 +38,26 @@
     "sectionsLabel": "Settings sections",
     "allSettings": "All settings",
     "sections": {
-      "account": { "label": "Account", "description": "Profile, password, sign-in, devices" },
-      "assistant": { "label": "Assistant", "description": "AI model and your API key" },
-      "languageTime": { "label": "Language & time", "description": "Language, date format, 12/24-hour time, week start" },
-      "calendar": { "label": "Calendar", "description": "Holidays, other calendars, sharing" },
-      "weather": { "label": "Weather", "description": "Place for the dashboard's weather" }
+      "account": {
+        "label": "Account",
+        "description": "Profile, password, sign-in, devices"
+      },
+      "assistant": {
+        "label": "Assistant",
+        "description": "AI model and your API key"
+      },
+      "languageTime": {
+        "label": "Language & time",
+        "description": "Language, date format, 12/24-hour time, week start"
+      },
+      "calendar": {
+        "label": "Calendar",
+        "description": "Holidays, other calendars, sharing"
+      },
+      "weather": {
+        "label": "Weather",
+        "description": "Place for the dashboard's weather"
+      }
     },
     "languageTime": {
       "title": "Language & time",
@@ -51,6 +73,173 @@
       "weekStart": "Week starts on",
       "monday": "Monday",
       "sunday": "Sunday"
+    }
+  },
+  "assistant": {
+    "title": "Assistant",
+    "newChat": "New chat",
+    "narrower": "Narrower",
+    "wider": "Wider",
+    "makeNarrower": "Make narrower",
+    "makeWider": "Make wider",
+    "close": "Close",
+    "closeHint": "Close (Esc)",
+    "needsModel": "The assistant needs an AI model to talk to.",
+    "addKey": "Add your own API key in <link>Settings › Assistant</link>.",
+    "intro": "Ask about your tasks, calendar, notes or the weather. I can also prepare tasks and events for you to confirm.",
+    "tryAsking": "Try asking",
+    "examples": {
+      "tasks": "What's left on my list this week?",
+      "calendar": "What's on my calendar tomorrow?",
+      "weather": "Will it rain this weekend?",
+      "notes": "What's in my notes?",
+      "trip": "When's my next trip?"
+    },
+    "onlyImages": "Only images can be attached.",
+    "maxImages": "Attach at most {count} images per message.",
+    "thinking": "Thinking",
+    "interrupted": "The reply was interrupted.",
+    "imageToSend": "Image to send",
+    "attachedImage": "Attached image",
+    "removeImage": "Remove image",
+    "attachImage": "Attach an image",
+    "attachImageHint": "Attach an image (or paste / drop one)",
+    "placeholder": "Ask anything…",
+    "message": "Message",
+    "stop": "Stop",
+    "send": "Send",
+    "sendHint": "Send (Enter)",
+    "usage": "{used} / {limit} messages today"
+  },
+  "tasks": {
+    "status": {
+      "todo": "To do",
+      "in_progress": "In progress",
+      "waiting": "Waiting",
+      "done": "Done"
+    }
+  },
+  "proposal": {
+    "newTask": "New task “{title}”",
+    "newTaskDue": "New task “{title}”, due {date}",
+    "rename": "rename to “{title}”",
+    "markStatus": "mark {status}",
+    "priority": "{priority, select, high {high priority} medium {medium priority} other {low priority}}",
+    "due": "due {date}",
+    "noDue": "no due date",
+    "taskChanges": "Task “{title}”: {changes}",
+    "arrives": " (arrives {date})",
+    "seat": "seat {seat}",
+    "newEvent": "New event “{title}”, {when}",
+    "taskUpdated": "Task updated",
+    "addedToTravel": "Added to Travel",
+    "dismiss": "Dismiss",
+    "confirm": "Confirm",
+    "dismissed": "Dismissed"
+  },
+  "weather": {
+    "codes": {
+      "0": "Clear sky",
+      "1": "Mainly clear",
+      "2": "Partly cloudy",
+      "3": "Overcast",
+      "45": "Fog",
+      "48": "Rime fog",
+      "51": "Light drizzle",
+      "53": "Drizzle",
+      "55": "Dense drizzle",
+      "56": "Freezing drizzle",
+      "57": "Dense freezing drizzle",
+      "61": "Light rain",
+      "63": "Rain",
+      "65": "Heavy rain",
+      "66": "Freezing rain",
+      "67": "Heavy freezing rain",
+      "71": "Light snow",
+      "73": "Snow",
+      "75": "Heavy snow",
+      "77": "Snow grains",
+      "80": "Light showers",
+      "81": "Showers",
+      "82": "Heavy showers",
+      "85": "Snow showers",
+      "86": "Heavy snow showers",
+      "95": "Thunderstorm",
+      "96": "Thunderstorm with hail",
+      "99": "Thunderstorm with heavy hail",
+      "unknown": "Unknown"
+    }
+  },
+  "dashboard": {
+    "welcome": {
+      "greeting": "Hello, {name}!",
+      "today": "Today: {counts}",
+      "events": "{count, plural, one {# event} other {# events}}",
+      "tasksDue": "{count, plural, one {# task} other {# tasks}} due",
+      "nothing": "Nothing planned today. Enjoy the calm.",
+      "nextInline": "next: {title} at <t>{time}</t>",
+      "nextLine": "Next: {title} at <t>{time}</t>",
+      "task": "Task",
+      "note": "Note",
+      "event": "Event",
+      "newTask": "New task",
+      "newNote": "New note",
+      "newEvent": "New event"
+    },
+    "glance": {
+      "title": "At a glance",
+      "open": "open",
+      "overdue": "overdue",
+      "dueSoon": "due in 7 days",
+      "notes": "{count, plural, one {note} other {notes}}",
+      "pinned": "pinned",
+      "editedRecently": "edited in 7 days",
+      "events": "{count, plural, one {event} other {events}} in 7 days",
+      "trips": "{count, plural, one {trip ahead} other {trips ahead}}",
+      "next": "Next:",
+      "tags": "Tags on open tasks"
+    },
+    "today": {
+      "title": "Today",
+      "open": "Open calendar",
+      "weather": "{conditions} in {place}, {high}° / {low}° today",
+      "moreEvents": "+{count} more {count, plural, one {event} other {events}}",
+      "tasksDue": "{count, plural, one {# task} other {# tasks}} due today",
+      "nothing": "Nothing planned today.",
+      "wet": "{kind, select, snow {Snow likely} storm {Storms likely} other {Rain likely}} {when, select, now {now} other {from {time}}}",
+      "choosePlace": "Choose a place to see the weather",
+      "loading": "Loading today"
+    },
+    "reminders": {
+      "title": "Reminders",
+      "due": "DUE",
+      "departs": "Departs {time}",
+      "moreToday": "+{count} more today",
+      "allDone": "All reminders completed.",
+      "loading": "Loading reminders"
+    },
+    "upNext": {
+      "title": "Up next",
+      "links": "Links",
+      "overdue": "Overdue",
+      "nothing": "Nothing planned for the next 7 days.",
+      "loading": "Loading the week ahead"
+    },
+    "recentNotes": {
+      "title": "Recent notes",
+      "empty": "No notes yet. <link>Write one</link>",
+      "loading": "Loading notes"
+    },
+    "activity": {
+      "title": "Recent activity",
+      "completed": "Completed “{title}”",
+      "created": "Created “{title}”",
+      "editedNote": "Edited note “{title}”",
+      "newNote": "New note “{title}”",
+      "editedEvent": "Edited event “{title}”",
+      "addedEvent": "Added event “{title}”",
+      "nothing": "Nothing in the last {days} days.",
+      "loading": "Loading activity"
     }
   }
 }

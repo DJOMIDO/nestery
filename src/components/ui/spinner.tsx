@@ -1,4 +1,7 @@
+"use client"
+
 import { LoaderCircle } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 import { cn } from "@/lib/utils"
 
@@ -15,14 +18,15 @@ function Spinner({ className }: { className?: string }) {
 
 // "Loading…" with a spinner, for a section waiting on its data. It shows only
 // if loading takes a moment, so quick loads don't flash.
-function Loading({ label = "Loading", className }: { label?: string; className?: string }) {
+function Loading({ label, className }: { label?: string; className?: string }) {
+  const t = useTranslations("common")
   return (
     <p
       role="status"
       className={cn("appear-late flex items-center gap-2 text-sm text-muted-foreground", className)}
     >
       <Spinner />
-      {label}…
+      {label ?? t("loading")}
     </p>
   )
 }

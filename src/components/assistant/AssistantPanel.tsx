@@ -23,6 +23,7 @@ import {
   X,
   type LucideIcon,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
@@ -59,13 +60,14 @@ type ChatItem =
 // Models often send blank lines around their text (e.g. after thinking)
 const tidy = (text: string) => text.replace(/^\s+|\s+$/g, "").replace(/\n{3,}/g, "\n\n");
 
-// One per tool, with that tool's icon
-const EXAMPLES: { text: string; icon: LucideIcon }[] = [
-  { text: "What's left on my list this week?", icon: ListTodo },
-  { text: "What's on my calendar tomorrow?", icon: CalendarDays },
-  { text: "Will it rain this weekend?", icon: CloudSun },
-  { text: "What's in my notes?", icon: NotebookPen },
-  { text: "When's my next trip?", icon: Plane },
+// One per tool, with that tool's icon; the text is in messages
+// (assistant.examples.<key>), so it's asked in the user's language
+const EXAMPLES: { key: "tasks" | "calendar" | "weather" | "notes" | "trip"; icon: LucideIcon }[] = [
+  { key: "tasks", icon: ListTodo },
+  { key: "calendar", icon: CalendarDays },
+  { key: "weather", icon: CloudSun },
+  { key: "notes", icon: NotebookPen },
+  { key: "trip", icon: Plane },
 ];
 
 export function AssistantPanel({
@@ -77,6 +79,7 @@ export function AssistantPanel({
   draft: AssistantDraft | null;
   onClose: () => void;
 }) {
+  const t = useTranslations("assistant");
   const [status, setStatus] = useState<AssistantStatus | null>(null);
   const [items, setItems] = useState<ChatItem[]>([]);
   // The provider's transcript, sent back with each message
@@ -183,11 +186,11 @@ export function AssistantPanel({
   const attach = async (files: File[]) => {
     const images = files.filter(isAttachableImage);
     if (files.length > 0 && images.length === 0) {
-      toast.error("Only images can be attached.");
+      toast.error(t("onlyImages"));
       return;
     }
     const room = MAX_IMAGES - attachments.length;
-    if (images.length > room) toast.error(`Attach at most ${MAX_IMAGES} images per message.`);
+    if (images.length > room) toast.error(t("maxImages", { count: MAX_IMAGES }));
     for (const file of images.slice(0, Math.max(0, room))) {
       try {
         const prepared = await prepareImage(file);
@@ -213,7 +216,7 @@ export function AssistantPanel({
     setItems((prev) => [
       ...prev,
       { role: "user", text: message, images: sentImages.map((a) => a.preview) },
-      { role: "assistant", text: "", status: "Thinking", proposals: [], error: null, done: false, afterTool: false },
+      { role: "assistant", text: "", status: t("thinking"), proposals: [], error: null, done: false, afterTool: false },
     ]);
 
     const controller = new AbortController();
@@ -257,7 +260,7 @@ export function AssistantPanel({
       // the next message instead
       if (!finished) {
         setNotes((prev) => [...sentNotes, ...prev]);
-        if (!failed && !controller.signal.aborted) updateLast(() => ({ error: "The reply was interrupted." }));
+        if (!failed && !controller.signal.aborted) updateLast(() => ({ error: t("interrupted") }));
       }
       updateLast(() => ({ status: null }));
       abortRef.current = null;
@@ -294,7 +297,7 @@ export function AssistantPanel({
 
   return (
     <aside
-      aria-label="Assistant"
+      aria-label={t("title")}
       aria-hidden={!open}
       inert={!open}
       className={cn(
@@ -329,7 +332,7 @@ export function AssistantPanel({
       <header className="flex items-center gap-2 px-4 py-3">
         <Sparkles className="size-4 text-leaf" />
         <div className="min-w-0 flex-1">
-          <h2 className="font-semibold leading-tight">Assistant</h2>
+          <h2 className="font-semibold leading-tight">{t("title")}</h2>
           {status?.model && <p className="truncate text-xs text-muted-foreground">{status.model}</p>}
         </div>
         <Button
@@ -337,58 +340,59 @@ export function AssistantPanel({
           size="icon"
           onClick={reset}
           disabled={items.length === 0 && !input && attachments.length === 0}
-          title="New chat"
+          title={t("newChat")}
         >
           <RotateCcw className="size-4" />
-          <span className="sr-only">New chat</span>
+          <span className="sr-only">{t("newChat")}</span>
         </Button>
         <Button
           variant="ghost"
           size="icon"
           className="hidden sm:inline-flex"
           onClick={() => setWidth(wide ? "normal" : "wide")}
-          title={wide ? "Narrower" : "Wider"}
+          title={wide ? t("narrower") : t("wider")}
         >
           {wide ? <Minimize2 className="size-4" /> : <Maximize2 className="size-4" />}
-          <span className="sr-only">{wide ? "Make narrower" : "Make wider"}</span>
+          <span className="sr-only">{wide ? t("makeNarrower") : t("makeWider")}</span>
         </Button>
-        <Button variant="ghost" size="icon" onClick={onClose} title="Close (Esc)">
+        <Button variant="ghost" size="icon" onClick={onClose} title={t("closeHint")}>
           <X className="size-4" />
-          <span className="sr-only">Close</span>
+          <span className="sr-only">{t("close")}</span>
         </Button>
       </header>
 
       <div ref={listRef} className="flex-1 overflow-y-auto px-4 py-4" aria-live="polite">
         {status && !status.available ? (
           <div className="space-y-2 text-sm text-muted-foreground">
-            <p>The assistant needs an AI model to talk to.</p>
+            <p>{t("needsModel")}</p>
             <p>
-              Add your own API key in{" "}
-              <Link href="/settings?section=assistant" onClick={onClose} className="text-leaf underline">
-                Settings › Assistant
-              </Link>
-              .
+              {t.rich("addKey", {
+                link: (chunks) => (
+                  <Link href="/settings?section=assistant" onClick={onClose} className="text-leaf underline">
+                    {chunks}
+                  </Link>
+                ),
+              })}
             </p>
           </div>
         ) : items.length === 0 ? (
           <div className="space-y-6">
             <p className="text-base leading-relaxed text-muted-foreground">
-              Ask about your tasks, calendar, notes or the weather. I can also prepare tasks and events for you to
-              confirm.
+              {t("intro")}
             </p>
             <div>
-              <p className="mb-1 px-2 text-xs font-medium text-muted-foreground">Try asking</p>
+              <p className="mb-1 px-2 text-xs font-medium text-muted-foreground">{t("tryAsking")}</p>
               <ul>
-                {EXAMPLES.map(({ text, icon: Icon }) => (
-                  <li key={text}>
+                {EXAMPLES.map(({ key, icon: Icon }) => (
+                  <li key={key}>
                     <button
                       type="button"
-                      onClick={() => send(text)}
+                      onClick={() => send(t(`examples.${key}`))}
                       disabled={!status?.available}
                       className="flex w-full items-center gap-3 rounded-md px-2 py-2 text-left text-sm transition-colors hover:bg-foreground/5 disabled:opacity-50"
                     >
                       <Icon className="size-4 shrink-0 text-leaf" />
-                      {text}
+                      {t(`examples.${key}`)}
                     </button>
                   </li>
                 ))}
@@ -404,7 +408,7 @@ export function AssistantPanel({
                   <div className="flex flex-wrap justify-end gap-1.5">
                     {item.images.map((src, n) => (
                       // eslint-disable-next-line @next/next/no-img-element -- a local data URL
-                      <img key={n} src={src} alt="Attached image" className="h-20 max-w-40 rounded-md border object-cover" />
+                      <img key={n} src={src} alt={t("attachedImage")} className="h-20 max-w-40 rounded-md border object-cover" />
                     ))}
                   </div>
                 )}
@@ -454,12 +458,12 @@ export function AssistantPanel({
             {attachments.map((a) => (
               <div key={a.id} className="relative">
                 {/* eslint-disable-next-line @next/next/no-img-element -- a local data URL */}
-                <img src={a.preview} alt="Image to send" className="size-14 rounded-md border object-cover" />
+                <img src={a.preview} alt={t("imageToSend")} className="size-14 rounded-md border object-cover" />
                 <button
                   type="button"
                   onClick={() => setAttachments((prev) => prev.filter((x) => x.id !== a.id))}
                   className="absolute -right-1.5 -top-1.5 flex size-5 items-center justify-center rounded-full border bg-background text-muted-foreground shadow-sm hover:text-foreground"
-                  aria-label="Remove image"
+                  aria-label={t("removeImage")}
                 >
                   <X className="size-3" />
                 </button>
@@ -486,10 +490,10 @@ export function AssistantPanel({
             variant="ghost"
             onClick={() => fileRef.current?.click()}
             disabled={!status?.available || busy || attachments.length >= MAX_IMAGES}
-            title="Attach an image (or paste / drop one)"
+            title={t("attachImageHint")}
           >
             <Paperclip className="size-4" />
-            <span className="sr-only">Attach an image</span>
+            <span className="sr-only">{t("attachImage")}</span>
           </Button>
           <textarea
             ref={inputRef}
@@ -512,31 +516,31 @@ export function AssistantPanel({
             }}
             rows={1}
             maxLength={4000}
-            placeholder="Ask anything…"
-            aria-label="Message"
+            placeholder={t("placeholder")}
+            aria-label={t("message")}
             disabled={!status?.available}
             className="max-h-40 min-h-9 flex-1 resize-none bg-transparent px-2 py-2 text-sm leading-5 outline-none [field-sizing:content] disabled:opacity-50"
           />
           {busy ? (
-            <Button type="button" size="icon" variant="outline" onClick={() => abortRef.current?.abort()} title="Stop">
+            <Button type="button" size="icon" variant="outline" onClick={() => abortRef.current?.abort()} title={t("stop")}>
               <Square className="size-3.5" />
-              <span className="sr-only">Stop</span>
+              <span className="sr-only">{t("stop")}</span>
             </Button>
           ) : (
             <Button
               type="submit"
               size="icon"
               disabled={(!input.trim() && attachments.length === 0) || !status?.available}
-              title="Send (Enter)"
+              title={t("sendHint")}
             >
               <ArrowUp className="size-4" />
-              <span className="sr-only">Send</span>
+              <span className="sr-only">{t("send")}</span>
             </Button>
           )}
         </div>
         {status?.source === "server" && (
           <p className="mt-1.5 text-right text-[11px] text-muted-foreground">
-            {status.usedToday} / {status.dailyLimit} messages today
+            {t("usage", { used: status.usedToday, limit: status.dailyLimit })}
           </p>
         )}
       </form>

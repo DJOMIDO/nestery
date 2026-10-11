@@ -49,6 +49,8 @@ const toDate = (d: DateInput) =>
 // `locale`: the interface language, for a dateLocale that follows it
 export function createFormatter({ dateLocale: chosen, hourCycle, weekStart }: DateTimePrefs, locale: Locale) {
   const dateLocale = chosen ?? DATE_LOCALE_OF[locale];
+  // Words like "yesterday" are interface text, so in the interface language
+  const relativeFormat = new Intl.RelativeTimeFormat(locale, { numeric: "auto" });
   const date = (d: DateInput, options: Intl.DateTimeFormatOptions) =>
     toDate(d).toLocaleDateString(dateLocale, options);
   const timeOptions: Intl.DateTimeFormatOptions = {
@@ -75,6 +77,16 @@ export function createFormatter({ dateLocale: chosen, hourCycle, weekStart }: Da
     // Sep 28, 2:30 PM
     dayTime: (d: DateInput) =>
       toDate(d).toLocaleString(dateLocale, { month: "short", day: "numeric", ...timeOptions }),
+    // "now", "5 minutes ago", "yesterday", "3 days ago", then the date
+    relative: (iso: string, now = new Date()) => {
+      const seconds = Math.round((new Date(iso).getTime() - now.getTime()) / 1000);
+      const abs = Math.abs(seconds);
+      if (abs < 60) return relativeFormat.format(0, "second");
+      if (abs < 3600) return relativeFormat.format(Math.round(seconds / 60), "minute");
+      if (abs < 86400) return relativeFormat.format(Math.round(seconds / 3600), "hour");
+      if (abs < 7 * 86400) return relativeFormat.format(Math.round(seconds / 86400), "day");
+      return date(iso, { month: "short", day: "numeric" });
+    },
     weekStart,
     // Column headers for a week, starting on the configured day
     weekdayNames: (style: "short" | "narrow") =>

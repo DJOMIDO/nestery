@@ -15,15 +15,10 @@ import { useWeather } from "@/hooks/useWeather";
 import { useFormat, useHolidayCountries } from "@/components/SettingsProvider";
 import { eventDays, eventKey, type CalendarEvent } from "@/lib/calendar";
 import { toDateKey, type Task } from "@/lib/tasks";
-import { weatherLabel, type TodayWeather } from "@/lib/weather";
+import { useWeatherLabel } from "@/components/weather/useWeatherLabel";
+import { useTranslations } from "next-intl";
 
 const MAX_EVENTS = 3;
-
-const WET_LABELS: Record<NonNullable<TodayWeather["wetKind"]>, string> = {
-  rain: "Rain likely",
-  snow: "Snow likely",
-  storm: "Storms likely",
-};
 
 // Today's date and weather, events and tasks due, and the next public holiday
 export function TodayCard({
@@ -36,6 +31,9 @@ export function TodayCard({
   // Tasks and events still on their way
   loading?: boolean;
 }) {
+  const t = useTranslations("dashboard.today");
+  const tCommon = useTranslations("common");
+  const weatherLabel = useWeatherLabel();
   const format = useFormat();
   const now = new Date();
   const today = toDateKey(now);
@@ -64,15 +62,20 @@ export function TodayCard({
   return (
     <Card className="w-full h-full rounded-lg bg-card">
       <CardContent className="p-4">
-        <Link href="/calendar" className="block" aria-label="Open calendar">
+        <Link href="/calendar" className="block" aria-label={t("open")}>
           <CardHeading
-            title="Today"
+            title={t("title")}
             icon={CalendarDays}
             aside={
               weather && (
                 <span
                   className="flex min-w-0 items-center gap-1.5 text-sm"
-                  title={`${weatherLabel(weather.current.code)} in ${weather.place}, ${weather.high}° / ${weather.low}° today`}
+                  title={t("weather", {
+                    conditions: weatherLabel(weather.current.code),
+                    place: weather.place,
+                    high: weather.high,
+                    low: weather.low,
+                  })}
                 >
                   <WeatherIcon code={weather.current.code} isDay={weather.current.isDay} className="size-4 shrink-0 text-leaf" />
                   <span className="font-semibold">{weather.current.temperature}°</span>
@@ -93,7 +96,7 @@ export function TodayCard({
           </div>
 
           {loading ? (
-            <div role="status" aria-label="Loading today" className="appear-late flex-1 min-w-0 space-y-2.5 pt-1">
+            <div role="status" aria-label={t("loading")} className="appear-late flex-1 min-w-0 space-y-2.5 pt-1">
               <Skeleton className="h-3.5 w-3/4" />
               <Skeleton className="h-3.5 w-1/2" />
               <Skeleton className="h-3 w-2/5" />
@@ -107,7 +110,7 @@ export function TodayCard({
                   <li key={eventKey(event)} className="flex items-center gap-2 min-w-0">
                     <Icon className="size-3.5 shrink-0 text-leaf" />
                     <span className="shrink-0 text-xs text-muted-foreground">
-                      {event.allDay || eventDays(event).first !== today ? "All day" : format.time(event.startsAt!)}
+                      {event.allDay || eventDays(event).first !== today ? tCommon("allDay") : format.time(event.startsAt!)}
                     </span>
                     <span className="truncate">{event.title}</span>
                   </li>
@@ -115,26 +118,29 @@ export function TodayCard({
               })}
               {todaysEvents.length > MAX_EVENTS && (
                 <li className="text-xs text-muted-foreground">
-                  +{todaysEvents.length - MAX_EVENTS} more events
+                  {t("moreEvents", { count: todaysEvents.length - MAX_EVENTS })}
                 </li>
               )}
               {dueToday > 0 && (
                 <li>
                   <Link href="/tasks" className="flex items-center gap-2 hover:underline">
                     <CircleCheck className="size-3.5 shrink-0 text-leaf" />
-                    {dueToday} {dueToday === 1 ? "task" : "tasks"} due today
+                    {t("tasksDue", { count: dueToday })}
                   </Link>
                 </li>
               )}
               {todaysEvents.length === 0 && dueToday === 0 && (
-                <li className="text-muted-foreground">Nothing planned today.</li>
+                <li className="text-muted-foreground">{t("nothing")}</li>
               )}
               {weather?.wetFrom && (
                 <li className="flex items-center gap-2 min-w-0">
                   <Umbrella className="size-3.5 shrink-0 text-leaf" />
                   <span className="truncate">
-                    {WET_LABELS[weather.wetKind ?? "rain"]}{" "}
-                    {weather.wetFrom.slice(0, 13) <= currentHour ? "now" : `from ${format.time(weather.wetFrom)}`}
+                    {t("wet", {
+                      kind: weather.wetKind ?? "rain",
+                      when: weather.wetFrom.slice(0, 13) <= currentHour ? "now" : "later",
+                      time: format.time(weather.wetFrom),
+                    })}
                   </span>
                 </li>
               )}
@@ -144,7 +150,7 @@ export function TodayCard({
                     href="/settings?section=weather"
                     className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground hover:underline"
                   >
-                    <CloudSun className="size-3.5 shrink-0" /> Choose a place to see the weather
+                    <CloudSun className="size-3.5 shrink-0" /> {t("choosePlace")}
                   </Link>
                 </li>
               )}
@@ -152,7 +158,7 @@ export function TodayCard({
                 <li className="flex items-center gap-2 min-w-0 pt-1 text-xs text-muted-foreground">
                   <PartyPopper className="size-3.5 shrink-0 text-bark" />
                   <span className="truncate">
-                    {nextHoliday.date === today ? "Today" : format.day(nextHoliday.date)} ·{" "}
+                    {nextHoliday.date === today ? tCommon("today") : format.day(nextHoliday.date)} ·{" "}
                     {nextHoliday.localName} ({nextHoliday.countryCode})
                   </span>
                 </li>

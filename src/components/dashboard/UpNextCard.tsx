@@ -11,6 +11,7 @@ import { CalendarRow, eventWhen } from "@/components/calendar/CalendarItemView";
 import { EventLinkList, linkedEvents } from "@/components/calendar/EventLinkList";
 import { useFormat, useHolidayCountries } from "@/components/SettingsProvider";
 import { ListSkeleton } from "@/components/ui/skeleton";
+import { useTranslations } from "next-intl";
 import { useHolidays } from "@/hooks/useHolidays";
 import { itemsByDay, type CalendarEvent, type CalendarItem } from "@/lib/calendar";
 import { addDays, compareTasks, toDateKey, type Task } from "@/lib/tasks";
@@ -33,6 +34,8 @@ const hrefOf = (item: CalendarItem) =>
 // The next 7 days as one agenda: events, task due dates and holidays by day,
 // with overdue tasks first. Reminders have their own card.
 export function UpNextCard({ tasks, events, today, loading }: UpNextProps) {
+  const t = useTranslations("dashboard.upNext");
+  const tCommon = useTranslations("common");
   const format = useFormat();
   const days = useMemo(() => Array.from({ length: DAYS }, (_, i) => addDays(today, i)), [today]);
 
@@ -44,7 +47,7 @@ export function UpNextCard({ tasks, events, today, loading }: UpNextProps) {
   const overdue = tasks.filter((t) => t.status !== "done" && t.dueDate && t.dueDate < today).sort(compareTasks);
 
   const dayLabel = (day: string) =>
-    day === today ? "Today" : day === addDays(today, 1) ? "Tomorrow" : format.dayWithWeekday(day);
+    day === today ? tCommon("today") : day === addDays(today, 1) ? tCommon("tomorrow") : format.dayWithWeekday(day);
 
   const sections = days
     .map((day) => ({
@@ -61,12 +64,12 @@ export function UpNextCard({ tasks, events, today, loading }: UpNextProps) {
   );
   const linkWhen = (event: CalendarEvent) => {
     const day = event.allDay ? event.startDate! : toDateKey(new Date(event.startsAt!));
-    return `${day < today ? "Today" : dayLabel(day)} · ${eventWhen(event, format)}`;
+    return `${day < today ? tCommon("today") : dayLabel(day)} · ${eventWhen(event, format)}`;
   };
   const linksSection = linked.length > 0 && (
     <section>
       <h3 className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
-        <Link2 className="size-3.5" /> Links
+        <Link2 className="size-3.5" /> {t("links")}
       </h3>
       <EventLinkList items={linked} whenOf={linkWhen} />
     </section>
@@ -75,18 +78,18 @@ export function UpNextCard({ tasks, events, today, loading }: UpNextProps) {
   return (
     <Card className="w-full h-full rounded-lg bg-card">
       <CardContent className="p-4 flex flex-col min-h-0 flex-1">
-        <CardHeading title="Up next" icon={CalendarRange} />
+        <CardHeading title={t("title")} icon={CalendarRange} />
 
         {/* -mx-1 px-1 makes room for the lists' -mx-1, so they don't scroll sideways */}
         <div className="-mx-1 min-h-0 flex-1 space-y-4 overflow-y-auto px-1">
           {loading ? (
-            <ListSkeleton label="Loading the week ahead" icon rows={4} rowClassName="px-1 py-1.5" />
+            <ListSkeleton label={t("loading")} icon rows={4} rowClassName="px-1 py-1.5" />
           ) : (
             <>
               {overdue.length > 0 && (
                 <section>
                   <h3 className="mb-1 flex items-center gap-1.5 text-xs font-semibold text-rose-600">
-                    <AlarmClock className="size-3.5" /> Overdue
+                    <AlarmClock className="size-3.5" /> {t("overdue")}
                   </h3>
                   <ul className="-mx-1">
                     {overdue.map((task) => (
@@ -131,7 +134,7 @@ export function UpNextCard({ tasks, events, today, loading }: UpNextProps) {
               ))}
 
               {overdue.length === 0 && sections.length === 0 && (
-                <p className="text-sm text-muted-foreground">Nothing planned for the next 7 days.</p>
+                <p className="text-sm text-muted-foreground">{t("nothing")}</p>
               )}
             </>
           )}

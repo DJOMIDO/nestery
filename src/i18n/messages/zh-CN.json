@@ -1,6 +1,13 @@
 {
   "common": {
-    "saved": "已保存"
+    "saved": "已保存",
+    "saving": "保存中…",
+    "listSeparator": "，",
+    "loading": "加载中…",
+    "today": "今天",
+    "tomorrow": "明天",
+    "allDay": "全天",
+    "pinned": "已置顶"
   },
   "nav": {
     "dashboard": "主页",
@@ -31,11 +38,26 @@
     "sectionsLabel": "设置分类",
     "allSettings": "全部设置",
     "sections": {
-      "account": { "label": "账户", "description": "个人资料、密码、登录方式、设备" },
-      "assistant": { "label": "助手", "description": "AI 模型与你的 API 密钥" },
-      "languageTime": { "label": "语言与时间", "description": "语言、日期格式、12/24 小时制、每周起始日" },
-      "calendar": { "label": "日历", "description": "节假日、其他日历、共享" },
-      "weather": { "label": "天气", "description": "主页天气显示的地点" }
+      "account": {
+        "label": "账户",
+        "description": "个人资料、密码、登录方式、设备"
+      },
+      "assistant": {
+        "label": "助手",
+        "description": "AI 模型与你的 API 密钥"
+      },
+      "languageTime": {
+        "label": "语言与时间",
+        "description": "语言、日期格式、12/24 小时制、每周起始日"
+      },
+      "calendar": {
+        "label": "日历",
+        "description": "节假日、其他日历、共享"
+      },
+      "weather": {
+        "label": "天气",
+        "description": "主页天气显示的地点"
+      }
     },
     "languageTime": {
       "title": "语言与时间",
@@ -51,6 +73,173 @@
       "weekStart": "每周第一天",
       "monday": "星期一",
       "sunday": "星期日"
+    }
+  },
+  "assistant": {
+    "title": "助手",
+    "newChat": "新对话",
+    "narrower": "变窄",
+    "wider": "变宽",
+    "makeNarrower": "收窄面板",
+    "makeWider": "加宽面板",
+    "close": "关闭",
+    "closeHint": "关闭（Esc）",
+    "needsModel": "助手需要连接一个 AI 模型才能对话。",
+    "addKey": "请在<link>设置 › 助手</link>中添加你自己的 API 密钥。",
+    "intro": "你可以问我任务、日历、笔记或天气相关的问题。我也可以帮你准备任务和日程，由你确认后添加。",
+    "tryAsking": "试着问问",
+    "examples": {
+      "tasks": "这周我还有哪些事要做？",
+      "calendar": "明天的日历上有什么？",
+      "weather": "这个周末会下雨吗？",
+      "notes": "我的笔记里都有什么？",
+      "trip": "我的下一次出行是什么时候？"
+    },
+    "onlyImages": "只能附加图片。",
+    "maxImages": "每条消息最多附加 {count} 张图片。",
+    "thinking": "思考中",
+    "interrupted": "回复被中断了。",
+    "imageToSend": "待发送的图片",
+    "attachedImage": "附加的图片",
+    "removeImage": "移除图片",
+    "attachImage": "附加图片",
+    "attachImageHint": "附加图片（也可以粘贴或拖入）",
+    "placeholder": "想问什么都可以…",
+    "message": "消息",
+    "stop": "停止",
+    "send": "发送",
+    "sendHint": "发送（Enter）",
+    "usage": "今天已用 {used} / {limit} 条消息"
+  },
+  "tasks": {
+    "status": {
+      "todo": "待办",
+      "in_progress": "进行中",
+      "waiting": "等待中",
+      "done": "已完成"
+    }
+  },
+  "proposal": {
+    "newTask": "新任务“{title}”",
+    "newTaskDue": "新任务“{title}”，截止 {date}",
+    "rename": "重命名为“{title}”",
+    "markStatus": "标记为“{status}”",
+    "priority": "{priority, select, high {高优先级} medium {中优先级} other {低优先级}}",
+    "due": "截止 {date}",
+    "noDue": "无截止日期",
+    "taskChanges": "任务“{title}”：{changes}",
+    "arrives": "（{date} 到达）",
+    "seat": "座位 {seat}",
+    "newEvent": "新日程“{title}”，{when}",
+    "taskUpdated": "任务已更新",
+    "addedToTravel": "已添加到出行",
+    "dismiss": "忽略",
+    "confirm": "确认",
+    "dismissed": "已忽略"
+  },
+  "weather": {
+    "codes": {
+      "0": "晴",
+      "1": "大部晴朗",
+      "2": "局部多云",
+      "3": "阴",
+      "45": "雾",
+      "48": "雾凇",
+      "51": "小毛毛雨",
+      "53": "毛毛雨",
+      "55": "浓毛毛雨",
+      "56": "冻毛毛雨",
+      "57": "强冻毛毛雨",
+      "61": "小雨",
+      "63": "中雨",
+      "65": "大雨",
+      "66": "冻雨",
+      "67": "强冻雨",
+      "71": "小雪",
+      "73": "中雪",
+      "75": "大雪",
+      "77": "米雪",
+      "80": "小阵雨",
+      "81": "阵雨",
+      "82": "强阵雨",
+      "85": "阵雪",
+      "86": "强阵雪",
+      "95": "雷暴",
+      "96": "雷暴伴冰雹",
+      "99": "雷暴伴强冰雹",
+      "unknown": "未知"
+    }
+  },
+  "dashboard": {
+    "welcome": {
+      "greeting": "你好，{name}！",
+      "today": "今天：{counts}",
+      "events": "{count} 个日程",
+      "tasksDue": "{count} 个任务到期",
+      "nothing": "今天没有安排，享受这份宁静吧。",
+      "nextInline": "下一个：{title}，<t>{time}</t>",
+      "nextLine": "下一个：{title}，<t>{time}</t>",
+      "task": "任务",
+      "note": "笔记",
+      "event": "日程",
+      "newTask": "新建任务",
+      "newNote": "新建笔记",
+      "newEvent": "新建日程"
+    },
+    "glance": {
+      "title": "概览",
+      "open": "未完成",
+      "overdue": "已逾期",
+      "dueSoon": "7 天内到期",
+      "notes": "篇笔记",
+      "pinned": "已置顶",
+      "editedRecently": "7 天内编辑过",
+      "events": "个日程（7 天内）",
+      "trips": "次出行待出发",
+      "next": "下一个：",
+      "tags": "未完成任务的标签"
+    },
+    "today": {
+      "title": "今天",
+      "open": "打开日历",
+      "weather": "{place}：{conditions}，今天 {low}° / {high}°",
+      "moreEvents": "还有 {count} 个日程",
+      "tasksDue": "今天有 {count} 个任务到期",
+      "nothing": "今天没有安排。",
+      "wet": "{when, select, now {现在} other {{time} 起}}{kind, select, snow {可能下雪} storm {可能有雷暴} other {可能下雨}}",
+      "choosePlace": "选择一个地点来查看天气",
+      "loading": "正在加载今天的安排"
+    },
+    "reminders": {
+      "title": "提醒",
+      "due": "待提醒",
+      "departs": "{time} 出发",
+      "moreToday": "今天还有 {count} 条",
+      "allDone": "所有提醒都已完成。",
+      "loading": "正在加载提醒"
+    },
+    "upNext": {
+      "title": "接下来",
+      "links": "链接",
+      "overdue": "已逾期",
+      "nothing": "未来 7 天没有安排。",
+      "loading": "正在加载未来一周"
+    },
+    "recentNotes": {
+      "title": "最近的笔记",
+      "empty": "还没有笔记。<link>写一篇</link>",
+      "loading": "正在加载笔记"
+    },
+    "activity": {
+      "title": "最近动态",
+      "completed": "完成了“{title}”",
+      "created": "新建了“{title}”",
+      "editedNote": "编辑了笔记“{title}”",
+      "newNote": "新建了笔记“{title}”",
+      "editedEvent": "编辑了日程“{title}”",
+      "addedEvent": "添加了日程“{title}”",
+      "nothing": "最近 {days} 天没有动态。",
+      "loading": "正在加载动态"
     }
   }
 }

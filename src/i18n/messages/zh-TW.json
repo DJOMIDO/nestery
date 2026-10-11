@@ -1,6 +1,13 @@
 {
   "common": {
-    "saved": "已儲存"
+    "saved": "已儲存",
+    "saving": "儲存中…",
+    "listSeparator": "，",
+    "loading": "載入中…",
+    "today": "今天",
+    "tomorrow": "明天",
+    "allDay": "全天",
+    "pinned": "已釘選"
   },
   "nav": {
     "dashboard": "首頁",
@@ -31,11 +38,26 @@
     "sectionsLabel": "設定類別",
     "allSettings": "所有設定",
     "sections": {
-      "account": { "label": "帳戶", "description": "個人資料、密碼、登入方式、裝置" },
-      "assistant": { "label": "助理", "description": "AI 模型與你的 API 金鑰" },
-      "languageTime": { "label": "語言與時間", "description": "語言、日期格式、12/24 小時制、每週起始日" },
-      "calendar": { "label": "行事曆", "description": "國定假日、其他行事曆、分享" },
-      "weather": { "label": "天氣", "description": "首頁天氣顯示的地點" }
+      "account": {
+        "label": "帳戶",
+        "description": "個人資料、密碼、登入方式、裝置"
+      },
+      "assistant": {
+        "label": "助理",
+        "description": "AI 模型與你的 API 金鑰"
+      },
+      "languageTime": {
+        "label": "語言與時間",
+        "description": "語言、日期格式、12/24 小時制、每週起始日"
+      },
+      "calendar": {
+        "label": "行事曆",
+        "description": "國定假日、其他行事曆、分享"
+      },
+      "weather": {
+        "label": "天氣",
+        "description": "首頁天氣顯示的地點"
+      }
     },
     "languageTime": {
       "title": "語言與時間",
@@ -51,6 +73,173 @@
       "weekStart": "每週第一天",
       "monday": "星期一",
       "sunday": "星期日"
+    }
+  },
+  "assistant": {
+    "title": "助理",
+    "newChat": "新對話",
+    "narrower": "變窄",
+    "wider": "變寬",
+    "makeNarrower": "縮窄面板",
+    "makeWider": "加寬面板",
+    "close": "關閉",
+    "closeHint": "關閉（Esc）",
+    "needsModel": "助理需要連接 AI 模型才能對話。",
+    "addKey": "請在<link>設定 › 助理</link>中加入你自己的 API 金鑰。",
+    "intro": "你可以問我任務、行事曆、筆記或天氣相關的問題。我也能幫你準備任務和活動，由你確認後新增。",
+    "tryAsking": "試著問問",
+    "examples": {
+      "tasks": "這週我還有哪些事要做？",
+      "calendar": "明天的行事曆上有什麼？",
+      "weather": "這個週末會下雨嗎？",
+      "notes": "我的筆記裡有什麼？",
+      "trip": "我的下一趟旅程是什麼時候？"
+    },
+    "onlyImages": "只能附加圖片。",
+    "maxImages": "每則訊息最多附加 {count} 張圖片。",
+    "thinking": "思考中",
+    "interrupted": "回覆被中斷了。",
+    "imageToSend": "要傳送的圖片",
+    "attachedImage": "附加的圖片",
+    "removeImage": "移除圖片",
+    "attachImage": "附加圖片",
+    "attachImageHint": "附加圖片（也可以貼上或拖曳）",
+    "placeholder": "想問什麼都可以…",
+    "message": "訊息",
+    "stop": "停止",
+    "send": "傳送",
+    "sendHint": "傳送（Enter）",
+    "usage": "今天已使用 {used} / {limit} 則訊息"
+  },
+  "tasks": {
+    "status": {
+      "todo": "待辦",
+      "in_progress": "進行中",
+      "waiting": "等待中",
+      "done": "已完成"
+    }
+  },
+  "proposal": {
+    "newTask": "新任務「{title}」",
+    "newTaskDue": "新任務「{title}」，截止日 {date}",
+    "rename": "重新命名為「{title}」",
+    "markStatus": "標記為「{status}」",
+    "priority": "{priority, select, high {高優先順序} medium {中優先順序} other {低優先順序}}",
+    "due": "截止日 {date}",
+    "noDue": "無截止日",
+    "taskChanges": "任務「{title}」：{changes}",
+    "arrives": "（{date} 抵達）",
+    "seat": "座位 {seat}",
+    "newEvent": "新活動「{title}」，{when}",
+    "taskUpdated": "任務已更新",
+    "addedToTravel": "已加入旅程",
+    "dismiss": "略過",
+    "confirm": "確認",
+    "dismissed": "已略過"
+  },
+  "weather": {
+    "codes": {
+      "0": "晴",
+      "1": "大致晴朗",
+      "2": "局部多雲",
+      "3": "陰",
+      "45": "霧",
+      "48": "霧淞",
+      "51": "小毛毛雨",
+      "53": "毛毛雨",
+      "55": "濃毛毛雨",
+      "56": "凍毛毛雨",
+      "57": "強凍毛毛雨",
+      "61": "小雨",
+      "63": "中雨",
+      "65": "大雨",
+      "66": "凍雨",
+      "67": "強凍雨",
+      "71": "小雪",
+      "73": "中雪",
+      "75": "大雪",
+      "77": "米雪",
+      "80": "小陣雨",
+      "81": "陣雨",
+      "82": "強陣雨",
+      "85": "陣雪",
+      "86": "強陣雪",
+      "95": "雷雨",
+      "96": "雷雨伴隨冰雹",
+      "99": "雷雨伴隨大冰雹",
+      "unknown": "未知"
+    }
+  },
+  "dashboard": {
+    "welcome": {
+      "greeting": "你好，{name}！",
+      "today": "今天：{counts}",
+      "events": "{count} 個活動",
+      "tasksDue": "{count} 個任務到期",
+      "nothing": "今天沒有安排，享受這份寧靜吧。",
+      "nextInline": "下一個：{title}，<t>{time}</t>",
+      "nextLine": "下一個：{title}，<t>{time}</t>",
+      "task": "任務",
+      "note": "筆記",
+      "event": "活動",
+      "newTask": "新增任務",
+      "newNote": "新增筆記",
+      "newEvent": "新增活動"
+    },
+    "glance": {
+      "title": "概覽",
+      "open": "未完成",
+      "overdue": "已逾期",
+      "dueSoon": "7 天內到期",
+      "notes": "篇筆記",
+      "pinned": "已釘選",
+      "editedRecently": "7 天內編輯過",
+      "events": "個活動（7 天內）",
+      "trips": "趟旅程待出發",
+      "next": "下一個：",
+      "tags": "未完成任務的標籤"
+    },
+    "today": {
+      "title": "今天",
+      "open": "開啟行事曆",
+      "weather": "{place}：{conditions}，今天 {low}° / {high}°",
+      "moreEvents": "還有 {count} 個活動",
+      "tasksDue": "今天有 {count} 個任務到期",
+      "nothing": "今天沒有安排。",
+      "wet": "{when, select, now {現在} other {{time} 起}}{kind, select, snow {可能下雪} storm {可能有雷雨} other {可能下雨}}",
+      "choosePlace": "選擇一個地點來查看天氣",
+      "loading": "正在載入今天的安排"
+    },
+    "reminders": {
+      "title": "提醒",
+      "due": "待提醒",
+      "departs": "{time} 出發",
+      "moreToday": "今天還有 {count} 則",
+      "allDone": "所有提醒都已完成。",
+      "loading": "正在載入提醒"
+    },
+    "upNext": {
+      "title": "接下來",
+      "links": "連結",
+      "overdue": "已逾期",
+      "nothing": "未來 7 天沒有安排。",
+      "loading": "正在載入未來一週"
+    },
+    "recentNotes": {
+      "title": "最近的筆記",
+      "empty": "還沒有筆記。<link>寫一篇</link>",
+      "loading": "正在載入筆記"
+    },
+    "activity": {
+      "title": "最近動態",
+      "completed": "完成了「{title}」",
+      "created": "新增了「{title}」",
+      "editedNote": "編輯了筆記「{title}」",
+      "newNote": "新增了筆記「{title}」",
+      "editedEvent": "編輯了活動「{title}」",
+      "addedEvent": "新增了活動「{title}」",
+      "nothing": "最近 {days} 天沒有動態。",
+      "loading": "正在載入動態"
     }
   }
 }

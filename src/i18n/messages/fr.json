@@ -1,6 +1,13 @@
 {
   "common": {
-    "saved": "Enregistré"
+    "saved": "Enregistré",
+    "saving": "Enregistrement…",
+    "listSeparator": ", ",
+    "loading": "Chargement…",
+    "today": "Aujourd’hui",
+    "tomorrow": "Demain",
+    "allDay": "Toute la journée",
+    "pinned": "Épinglée"
   },
   "nav": {
     "dashboard": "Tableau de bord",
@@ -31,11 +38,26 @@
     "sectionsLabel": "Catégories de paramètres",
     "allSettings": "Tous les paramètres",
     "sections": {
-      "account": { "label": "Compte", "description": "Profil, mot de passe, connexion, appareils" },
-      "assistant": { "label": "Assistant", "description": "Modèle d’IA et votre clé d’API" },
-      "languageTime": { "label": "Langue et heure", "description": "Langue, format de date, 12/24 h, début de semaine" },
-      "calendar": { "label": "Calendrier", "description": "Jours fériés, autres calendriers, partage" },
-      "weather": { "label": "Météo", "description": "Lieu de la météo du tableau de bord" }
+      "account": {
+        "label": "Compte",
+        "description": "Profil, mot de passe, connexion, appareils"
+      },
+      "assistant": {
+        "label": "Assistant",
+        "description": "Modèle d’IA et votre clé d’API"
+      },
+      "languageTime": {
+        "label": "Langue et heure",
+        "description": "Langue, format de date, 12/24 h, début de semaine"
+      },
+      "calendar": {
+        "label": "Calendrier",
+        "description": "Jours fériés, autres calendriers, partage"
+      },
+      "weather": {
+        "label": "Météo",
+        "description": "Lieu de la météo du tableau de bord"
+      }
     },
     "languageTime": {
       "title": "Langue et heure",
@@ -51,6 +73,173 @@
       "weekStart": "La semaine commence le",
       "monday": "Lundi",
       "sunday": "Dimanche"
+    }
+  },
+  "assistant": {
+    "title": "Assistant",
+    "newChat": "Nouvelle discussion",
+    "narrower": "Plus étroit",
+    "wider": "Plus large",
+    "makeNarrower": "Rétrécir le panneau",
+    "makeWider": "Élargir le panneau",
+    "close": "Fermer",
+    "closeHint": "Fermer (Échap)",
+    "needsModel": "L’assistant a besoin d’un modèle d’IA pour discuter.",
+    "addKey": "Ajoutez votre propre clé d’API dans <link>Paramètres › Assistant</link>.",
+    "intro": "Posez vos questions sur vos tâches, votre calendrier, vos notes ou la météo. Je peux aussi préparer des tâches et des événements que vous confirmerez.",
+    "tryAsking": "Quelques idées",
+    "examples": {
+      "tasks": "Que me reste-t-il à faire cette semaine ?",
+      "calendar": "Qu’y a-t-il dans mon calendrier demain ?",
+      "weather": "Va-t-il pleuvoir ce week-end ?",
+      "notes": "Qu’y a-t-il dans mes notes ?",
+      "trip": "Quand est mon prochain voyage ?"
+    },
+    "onlyImages": "Seules les images peuvent être jointes.",
+    "maxImages": "Joignez au plus {count} images par message.",
+    "thinking": "Réflexion",
+    "interrupted": "La réponse a été interrompue.",
+    "imageToSend": "Image à envoyer",
+    "attachedImage": "Image jointe",
+    "removeImage": "Retirer l’image",
+    "attachImage": "Joindre une image",
+    "attachImageHint": "Joindre une image (ou la coller / la déposer)",
+    "placeholder": "Posez votre question…",
+    "message": "Message",
+    "stop": "Arrêter",
+    "send": "Envoyer",
+    "sendHint": "Envoyer (Entrée)",
+    "usage": "{used} / {limit} messages aujourd’hui"
+  },
+  "tasks": {
+    "status": {
+      "todo": "À faire",
+      "in_progress": "En cours",
+      "waiting": "En attente",
+      "done": "Terminé"
+    }
+  },
+  "proposal": {
+    "newTask": "Nouvelle tâche « {title} »",
+    "newTaskDue": "Nouvelle tâche « {title} », échéance le {date}",
+    "rename": "renommer en « {title} »",
+    "markStatus": "marquer « {status} »",
+    "priority": "{priority, select, high {priorité haute} medium {priorité moyenne} other {priorité basse}}",
+    "due": "échéance le {date}",
+    "noDue": "sans échéance",
+    "taskChanges": "Tâche « {title} » : {changes}",
+    "arrives": " (arrivée le {date})",
+    "seat": "place {seat}",
+    "newEvent": "Nouvel événement « {title} », {when}",
+    "taskUpdated": "Tâche mise à jour",
+    "addedToTravel": "Ajouté aux voyages",
+    "dismiss": "Ignorer",
+    "confirm": "Confirmer",
+    "dismissed": "Ignoré"
+  },
+  "weather": {
+    "codes": {
+      "0": "Ciel dégagé",
+      "1": "Plutôt dégagé",
+      "2": "Partiellement nuageux",
+      "3": "Couvert",
+      "45": "Brouillard",
+      "48": "Brouillard givrant",
+      "51": "Bruine légère",
+      "53": "Bruine",
+      "55": "Bruine dense",
+      "56": "Bruine verglaçante",
+      "57": "Bruine verglaçante dense",
+      "61": "Pluie faible",
+      "63": "Pluie",
+      "65": "Forte pluie",
+      "66": "Pluie verglaçante",
+      "67": "Forte pluie verglaçante",
+      "71": "Neige faible",
+      "73": "Neige",
+      "75": "Forte neige",
+      "77": "Neige en grains",
+      "80": "Averses faibles",
+      "81": "Averses",
+      "82": "Fortes averses",
+      "85": "Averses de neige",
+      "86": "Fortes averses de neige",
+      "95": "Orage",
+      "96": "Orage avec grêle",
+      "99": "Orage avec forte grêle",
+      "unknown": "Inconnu"
+    }
+  },
+  "dashboard": {
+    "welcome": {
+      "greeting": "Bonjour, {name} !",
+      "today": "Aujourd’hui : {counts}",
+      "events": "{count, plural, one {# événement} other {# événements}}",
+      "tasksDue": "{count, plural, one {# tâche} other {# tâches}} à rendre",
+      "nothing": "Rien de prévu aujourd’hui. Profitez du calme.",
+      "nextInline": "ensuite : {title} à <t>{time}</t>",
+      "nextLine": "Ensuite : {title} à <t>{time}</t>",
+      "task": "Tâche",
+      "note": "Note",
+      "event": "Événement",
+      "newTask": "Nouvelle tâche",
+      "newNote": "Nouvelle note",
+      "newEvent": "Nouvel événement"
+    },
+    "glance": {
+      "title": "En bref",
+      "open": "{count, plural, one {ouverte} other {ouvertes}}",
+      "overdue": "en retard",
+      "dueSoon": "à rendre sous 7 jours",
+      "notes": "{count, plural, one {note} other {notes}}",
+      "pinned": "{count, plural, one {épinglée} other {épinglées}}",
+      "editedRecently": "{count, plural, one {modifiée} other {modifiées}} sous 7 jours",
+      "events": "{count, plural, one {événement} other {événements}} sous 7 jours",
+      "trips": "{count, plural, one {voyage à venir} other {voyages à venir}}",
+      "next": "Prochain :",
+      "tags": "Étiquettes des tâches ouvertes"
+    },
+    "today": {
+      "title": "Aujourd’hui",
+      "open": "Ouvrir le calendrier",
+      "weather": "{conditions} à {place}, {high}° / {low}° aujourd’hui",
+      "moreEvents": "+{count} {count, plural, one {autre événement} other {autres événements}}",
+      "tasksDue": "{count, plural, one {# tâche} other {# tâches}} à rendre aujourd’hui",
+      "nothing": "Rien de prévu aujourd’hui.",
+      "wet": "{kind, select, snow {Neige probable} storm {Orages probables} other {Pluie probable}} {when, select, now {en ce moment} other {à partir de {time}}}",
+      "choosePlace": "Choisissez un lieu pour voir la météo",
+      "loading": "Chargement de la journée"
+    },
+    "reminders": {
+      "title": "Rappels",
+      "due": "À VOIR",
+      "departs": "Départ à {time}",
+      "moreToday": "+{count} aujourd’hui",
+      "allDone": "Tous les rappels sont traités.",
+      "loading": "Chargement des rappels"
+    },
+    "upNext": {
+      "title": "À venir",
+      "links": "Liens",
+      "overdue": "En retard",
+      "nothing": "Rien de prévu pour les 7 prochains jours.",
+      "loading": "Chargement de la semaine à venir"
+    },
+    "recentNotes": {
+      "title": "Notes récentes",
+      "empty": "Aucune note pour l’instant. <link>En écrire une</link>",
+      "loading": "Chargement des notes"
+    },
+    "activity": {
+      "title": "Activité récente",
+      "completed": "« {title} » terminée",
+      "created": "« {title} » créée",
+      "editedNote": "Note « {title} » modifiée",
+      "newNote": "Nouvelle note « {title} »",
+      "editedEvent": "Événement « {title} » modifié",
+      "addedEvent": "Événement « {title} » ajouté",
+      "nothing": "Rien ces {days} derniers jours.",
+      "loading": "Chargement de l’activité"
     }
   }
 }

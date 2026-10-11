@@ -6,6 +6,7 @@
 
 import { useState } from "react";
 import { CalendarPlus, Check, ClipboardList, PencilLine, X } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
@@ -13,27 +14,33 @@ import { useFormat } from "@/components/SettingsProvider";
 import type { AssistantProposal } from "@/lib/assistant";
 import { request } from "@/lib/api";
 import { notifyDataChanged } from "@/lib/dataChanged";
-import { TASK_STATUS_LABELS } from "@/lib/tasks";
 import { journeyLabel } from "@/lib/travel";
 import { journeyIcon } from "@/components/travel/journeyIcon";
 import type { Formatter } from "@/lib/format";
 
 export type ProposalState = "pending" | "saving" | "confirmed" | "dismissed";
 
-// One line describing the change, also what the assistant is told afterwards
-export function describeProposal(p: AssistantProposal, format: Formatter) {
+// The app's translator, from the messages' root
+type Translate = ReturnType<typeof useTranslations<never>>;
+
+// One line describing the change, in the interface language; also what the
+// assistant is told afterwards
+export function describeProposal(p: AssistantProposal, format: Formatter, t: Translate) {
   switch (p.kind) {
     case "create_task":
-      return `New task “${p.input.title}”${p.input.dueDate ? `, due ${format.day(p.input.dueDate)}` : ""}`;
+      return p.input.dueDate
+        ? t("proposal.newTaskDue", { title: p.input.title, date: format.day(p.input.dueDate) })
+        : t("proposal.newTask", { title: p.input.title });
     case "update_task": {
       const c = p.changes;
       const parts = [
-        c.title && `rename to “${c.title}”`,
-        c.status && `mark ${TASK_STATUS_LABELS[c.status].toLowerCase()}`,
-        c.priority && `${c.priority} priority`,
-        c.dueDate !== undefined && (c.dueDate ? `due ${format.day(c.dueDate)}` : "no due date"),
+        c.title && t("proposal.rename", { title: c.title }),
+        c.status && t("proposal.markStatus", { status: t(`tasks.status.${c.status}`) }),
+        c.priority && t("proposal.priority", { priority: c.priority }),
+        c.dueDate !== undefined &&
+          (c.dueDate ? t("proposal.due", { date: format.day(c.dueDate) }) : t("proposal.noDue")),
       ].filter(Boolean);
-      return `Task “${p.taskTitle}”: ${parts.join(", ")}`;
+      return t("proposal.taskChanges", { title: p.taskTitle, changes: parts.join(t("common.listSeparator")) });
     }
     case "create_journey": {
       const j = p.input;
@@ -44,11 +51,12 @@ export function describeProposal(p: AssistantProposal, format: Formatter) {
         return format.time(new Date(2000, 0, 1, h, m));
       };
       const times = [clock(j.departureTime), clock(j.arrivalTime)].filter(Boolean).join(" – ");
-      const arrivalDay = j.arrivalDate && j.arrivalDate !== j.departureDate ? ` (arrives ${format.day(j.arrivalDate)})` : "";
+      const arrivalDay =
+        j.arrivalDate && j.arrivalDate !== j.departureDate ? t("proposal.arrives", { date: format.day(j.arrivalDate) }) : "";
       return [
         `${journeyLabel(j)}: ${j.origin} → ${j.destination}`,
-        `${format.dayWithWeekday(j.departureDate)}${times ? `, ${times}` : ""}${arrivalDay}`,
-        j.seat && `seat ${j.seat}`,
+        `${format.dayWithWeekday(j.departureDate)}${times ? `${t("common.listSeparator")}${times}` : ""}${arrivalDay}`,
+        j.seat && t("proposal.seat", { seat: j.seat }),
       ]
         .filter(Boolean)
         .join(" · ");
@@ -59,8 +67,8 @@ export function describeProposal(p: AssistantProposal, format: Formatter) {
         ? e.endDate !== e.startDate
           ? `${format.day(e.startDate)} – ${format.day(e.endDate)}`
           : format.day(e.startDate)
-        : `${format.day(e.startsAt)}, ${format.time(e.startsAt)} – ${format.time(e.endsAt)}`;
-      return `New event “${e.title}”, ${when}`;
+        : `${format.day(e.startsAt)}${t("common.listSeparator")}${format.time(e.startsAt)} – ${format.time(e.endsAt)}`;
+      return t("proposal.newEvent", { title: e.title, when });
     }
   }
 }
@@ -102,8 +110,9 @@ export function ProposalCard({
   onSettled: (state: ProposalState, note?: string) => void;
 }) {
   const format = useFormat();
+  const t = useTranslations();
   const [error, setError] = useState<string | null>(null);
-  const summary = describeProposal(proposal, format);
+  const summary = describeProposal(proposal, format, t);
   const Icon = iconOf(proposal);
 
   const confirm = async () => {
@@ -111,7 +120,13 @@ export function ProposalCard({
     onSettled("saving");
     try {
       await save(proposal);
-      toast.success(proposal.kind === "update_task" ? "Task updated" : proposal.kind === "create_journey" ? "Added to Travel" : "Saved");
+      toast.success(
+        proposal.kind === "update_task"
+          ? t("proposal.taskUpdated")
+          : proposal.kind === "create_journey"
+            ? t("proposal.addedToTravel")
+            : t("common.saved")
+      );
       onSettled("confirmed", `The user confirmed: ${summary}. It is saved.`);
     } catch (err) {
       setError((err as Error).message);
@@ -130,17 +145,17 @@ export function ProposalCard({
       {state === "pending" || state === "saving" ? (
         <div className="mt-2 flex justify-end gap-2">
           <Button variant="ghost" size="sm" onClick={dismiss} disabled={state === "saving"}>
-            Dismiss
+            {t("proposal.dismiss")}
           </Button>
           <Button size="sm" onClick={confirm} disabled={state === "saving"}>
             {state === "saving" && <Spinner />}
-            {state === "saving" ? "Saving…" : "Confirm"}
+            {state === "saving" ? t("common.saving") : t("proposal.confirm")}
           </Button>
         </div>
       ) : (
         <p className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
           {state === "confirmed" ? <Check className="size-3.5 text-leaf" /> : <X className="size-3.5" />}
-          {state === "confirmed" ? "Saved" : "Dismissed"}
+          {state === "confirmed" ? t("common.saved") : t("proposal.dismissed")}
         </p>
       )}
       {error && (

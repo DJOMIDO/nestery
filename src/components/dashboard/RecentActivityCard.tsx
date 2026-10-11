@@ -15,10 +15,11 @@ import {
   PencilLine,
   type LucideIcon,
 } from "lucide-react";
-import { formatRelative, taskActivity, type Task } from "@/lib/tasks";
+import { taskActivity, type Task } from "@/lib/tasks";
 import { noteActivity, noteHref, type Note } from "@/lib/notes";
 import { eventActivity, type CalendarEvent } from "@/lib/calendar";
 import { SUBSCRIPTION_COLORS } from "@/lib/subscriptions";
+import { useTranslations } from "next-intl";
 import { useFormat } from "@/components/SettingsProvider";
 import { ListSkeleton } from "@/components/ui/skeleton";
 
@@ -26,6 +27,8 @@ const MAX_ITEMS = 10;
 // Older activity drops off, like the dashboard's other 7-day views
 const WINDOW_DAYS = 7;
 const WINDOW_MS = WINDOW_DAYS * 86_400_000;
+
+type ActivityT = ReturnType<typeof useTranslations<"dashboard.activity">>;
 
 interface ActivityRow {
   id: string;
@@ -39,10 +42,10 @@ interface ActivityRow {
 
 // Tasks, notes and events activity of the last 7 days merged, newest first.
 // Each tool has its own tone: tasks leaf, notes bark, events sky.
-function recentActivity(tasks: Task[], notes: Note[], events: CalendarEvent[]): ActivityRow[] {
+function recentActivity(tasks: Task[], notes: Note[], events: CalendarEvent[], t: ActivityT): ActivityRow[] {
   const taskRows = taskActivity(tasks, MAX_ITEMS).map((a) => ({
     id: `task-${a.id}`,
-    label: `${a.kind === "completed" ? "Completed" : "Created"} '${a.title}'`,
+    label: t(a.kind === "completed" ? "completed" : "created", { title: a.title }),
     at: a.at,
     href: "/tasks",
     icon: a.kind === "completed" ? CheckCircle2 : ClipboardList,
@@ -51,7 +54,7 @@ function recentActivity(tasks: Task[], notes: Note[], events: CalendarEvent[]): 
   }));
   const noteRows = noteActivity(notes, MAX_ITEMS).map((a) => ({
     id: `note-${a.id}`,
-    label: `${a.kind === "edited" ? "Edited note" : "New note"} '${a.title}'`,
+    label: t(a.kind === "edited" ? "editedNote" : "newNote", { title: a.title }),
     at: a.at,
     href: noteHref(a.noteId),
     icon: a.kind === "edited" ? PencilLine : NotebookPen,
@@ -60,7 +63,7 @@ function recentActivity(tasks: Task[], notes: Note[], events: CalendarEvent[]): 
   }));
   const eventRows = eventActivity(events, MAX_ITEMS).map((a) => ({
     id: `event-${a.id}`,
-    label: `${a.kind === "edited" ? "Edited event" : "Added event"} '${a.title}'`,
+    label: t(a.kind === "edited" ? "editedEvent" : "addedEvent", { title: a.title }),
     at: a.at,
     href: "/calendar",
     icon: a.kind === "edited" ? CalendarCog : CalendarPlus,
@@ -88,24 +91,25 @@ export function RecentActivityCard({
   // Tasks and notes still on their way
   loading?: boolean;
 }) {
-  const activities = recentActivity(tasks, notes, events);
+  const t = useTranslations("dashboard.activity");
+  const activities = recentActivity(tasks, notes, events, t);
   const format = useFormat();
 
   return (
     <Card className="w-full h-full rounded-lg bg-card">
       <CardContent className="p-4 flex flex-col min-h-0 flex-1">
-        <CardHeading title="Recent Activity" icon={Activity} />
+        <CardHeading title={t("title")} icon={Activity} />
         {loading ? (
           // Fits the card like the list it stands in for; rows that don't fit are cut off
           <ListSkeleton
-            label="Loading activity"
+            label={t("loading")}
             icon
             rows={4}
             className="min-h-0 overflow-hidden"
             rowClassName="px-2 py-2"
           />
         ) : activities.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Nothing in the last {WINDOW_DAYS} days.</p>
+          <p className="text-sm text-muted-foreground">{t("nothing", { days: WINDOW_DAYS })}</p>
         ) : (
           <ul className="space-y-0.5 min-h-0 overflow-y-auto">
             {activities.map(({ id, label, at, href, icon: Icon, iconClass, chipClass }) => (
@@ -125,7 +129,7 @@ export function RecentActivityCard({
                   </span>
                 </Link>
                 <span className="pl-2 text-xs text-muted-foreground whitespace-nowrap">
-                  {formatRelative(at, undefined, format.day)}
+                  {format.relative(at)}
                 </span>
               </li>
             ))}
