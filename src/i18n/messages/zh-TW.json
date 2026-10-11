@@ -15,7 +15,10 @@
     "delete": "刪除",
     "add": "新增",
     "previousMonth": "上個月",
-    "nextMonth": "下個月"
+    "nextMonth": "下個月",
+    "close": "關閉",
+    "back": "返回",
+    "moreCount": "還有 {count} 項"
   },
   "nav": {
     "dashboard": "首頁",
@@ -411,5 +414,95 @@
       "tooLarge": "{name} 超過了 {size} MB。",
       "uploadFailed": "上傳 {name} 失敗（{status}）。"
     }
+  },
+  "calendar": {
+    "month": "月",
+    "week": "週",
+    "view": "檢視",
+    "previous": "{view, select, week {上一週} other {上個月}}",
+    "next": "{view, select, week {下一週} other {下個月}}",
+    "today": "今天",
+    "newEvent": "新增活動",
+    "editEvent": "編輯活動",
+    "holidaysGuessed": "根據瀏覽器語言，顯示 {countries} 的國定假日。",
+    "noHolidays": "未顯示國定假日。",
+    "chooseCountries": "選擇國家和地區",
+    "eventDeleted": "活動已刪除",
+    "seriesDeleted": "重複活動已刪除",
+    "movedOne": "只移動了這一次。要修改整個系列，請編輯這個活動。",
+    "dropDue": "{date} 到期",
+    "allDay": "全天",
+    "dayItems": "{day}，{count, plural, =0 {沒有安排} other {# 項}}",
+    "agendaFor": "{day} 的行程",
+    "newEventOnDay": "在這一天新增活動",
+    "nothingPlanned": "沒有安排。",
+    "publicHoliday": "國定假日 · {country}",
+    "taskCompleted": "任務已完成",
+    "taskOverdue": "任務已逾期",
+    "taskDue": "任務到期",
+    "reminderAt": "{time} 提醒",
+    "repeats": "重複",
+    "draggable": "可拖曳的項目",
+    "resizeHandle": "調整時長的控點",
+    "changeEnd": "調整「{title}」的結束時間",
+    "join": "加入",
+    "open": "開啟",
+    "linkLabel": "{action}「{title}」（{platform}）",
+    "manageCalendars": "管理行事曆",
+    "calendars": "行事曆",
+    "lastRefreshFailed": "上次重新整理失敗：{error}",
+    "refreshFailed": "上次重新整理失敗",
+    "details": {
+      "fromTravel": "來自旅程",
+      "fromCalendar": "來自 {name}（唯讀）",
+      "openInTravel": "在旅程中開啟",
+      "sourceNote": "修改來自這個行事曆的來源，重新整理後會顯示在這裡。"
+    },
+    "form": {
+      "title": "標題",
+      "titlePlaceholder": "要做什麼？",
+      "allDay": "全天",
+      "starts": "開始",
+      "ends": "結束",
+      "startTime": "開始時間",
+      "endTime": "結束時間",
+      "notes": "備註",
+      "notesPlaceholder": "地點、詳細資訊…",
+      "titleRequired": "請填寫活動標題",
+      "chooseDates": "請選擇開始和結束日期",
+      "endsBeforeStart": "活動的結束時間早於開始時間",
+      "overlap": "每次的時長超過了到下一次的間隔，會互相重疊。請把「開始/結束」縮短為一次的時長，並用「重複結束」來設定停止重複的日期。",
+      "applyTo": "套用到",
+      "scopeQuestion": "{action, select, save {只儲存這一次的修改，還是修改} other {只刪除這一次，還是刪除}}整個系列？",
+      "thisEvent": "僅這一次",
+      "allEvents": "整個系列"
+    },
+    "repeat": {
+      "label": "重複",
+      "none": "不重複",
+      "daily": "每天",
+      "weekly": "每週",
+      "monthly": "每月",
+      "yearly": "每年",
+      "every": "每隔",
+      "unit": "{freq, select, DAILY {天} WEEKLY {週} MONTHLY {個月} other {年}}",
+      "on": "重複的日子",
+      "ends": "重複結束",
+      "never": "永不",
+      "onDate": "在某個日期",
+      "afterCount": "重複一定次數後",
+      "until": "重複到",
+      "times": "次數",
+      "timesUnit": "次"
+    },
+    "rule": {
+      "every": "{freq, select, DAILY {{interval, plural, one {每天} other {每 # 天}}} WEEKLY {{interval, plural, one {每週} other {每 # 週}}} MONTHLY {{interval, plural, one {每月} other {每 # 個月}}} other {{interval, plural, one {每年} other {每 # 年}}}}",
+      "onDays": "的{days}",
+      "count": "，共 {count} 次",
+      "until": "，直到 {date}"
+    }
+  },
+  "travel": {
+    "weatherOnArrival": "抵達時 {place}：{conditions}"
   }
 }

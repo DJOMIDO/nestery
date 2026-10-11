@@ -1,6 +1,7 @@
 // src/components/calendar/EventLinkList.tsx
 "use client";
 
+import { useTranslations } from "next-intl";
 import { ExternalLink, Link2, Video } from "lucide-react";
 import { eventKey, type CalendarEvent } from "@/lib/calendar";
 import { eventLink, type EventLink } from "@/lib/meetingLinks";
@@ -35,14 +36,15 @@ interface EventLinkListProps {
 // `withLabel` adds the platform in front ("Teams · Join").
 export function EventLinkButton({ link, title, withLabel }: { link: EventLink; title: string; withLabel?: boolean }) {
   const Icon = link.meeting ? Video : Link2;
-  const action = link.meeting ? "Join" : "Open";
+  const t = useTranslations("calendar");
+  const action = link.meeting ? t("join") : t("open");
   return (
     <a
       href={link.url}
       target="_blank"
       rel="noopener noreferrer"
       title={link.url}
-      aria-label={`${action} ${title} (${link.label})`}
+      aria-label={t("linkLabel", { action, title, platform: link.label })}
       className="inline-flex max-w-full shrink-0 items-center gap-1.5 rounded-md border bg-card px-2 py-1 text-xs font-medium hover:bg-leaf-soft hover:text-leaf"
     >
       {withLabel && (

@@ -158,22 +158,6 @@ export function occurrenceDates(
   return dates;
 }
 
-// A short description, e.g. "Every 2 weeks on Mon, Wed, until Dec 31, 2026"
-export function describeRule(
-  rule: RecurrenceRule,
-  { weekdayName, formatDay }: { weekdayName: (day: number) => string; formatDay: (d: string) => string }
-) {
-  const unit = { DAILY: "day", WEEKLY: "week", MONTHLY: "month", YEARLY: "year" }[rule.freq];
-  let text = rule.interval === 1 ? `Every ${unit}` : `Every ${rule.interval} ${unit}s`;
-  if (rule.freq === "DAILY" && rule.interval === 1) text = "Daily";
-  if (rule.freq === "WEEKLY" && rule.byDay?.length) {
-    text += ` on ${[...rule.byDay].sort((a, b) => ((a + 6) % 7) - ((b + 6) % 7)).map(weekdayName).join(", ")}`;
-  }
-  if (rule.count) text += `, ${rule.count} times`;
-  if (rule.until) text += `, until ${formatDay(rule.until)}`;
-  return text;
-}
-
 // Shortest time between two starts of the series, in days. A weekly rule on
 // Mon and Wed has occurrences 2 days apart; months are counted as 28 days.
 export function shortestGapDays(rule: RecurrenceRule) {

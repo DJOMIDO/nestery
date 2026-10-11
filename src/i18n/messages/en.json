@@ -15,7 +15,10 @@
     "delete": "Delete",
     "add": "Add",
     "previousMonth": "Previous month",
-    "nextMonth": "Next month"
+    "nextMonth": "Next month",
+    "close": "Close",
+    "back": "Back",
+    "moreCount": "+{count} more"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -411,5 +414,95 @@
       "tooLarge": "{name} is larger than {size} MB.",
       "uploadFailed": "Uploading {name} failed ({status})."
     }
+  },
+  "calendar": {
+    "month": "Month",
+    "week": "Week",
+    "view": "View",
+    "previous": "{view, select, week {Previous week} other {Previous month}}",
+    "next": "{view, select, week {Next week} other {Next month}}",
+    "today": "Today",
+    "newEvent": "New Event",
+    "editEvent": "Edit Event",
+    "holidaysGuessed": "Showing {countries} holidays based on your browser.",
+    "noHolidays": "No public holidays shown.",
+    "chooseCountries": "Choose countries and regions",
+    "eventDeleted": "Event deleted",
+    "seriesDeleted": "Repeating event deleted",
+    "movedOne": "Moved this occurrence only. Edit the event to change the whole series.",
+    "dropDue": "Due {date}",
+    "allDay": "All day",
+    "dayItems": "{day}, {count, plural, =0 {nothing planned} one {# item} other {# items}}",
+    "agendaFor": "Agenda for {day}",
+    "newEventOnDay": "New event on this day",
+    "nothingPlanned": "Nothing planned.",
+    "publicHoliday": "Public holiday · {country}",
+    "taskCompleted": "Task completed",
+    "taskOverdue": "Task overdue",
+    "taskDue": "Task due",
+    "reminderAt": "Reminder at {time}",
+    "repeats": "Repeats",
+    "draggable": "Draggable item",
+    "resizeHandle": "Resize handle",
+    "changeEnd": "Change when “{title}” ends",
+    "join": "Join",
+    "open": "Open",
+    "linkLabel": "{action} {title} ({platform})",
+    "manageCalendars": "Manage calendars",
+    "calendars": "Calendars",
+    "lastRefreshFailed": "Last refresh failed: {error}",
+    "refreshFailed": "Last refresh failed",
+    "details": {
+      "fromTravel": "From Travel",
+      "fromCalendar": "From {name} (read-only)",
+      "openInTravel": "Open in Travel",
+      "sourceNote": "Changes come from the calendar's source and appear here when it refreshes."
+    },
+    "form": {
+      "title": "Title",
+      "titlePlaceholder": "What's happening?",
+      "allDay": "All day",
+      "starts": "Starts",
+      "ends": "Ends",
+      "startTime": "Start time",
+      "endTime": "End time",
+      "notes": "Notes",
+      "notesPlaceholder": "Location, details…",
+      "titleRequired": "Event title is required",
+      "chooseDates": "Choose a start and end date",
+      "endsBeforeStart": "The event ends before it starts",
+      "overlap": "Each occurrence lasts longer than the time until the next one, so they would overlap. Shorten Starts/Ends to one occurrence, and use Repeat ends to stop repeating on a date.",
+      "applyTo": "Apply to",
+      "scopeQuestion": "{action, select, save {Save changes to} other {Delete}} only this event, or every event in the series?",
+      "thisEvent": "This event",
+      "allEvents": "All events"
+    },
+    "repeat": {
+      "label": "Repeat",
+      "none": "Does not repeat",
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "monthly": "Monthly",
+      "yearly": "Yearly",
+      "every": "Every",
+      "unit": "{freq, select, DAILY {{count, plural, one {day} other {days}}} WEEKLY {{count, plural, one {week} other {weeks}}} MONTHLY {{count, plural, one {month} other {months}}} other {{count, plural, one {year} other {years}}}}",
+      "on": "Repeat on",
+      "ends": "Repeat ends",
+      "never": "Never",
+      "onDate": "On a date",
+      "afterCount": "After a number of times",
+      "until": "Repeat until",
+      "times": "Number of times",
+      "timesUnit": "times"
+    },
+    "rule": {
+      "every": "{freq, select, DAILY {{interval, plural, one {Daily} other {Every # days}}} WEEKLY {{interval, plural, one {Every week} other {Every # weeks}}} MONTHLY {{interval, plural, one {Every month} other {Every # months}}} other {{interval, plural, one {Every year} other {Every # years}}}}",
+      "onDays": " on {days}",
+      "count": ", {count, plural, one {# time} other {# times}}",
+      "until": ", until {date}"
+    }
+  },
+  "travel": {
+    "weatherOnArrival": "{conditions} in {place} on arrival"
   }
 }

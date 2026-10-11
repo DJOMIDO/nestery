@@ -4,6 +4,7 @@
 
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useDraggable, useDroppable } from "@dnd-kit/core";
 import type { CalendarEvent, CalendarItem } from "@/lib/calendar";
 import { cn } from "@/lib/utils";
@@ -36,6 +37,7 @@ interface DraggableItemProps {
 }
 
 export function DraggableItem({ item, day, onOpen, className, style, children }: DraggableItemProps) {
+  const t = useTranslations("calendar");
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     // The same event can show on several days; each copy drags on its own
     id: `move:${item.id}:${day}`,
@@ -48,7 +50,7 @@ export function DraggableItem({ item, day, onOpen, className, style, children }:
       ref={setNodeRef}
       {...attributes}
       {...listeners}
-      aria-roledescription={canDrag(item) ? "Draggable item" : undefined}
+      aria-roledescription={canDrag(item) ? t("draggable") : undefined}
       onClick={(e) => {
         e.stopPropagation();
         onOpen(item);
@@ -72,6 +74,7 @@ export function DraggableItem({ item, day, onOpen, className, style, children }:
 
 // The bottom edge of a timed event in the week view; drag it to change the end time
 export function ResizeHandle({ event, day }: { event: CalendarEvent; day: string }) {
+  const t = useTranslations("calendar");
   const { attributes, listeners, setNodeRef } = useDraggable({
     id: `resize:${event.id}:${day}`,
     data: { type: "resize", event, day } satisfies DragData,
@@ -82,8 +85,8 @@ export function ResizeHandle({ event, day }: { event: CalendarEvent; day: string
       ref={setNodeRef}
       {...attributes}
       {...listeners}
-      aria-roledescription="Resize handle"
-      aria-label={`Change when "${event.title}" ends`}
+      aria-roledescription={t("resizeHandle")}
+      aria-label={t("changeEnd", { title: event.title })}
       onClick={(e) => e.stopPropagation()}
       className="absolute inset-x-0 bottom-0 h-2 cursor-ns-resize touch-manipulation rounded-b outline-none focus-visible:bg-leaf/40"
     />

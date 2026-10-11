@@ -15,7 +15,10 @@
     "delete": "删除",
     "add": "添加",
     "previousMonth": "上个月",
-    "nextMonth": "下个月"
+    "nextMonth": "下个月",
+    "close": "关闭",
+    "back": "返回",
+    "moreCount": "还有 {count} 项"
   },
   "nav": {
     "dashboard": "主页",
@@ -411,5 +414,95 @@
       "tooLarge": "{name} 超过了 {size} MB。",
       "uploadFailed": "上传 {name} 失败（{status}）。"
     }
+  },
+  "calendar": {
+    "month": "月",
+    "week": "周",
+    "view": "视图",
+    "previous": "{view, select, week {上一周} other {上个月}}",
+    "next": "{view, select, week {下一周} other {下个月}}",
+    "today": "今天",
+    "newEvent": "新建日程",
+    "editEvent": "编辑日程",
+    "holidaysGuessed": "根据浏览器语言，显示 {countries} 的节假日。",
+    "noHolidays": "未显示节假日。",
+    "chooseCountries": "选择国家和地区",
+    "eventDeleted": "日程已删除",
+    "seriesDeleted": "重复日程已删除",
+    "movedOne": "只移动了这一次。要修改整个系列，请编辑这个日程。",
+    "dropDue": "{date} 到期",
+    "allDay": "全天",
+    "dayItems": "{day}，{count, plural, =0 {没有安排} other {# 项}}",
+    "agendaFor": "{day} 的日程",
+    "newEventOnDay": "在这一天新建日程",
+    "nothingPlanned": "没有安排。",
+    "publicHoliday": "公共假日 · {country}",
+    "taskCompleted": "任务已完成",
+    "taskOverdue": "任务已逾期",
+    "taskDue": "任务到期",
+    "reminderAt": "{time} 提醒",
+    "repeats": "重复",
+    "draggable": "可拖动的项目",
+    "resizeHandle": "调整时长的手柄",
+    "changeEnd": "调整“{title}”的结束时间",
+    "join": "加入",
+    "open": "打开",
+    "linkLabel": "{action}“{title}”（{platform}）",
+    "manageCalendars": "管理日历",
+    "calendars": "日历",
+    "lastRefreshFailed": "上次刷新失败：{error}",
+    "refreshFailed": "上次刷新失败",
+    "details": {
+      "fromTravel": "来自出行",
+      "fromCalendar": "来自 {name}（只读）",
+      "openInTravel": "在出行中打开",
+      "sourceNote": "修改来自这个日历的源头，刷新后会显示在这里。"
+    },
+    "form": {
+      "title": "标题",
+      "titlePlaceholder": "要做什么？",
+      "allDay": "全天",
+      "starts": "开始",
+      "ends": "结束",
+      "startTime": "开始时间",
+      "endTime": "结束时间",
+      "notes": "备注",
+      "notesPlaceholder": "地点、详细信息…",
+      "titleRequired": "请填写日程标题",
+      "chooseDates": "请选择开始和结束日期",
+      "endsBeforeStart": "日程的结束时间早于开始时间",
+      "overlap": "每次的时长超过了到下一次的间隔，会互相重叠。请把“开始/结束”缩短为一次的时长，并用“重复结束”来设置停止重复的日期。",
+      "applyTo": "应用于",
+      "scopeQuestion": "{action, select, save {只保存这一次的修改，还是修改} other {只删除这一次，还是删除}}整个系列？",
+      "thisEvent": "仅这一次",
+      "allEvents": "整个系列"
+    },
+    "repeat": {
+      "label": "重复",
+      "none": "不重复",
+      "daily": "每天",
+      "weekly": "每周",
+      "monthly": "每月",
+      "yearly": "每年",
+      "every": "每隔",
+      "unit": "{freq, select, DAILY {天} WEEKLY {周} MONTHLY {个月} other {年}}",
+      "on": "重复的日子",
+      "ends": "重复结束",
+      "never": "从不",
+      "onDate": "在某个日期",
+      "afterCount": "重复一定次数后",
+      "until": "重复到",
+      "times": "次数",
+      "timesUnit": "次"
+    },
+    "rule": {
+      "every": "{freq, select, DAILY {{interval, plural, one {每天} other {每 # 天}}} WEEKLY {{interval, plural, one {每周} other {每 # 周}}} MONTHLY {{interval, plural, one {每月} other {每 # 个月}}} other {{interval, plural, one {每年} other {每 # 年}}}}",
+      "onDays": "的{days}",
+      "count": "，共 {count} 次",
+      "until": "，直到 {date}"
+    }
+  },
+  "travel": {
+    "weatherOnArrival": "抵达时 {place}：{conditions}"
   }
 }

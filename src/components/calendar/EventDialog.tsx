@@ -1,6 +1,7 @@
 // src/components/calendar/EventDialog.tsx
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -23,9 +24,6 @@ import { toDateKey } from "@/lib/tasks";
 // For an occurrence of a repeating event: change just it, or the whole series
 export type EditScope = "one" | "all";
 
-const TOO_LONG_MESSAGE =
-  "Each occurrence lasts longer than the time until the next one, so they would overlap. " +
-  "Shorten Starts/Ends to one occurrence, and use Repeat ends to stop repeating on a date.";
 
 interface EventDialogProps {
   open: boolean;
@@ -40,11 +38,12 @@ interface EventDialogProps {
 }
 
 export function EventDialog({ open, onOpenChange, event, defaultDate, defaultTime, onSubmit, onDelete }: EventDialogProps) {
+  const t = useTranslations("calendar");
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>{event ? "Edit Event" : "New Event"}</DialogTitle>
+          <DialogTitle>{event ? t("editEvent") : t("newEvent")}</DialogTitle>
         </DialogHeader>
         {/* The content unmounts when closed, so the form resets on each open */}
         <EventForm
@@ -125,6 +124,9 @@ function EventForm({
   );
   const [startTime, setStartTime] = useState(event?.startsAt ? timeOf(event.startsAt) : defaults.start);
   const [endTime, setEndTime] = useState(event?.endsAt ? timeOf(event.endsAt) : defaults.end);
+  const t = useTranslations("calendar.form");
+  const tCommon = useTranslations("common");
+  const tooLongMessage = t("overlap");
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -148,8 +150,8 @@ function EventForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim()) return setError("Event title is required");
-    if (!startDate || !endDate) return setError("Choose a start and end date");
+    if (!title.trim()) return setError(t("titleRequired"));
+    if (!startDate || !endDate) return setError(t("chooseDates"));
 
     const timing: EventInput = allDay
       ? { allDay: true, startDate, endDate }
@@ -157,8 +159,8 @@ function EventForm({
     const ordered = allDay
       ? endDate >= startDate
       : new Date(timing.endsAt!) >= new Date(timing.startsAt!);
-    if (!ordered) return setError("The event ends before it starts");
-    if (tooLongToRepeat) return setError(TOO_LONG_MESSAGE);
+    if (!ordered) return setError(t("endsBeforeStart"));
+    if (tooLongToRepeat) return setError(tooLongMessage);
 
     const rrule = rule ? formatRRule(rule) : null;
     const input: EventInput = { title: title.trim(), notes: notes.trim() || null, rrule, ...timing };
@@ -186,12 +188,12 @@ function EventForm({
   return (
     <form onSubmit={handleSubmit} className="min-w-0 space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="event-title">Title</Label>
+        <Label htmlFor="event-title">{t("title")}</Label>
         <Input
           id="event-title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="What's happening?"
+          placeholder={t("titlePlaceholder")}
           maxLength={200}
           autoFocus
         />
@@ -204,14 +206,14 @@ function EventForm({
           onChange={(e) => setAllDay(e.target.checked)}
           className="size-4 accent-leaf"
         />
-        All day
+        {t("allDay")}
       </label>
 
       {/* Phones: Starts and Ends on their own rows, date and time side by side.
           Wider: two columns, date above time. */}
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="min-w-0 space-y-2">
-          <Label htmlFor="event-start-date">Starts</Label>
+          <Label htmlFor="event-start-date">{t("starts")}</Label>
           <div className="flex gap-2 sm:flex-col">
             <Input
               id="event-start-date"
@@ -225,14 +227,14 @@ function EventForm({
                 type="time"
                 value={startTime}
                 onChange={(e) => setStartTime(e.target.value)}
-                aria-label="Start time"
+                aria-label={t("startTime")}
                 className="w-28 shrink-0 sm:w-full"
               />
             )}
           </div>
         </div>
         <div className="min-w-0 space-y-2">
-          <Label htmlFor="event-end-date">Ends</Label>
+          <Label htmlFor="event-end-date">{t("ends")}</Label>
           <div className="flex gap-2 sm:flex-col">
             <Input
               id="event-end-date"
@@ -247,7 +249,7 @@ function EventForm({
                 type="time"
                 value={endTime}
                 onChange={(e) => setEndTime(e.target.value)}
-                aria-label="End time"
+                aria-label={t("endTime")}
                 className="w-28 shrink-0 sm:w-full"
               />
             )}
@@ -258,43 +260,42 @@ function EventForm({
       <RepeatFields rule={rule} onChange={setRule} startDate={startDate} />
       {tooLongToRepeat && (
         <p role="alert" className="-mt-1 text-sm text-destructive">
-          {TOO_LONG_MESSAGE}
+          {tooLongMessage}
         </p>
       )}
 
       <div className="space-y-2">
-        <Label htmlFor="event-notes">Notes</Label>
+        <Label htmlFor="event-notes">{t("notes")}</Label>
         <Textarea
           id="event-notes"
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          placeholder="Location, details…"
+          placeholder={t("notesPlaceholder")}
           rows={3}
           className="max-h-60 overflow-y-auto wrap-anywhere"
         />
       </div>
 
-      {error && error !== TOO_LONG_MESSAGE && <p className="text-sm text-destructive">{error}</p>}
+      {error && error !== tooLongMessage && <p className="text-sm text-destructive">{error}</p>}
 
       {askScope ? (
-        <div role="group" aria-label="Apply to" className="space-y-3 rounded-md border bg-muted/40 p-3">
+        <div role="group" aria-label={t("applyTo")} className="space-y-3 rounded-md border bg-muted/40 p-3">
           <p className="text-sm">
-            {askScope.action === "save" ? "Save changes to" : "Delete"} only this event, or every event in the
-            series?
+            {t("scopeQuestion", { action: askScope.action })}
           </p>
           <div className="flex flex-wrap justify-end gap-2">
             <Button type="button" variant="ghost" onClick={() => setAskScope(null)}>
-              Back
+              {tCommon("back")}
             </Button>
             <Button type="button" variant="outline" onClick={() => chooseScope("one")} autoFocus>
-              This event
+              {t("thisEvent")}
             </Button>
             <Button
               type="button"
               variant={askScope.action === "delete" ? "destructive" : "default"}
               onClick={() => chooseScope("all")}
             >
-              All events
+              {t("allEvents")}
             </Button>
           </div>
         </div>
@@ -302,16 +303,16 @@ function EventForm({
         <div className="flex items-center gap-2 pt-2">
           {onDelete && (
             <Button type="button" variant="ghost" className="text-destructive hover:text-destructive" onClick={handleDelete}>
-              <Trash2 className="w-4 h-4 mr-1" /> Delete
+              <Trash2 className="w-4 h-4 mr-1" /> {tCommon("delete")}
             </Button>
           )}
           <div className="flex-1" />
           <Button type="button" variant="outline" onClick={onCancel}>
-            Cancel
+            {tCommon("cancel")}
           </Button>
           <Button type="submit" disabled={saving}>
             {saving && <Spinner />}
-            {saving ? "Saving…" : event ? "Save" : "Create"}
+            {saving ? tCommon("saving") : event ? tCommon("save") : tCommon("create")}
           </Button>
         </div>
       )}

@@ -1,6 +1,7 @@
 // src/app/(app)/calendar/page.tsx
 "use client";
 
+import { useLocale, useTranslations } from "next-intl";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -94,6 +95,10 @@ function CalendarPageContent() {
   }, [linkedDate, router]);
 
   const format = useFormat();
+  const tCal = useTranslations("calendar");
+  const tCommon = useTranslations("common");
+  const locale = useLocale();
+  const countryList = new Intl.ListFormat(locale, { type: "conjunction" });
   const days = useMemo(
     () => (view === "month" ? monthGrid(month, format.weekStart) : weekDays(selected, format.weekStart)),
     [view, month, selected, format.weekStart]
@@ -218,9 +223,9 @@ function CalendarPageContent() {
     if (series && scope === "one") {
       const date = event.occurrenceDate!;
       if (!(await updateEvent(series.id, { exdates: [...series.exdates, date] }))) return;
-      toast("Event deleted", {
+      toast(tCal("eventDeleted"), {
         action: {
-          label: "Undo",
+          label: tCommon("undo"),
           onClick: () => updateEvent(series.id, { exdates: series.exdates.filter((d) => d !== date) }),
         },
       });
@@ -228,9 +233,9 @@ function CalendarPageContent() {
     }
     const target = series ?? event;
     if (!(await deleteEvent(target.id))) return;
-    toast(target.rrule ? "Repeating event deleted" : "Event deleted", {
+    toast(target.rrule ? tCal("seriesDeleted") : tCal("eventDeleted"), {
       action: {
-        label: "Undo",
+        label: tCommon("undo"),
         onClick: () =>
           createEvent({
             title: target.title,
@@ -280,7 +285,7 @@ function CalendarPageContent() {
 
   const describeDrop = (plan: ReturnType<typeof planDrop>) => {
     if (!plan) return null;
-    if ("task" in plan) return `Due ${format.dayWithWeekday(plan.dueDate!)}`;
+    if ("task" in plan) return tCal("dropDue", { date: format.dayWithWeekday(plan.dueDate!) });
     const t = plan.timing;
     if (t.allDay) return t.startDate === t.endDate ? format.dayWithWeekday(t.startDate) : `${format.day(t.startDate)} – ${format.day(t.endDate)}`;
     return `${format.weekday(t.startsAt)} ${format.time(t.startsAt)} – ${format.time(t.endsAt)}`;
@@ -307,7 +312,7 @@ function CalendarPageContent() {
     if (!series) return updateEvent(plan.event.id, plan.timing);
     // Dragging an occurrence of a repeating event moves just that one
     detachOccurrence(series, plan.event, plan.timing).then(
-      (moved) => moved && toast.info("Moved this occurrence only. Edit the event to change the whole series.")
+      (moved) => moved && toast.info(tCal("movedOne"))
     );
   };
 
@@ -335,10 +340,10 @@ function CalendarPageContent() {
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h1 className="text-2xl font-bold">{title}</h1>
             <div className="flex flex-wrap items-center gap-2">
-              <div role="group" aria-label="View" className="flex rounded-md border p-0.5">
+              <div role="group" aria-label={tCal("view")} className="flex rounded-md border p-0.5">
                 {[
-                  { value: "month" as const, label: "Month", icon: CalendarDays },
-                  { value: "week" as const, label: "Week", icon: CalendarRange },
+                  { value: "month" as const, label: tCal("month"), icon: CalendarDays },
+                  { value: "week" as const, label: tCal("week"), icon: CalendarRange },
                 ].map(({ value, label, icon: Icon }) => (
                   <Button
                     key={value}
@@ -361,18 +366,18 @@ function CalendarPageContent() {
                 ))}
               </div>
               <div className="flex items-center rounded-md border">
-                <Button variant="ghost" size="icon" className="size-8" onClick={() => step(-1)} aria-label={`Previous ${view}`}>
+                <Button variant="ghost" size="icon" className="size-8" onClick={() => step(-1)} aria-label={tCal("previous", { view })}>
                   <ChevronLeft className="size-4" />
                 </Button>
                 <Button variant="ghost" size="sm" className="h-8" onClick={goToToday}>
-                  Today
+                  {tCal("today")}
                 </Button>
-                <Button variant="ghost" size="icon" className="size-8" onClick={() => step(1)} aria-label={`Next ${view}`}>
+                <Button variant="ghost" size="icon" className="size-8" onClick={() => step(1)} aria-label={tCal("next", { view })}>
                   <ChevronRight className="size-4" />
                 </Button>
               </div>
               <Button onClick={() => openNewEvent()}>
-                <Plus className="size-4 mr-1" /> New Event
+                <Plus className="size-4 mr-1" /> {tCal("newEvent")}
               </Button>
             </div>
           </div>
@@ -380,10 +385,10 @@ function CalendarPageContent() {
           {guessed && (
             <p className="text-xs text-muted-foreground">
               {countries.length > 0
-                ? `Showing ${countries.join(", ")} holidays based on your browser.`
-                : "No public holidays shown."}{" "}
+                ? tCal("holidaysGuessed", { countries: countryList.format(countries) })
+                : tCal("noHolidays")}{" "}
               <Link href="/settings?section=calendar&focus=holidays" className="text-leaf underline-offset-2 hover:underline">
-                Choose countries and regions
+                {tCal("chooseCountries")}
               </Link>
             </p>
           )}

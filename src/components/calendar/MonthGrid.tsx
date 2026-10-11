@@ -1,6 +1,7 @@
 // src/components/calendar/MonthGrid.tsx
 "use client";
 
+import { useTranslations } from "next-intl";
 import { CalendarChip, dotOf } from "@/components/calendar/CalendarItemView";
 import { DayDrop, DraggableItem } from "@/components/calendar/dnd";
 import { useFormat } from "@/components/SettingsProvider";
@@ -22,6 +23,8 @@ interface MonthGridProps {
 // Six weeks of days. Wide cells show chips that can be dragged to another day;
 // narrow ones show colored dots.
 export function MonthGrid({ month, days, items, today, selected, onSelect, onOpen }: MonthGridProps) {
+  const t = useTranslations("calendar");
+  const tCommon = useTranslations("common");
   const format = useFormat();
   const inMonth = (day: string) => day.slice(0, 7) === month.slice(0, 7);
 
@@ -63,7 +66,7 @@ export function MonthGrid({ month, days, items, today, selected, onSelect, onOpe
                 }}
                 aria-pressed={isSelected}
                 aria-current={isToday ? "date" : undefined}
-                aria-label={`${format.dayLong(day)}, ${dayItems.length} ${dayItems.length === 1 ? "item" : "items"}`}
+                aria-label={t("dayItems", { day: format.dayLong(day), count: dayItems.length })}
                 className={cn(
                   "flex size-6 shrink-0 items-center justify-center rounded-full text-xs outline-none focus-visible:ring-2 focus-visible:ring-ring",
                   isToday && "bg-forest font-semibold text-white"
@@ -79,7 +82,7 @@ export function MonthGrid({ month, days, items, today, selected, onSelect, onOpe
                     <CalendarChip item={item} />
                   </DraggableItem>
                 ))}
-                {hidden > 0 && <span className="px-1.5 text-[11px] text-muted-foreground">+{hidden} more</span>}
+                {hidden > 0 && <span className="px-1.5 text-[11px] text-muted-foreground">{tCommon("moreCount", { count: hidden })}</span>}
               </div>
 
               {/* Narrow: dots */}

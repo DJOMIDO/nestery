@@ -15,7 +15,10 @@
     "delete": "Supprimer",
     "add": "Ajouter",
     "previousMonth": "Mois précédent",
-    "nextMonth": "Mois suivant"
+    "nextMonth": "Mois suivant",
+    "close": "Fermer",
+    "back": "Retour",
+    "moreCount": "+{count} de plus"
   },
   "nav": {
     "dashboard": "Tableau de bord",
@@ -411,5 +414,95 @@
       "tooLarge": "{name} dépasse {size} Mo.",
       "uploadFailed": "L’envoi de {name} a échoué ({status})."
     }
+  },
+  "calendar": {
+    "month": "Mois",
+    "week": "Semaine",
+    "view": "Affichage",
+    "previous": "{view, select, week {Semaine précédente} other {Mois précédent}}",
+    "next": "{view, select, week {Semaine suivante} other {Mois suivant}}",
+    "today": "Aujourd’hui",
+    "newEvent": "Nouvel événement",
+    "editEvent": "Modifier l’événement",
+    "holidaysGuessed": "Jours fériés de {countries} affichés d’après votre navigateur.",
+    "noHolidays": "Aucun jour férié affiché.",
+    "chooseCountries": "Choisir les pays et régions",
+    "eventDeleted": "Événement supprimé",
+    "seriesDeleted": "Événement récurrent supprimé",
+    "movedOne": "Seule cette occurrence a été déplacée. Modifiez l’événement pour changer toute la série.",
+    "dropDue": "Échéance le {date}",
+    "allDay": "Toute la journée",
+    "dayItems": "{day}, {count, plural, =0 {rien de prévu} one {# élément} other {# éléments}}",
+    "agendaFor": "Agenda du {day}",
+    "newEventOnDay": "Nouvel événement ce jour-là",
+    "nothingPlanned": "Rien de prévu.",
+    "publicHoliday": "Jour férié · {country}",
+    "taskCompleted": "Tâche terminée",
+    "taskOverdue": "Tâche en retard",
+    "taskDue": "Tâche à rendre",
+    "reminderAt": "Rappel à {time}",
+    "repeats": "Récurrent",
+    "draggable": "Élément déplaçable",
+    "resizeHandle": "Poignée de redimensionnement",
+    "changeEnd": "Modifier la fin de « {title} »",
+    "join": "Rejoindre",
+    "open": "Ouvrir",
+    "linkLabel": "{action} « {title} » ({platform})",
+    "manageCalendars": "Gérer les calendriers",
+    "calendars": "Calendriers",
+    "lastRefreshFailed": "Échec de la dernière actualisation : {error}",
+    "refreshFailed": "Échec de la dernière actualisation",
+    "details": {
+      "fromTravel": "Depuis Voyages",
+      "fromCalendar": "Depuis {name} (lecture seule)",
+      "openInTravel": "Ouvrir dans Voyages",
+      "sourceNote": "Les modifications viennent de la source du calendrier et apparaissent ici à chaque actualisation."
+    },
+    "form": {
+      "title": "Titre",
+      "titlePlaceholder": "Que se passe-t-il ?",
+      "allDay": "Toute la journée",
+      "starts": "Début",
+      "ends": "Fin",
+      "startTime": "Heure de début",
+      "endTime": "Heure de fin",
+      "notes": "Notes",
+      "notesPlaceholder": "Lieu, détails…",
+      "titleRequired": "Le titre de l’événement est obligatoire",
+      "chooseDates": "Choisissez une date de début et de fin",
+      "endsBeforeStart": "L’événement se termine avant de commencer",
+      "overlap": "Chaque occurrence dure plus longtemps que l’intervalle jusqu’à la suivante : elles se chevaucheraient. Réduisez Début/Fin à une seule occurrence et utilisez « Fin de la récurrence » pour arrêter à une date.",
+      "applyTo": "Appliquer à",
+      "scopeQuestion": "{action, select, save {Enregistrer les modifications pour} other {Supprimer}} cet événement seulement, ou toute la série ?",
+      "thisEvent": "Cet événement",
+      "allEvents": "Toute la série"
+    },
+    "repeat": {
+      "label": "Répétition",
+      "none": "Ne se répète pas",
+      "daily": "Tous les jours",
+      "weekly": "Toutes les semaines",
+      "monthly": "Tous les mois",
+      "yearly": "Tous les ans",
+      "every": "Tous les",
+      "unit": "{freq, select, DAILY {jours} WEEKLY {semaines} MONTHLY {mois} other {ans}}",
+      "on": "Répéter le",
+      "ends": "Fin de la récurrence",
+      "never": "Jamais",
+      "onDate": "À une date",
+      "afterCount": "Après un nombre de fois",
+      "until": "Répéter jusqu’au",
+      "times": "Nombre de fois",
+      "timesUnit": "fois"
+    },
+    "rule": {
+      "every": "{freq, select, DAILY {{interval, plural, one {Tous les jours} other {Tous les # jours}}} WEEKLY {{interval, plural, one {Toutes les semaines} other {Toutes les # semaines}}} MONTHLY {{interval, plural, one {Tous les mois} other {Tous les # mois}}} other {{interval, plural, one {Tous les ans} other {Tous les # ans}}}}",
+      "onDays": " le {days}",
+      "count": ", {count, plural, one {# fois} other {# fois}}",
+      "until": ", jusqu’au {date}"
+    }
+  },
+  "travel": {
+    "weatherOnArrival": "{conditions} à {place} à l’arrivée"
   }
 }

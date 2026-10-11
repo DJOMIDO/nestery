@@ -64,7 +64,7 @@ export function UpNextCard({ tasks, events, today, loading }: UpNextProps) {
   );
   const linkWhen = (event: CalendarEvent) => {
     const day = event.allDay ? event.startDate! : toDateKey(new Date(event.startsAt!));
-    return `${day < today ? tCommon("today") : dayLabel(day)} · ${eventWhen(event, format)}`;
+    return `${day < today ? tCommon("today") : dayLabel(day)} · ${eventWhen(event, format, tCommon("allDay"))}`;
   };
   const linksSection = linked.length > 0 && (
     <section>
