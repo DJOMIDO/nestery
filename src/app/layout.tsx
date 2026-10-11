@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Figtree, Geist_Mono, Noto_Sans_SC, Noto_Sans_TC } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
-import { getLocale } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "@/components/ui/sonner";
@@ -33,9 +33,14 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
+// The description in the page's language
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("meta");
+  return { ...metadata, description: t("description") };
+}
+
+const metadata: Metadata = {
   title: "Nestery",
-  description: "A calm, personal home for your tasks and notes.",
   // Added to an iPhone's home screen, it opens full screen as "Nestery".
   // The default status bar keeps the page below it, so nothing needs to
   // make room for the notch.

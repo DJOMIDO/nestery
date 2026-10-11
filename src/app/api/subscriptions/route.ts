@@ -1,19 +1,20 @@
 // src/app/api/subscriptions/route.ts
 
 import { NextResponse } from "next/server";
+import { withLocalError } from "@/server/i18n";
 import { FeedError } from "@/server/fetchIcs";
 import {
   createSubscription,
   createSubscriptionInput,
   listSubscriptions,
 } from "@/server/subscriptions";
-import { getUserId, parseInput, unauthorized } from "@/server/session";
+import { errorResponse, getUserId, parseInput, unauthorized } from "@/server/session";
 
 export async function GET() {
   const userId = await getUserId();
   if (!userId) return unauthorized();
 
-  return NextResponse.json(await listSubscriptions(userId));
+  return NextResponse.json(await Promise.all((await listSubscriptions(userId)).map(withLocalError)));
 }
 
 // Fetches the feed first, so an unreachable or invalid link is a 400 with a reason
@@ -28,10 +29,10 @@ export async function POST(request: Request) {
   if ("response" in input) return input.response;
 
   try {
-    return NextResponse.json(await createSubscription(userId, input.data), { status: 201 });
+    return NextResponse.json(await withLocalError(await createSubscription(userId, input.data)), { status: 201 });
   } catch (err) {
     if (err instanceof FeedError) {
-      return NextResponse.json({ error: err.message }, { status: 400 });
+      return await errorResponse(err.message, 400);
     }
     throw err;
   }

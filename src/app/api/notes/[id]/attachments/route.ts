@@ -3,7 +3,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { AttachmentError, createUpload, createUploadInput, listNoteAttachments } from "@/server/attachments";
-import { getUserId, notFound, parseInput, unauthorized } from "@/server/session";
+import { errorResponse, getUserId, notFound, parseInput, unauthorized } from "@/server/session";
 import { storageEnabled } from "@/server/storage";
 
 type Context = { params: Promise<{ id: string }> };
@@ -25,7 +25,7 @@ export async function POST(request: Request, { params }: Context) {
   const userId = await getUserId();
   if (!userId) return unauthorized();
   if (!storageEnabled()) {
-    return NextResponse.json({ error: "Attachments are not set up on this server." }, { status: 501 });
+    return await errorResponse("Attachments are not set up on this server.", 501);
   }
   const { id } = await params;
   if (!isUuid(id)) return notFound();
@@ -36,7 +36,7 @@ export async function POST(request: Request, { params }: Context) {
   try {
     return NextResponse.json(await createUpload(userId, id, input.data), { status: 201 });
   } catch (err) {
-    if (err instanceof AttachmentError) return NextResponse.json({ error: err.message }, { status: err.status });
+    if (err instanceof AttachmentError) return await errorResponse(err.message, err.status);
     throw err;
   }
 }

@@ -1,6 +1,7 @@
 // src/app/api/assistant/route.ts
 
 import { NextResponse } from "next/server";
+import { translateError } from "@/server/i18n";
 import { z } from "zod";
 import { MAX_IMAGE_BASE64, MAX_IMAGES, type AssistantStreamEvent } from "@/lib/assistant";
 import { runAssistant } from "@/server/assistant/agent";
@@ -9,7 +10,7 @@ import { assistantStatus, resolveAssistant, takeServerQuota } from "@/server/ass
 import { todayIn } from "@/server/assistant/tools";
 import { requestLocale } from "@/i18n/request";
 import { getSettings } from "@/server/settings";
-import { getSessionUser, parseInput, unauthorized } from "@/server/session";
+import { errorResponse, getSessionUser, parseInput, unauthorized } from "@/server/session";
 
 // A few model calls with tools can take a while
 export const maxDuration = 120;
@@ -53,7 +54,7 @@ export async function POST(request: Request) {
 
   const raw = await request.text();
   if (raw.length > MAX_REQUEST_BYTES) {
-    return NextResponse.json({ error: "This conversation is too long. Start a new one." }, { status: 413 });
+    return await errorResponse("This conversation is too long. Start a new one.", 413);
   }
   let body: unknown = null;
   try {
@@ -64,17 +65,17 @@ export async function POST(request: Request) {
 
   const assistant = await resolveAssistant(user);
   if (!assistant) {
-    return NextResponse.json({ error: "Set up the assistant in Settings > Assistant first." }, { status: 400 });
+    return await errorResponse("Set up the assistant in Settings > Assistant first.", 400);
   }
   if (!assistant.provider.isHistory(input.data.history)) {
-    return NextResponse.json({ error: "This conversation was with another model. Start a new one." }, { status: 400 });
+    return await errorResponse("This conversation was with another model. Start a new one.", 400);
   }
 
   const settings = await getSettings(user.id);
   const timeZone = settings.timeZone ?? "UTC";
   const today = todayIn(timeZone);
   if (assistant.source === "server" && !(await takeServerQuota(user.id, today))) {
-    return NextResponse.json({ error: "You've reached today's limit for the assistant." }, { status: 429 });
+    return await errorResponse("You've reached today's limit for the assistant.", 429);
   }
 
   const encoder = new TextEncoder();
@@ -104,7 +105,10 @@ export async function POST(request: Request) {
           if (!(err instanceof ProviderError)) console.error("Assistant failed", err);
           emit({
             type: "error",
-            message: err instanceof ProviderError ? err.message : "The assistant failed unexpectedly.",
+            message: await translateError(
+              err instanceof ProviderError ? err.message : "The assistant failed unexpectedly.",
+              locale
+            ),
           });
         }
       } finally {

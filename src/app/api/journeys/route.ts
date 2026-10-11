@@ -1,7 +1,7 @@
 // src/app/api/journeys/route.ts
 
 import { NextResponse } from "next/server";
-import { getUserId, parseInput, unauthorized } from "@/server/session";
+import { errorResponse, getUserId, parseInput, unauthorized } from "@/server/session";
 import { createJourney, DuplicateJourneyError, journeyInput, listJourneys } from "@/server/travel";
 
 export async function GET() {
@@ -20,7 +20,7 @@ export async function POST(request: Request) {
   try {
     return NextResponse.json(await createJourney(userId, input.data), { status: 201 });
   } catch (err) {
-    if (err instanceof DuplicateJourneyError) return NextResponse.json({ error: err.message }, { status: 409 });
+    if (err instanceof DuplicateJourneyError) return await errorResponse(err.message, 409);
     throw err;
   }
 }

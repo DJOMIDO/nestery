@@ -8,6 +8,7 @@ import { db } from "@/db";
 import * as schema from "@/db/schema";
 import { emailEnabled, sendEmail } from "@/server/email";
 import { confirmEmailChange, resetPasswordEmail, verifyEmail } from "@/server/emailTemplates";
+import { userLocale } from "@/server/i18n";
 import { deleteUserFiles } from "@/server/attachments";
 import { storageEnabled } from "@/server/storage";
 import { SOCIAL_PROVIDERS, type SocialProviderId } from "@/lib/socialProviders";
@@ -63,7 +64,7 @@ export const auth = betterAuth({
     // Only when emails can actually be delivered (SMTP configured)
     requireEmailVerification: emailEnabled,
     sendResetPassword: async ({ user, url }) => {
-      await sendEmail(resetPasswordEmail(user.email, user.name, url));
+      await sendEmail(await resetPasswordEmail(user.email, user.name, url, await userLocale(user.id)));
     },
     resetPasswordTokenExpiresIn: 60 * 60,
     revokeSessionsOnPasswordReset: true,
@@ -75,7 +76,7 @@ export const auth = betterAuth({
     autoSignInAfterVerification: true,
     expiresIn: 60 * 60 * 24,
     sendVerificationEmail: async ({ user, url }) => {
-      await sendEmail(verifyEmail(user.email, user.name, url));
+      await sendEmail(await verifyEmail(user.email, user.name, url, await userLocale(user.id)));
     },
   },
   user: {
@@ -91,7 +92,7 @@ export const auth = betterAuth({
     changeEmail: {
       enabled: true,
       sendChangeEmailConfirmation: async ({ user, newEmail, url }) => {
-        await sendEmail(confirmEmailChange(user.email, user.name, newEmail, url));
+        await sendEmail(await confirmEmailChange(user.email, user.name, newEmail, url, await userLocale(user.id)));
       },
     },
   },

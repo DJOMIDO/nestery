@@ -3,7 +3,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { AttachmentError, completeUpload } from "@/server/attachments";
-import { getUserId, notFound, unauthorized } from "@/server/session";
+import { errorResponse, getUserId, notFound, unauthorized } from "@/server/session";
 
 type Context = { params: Promise<{ id: string }> };
 
@@ -17,7 +17,7 @@ export async function POST(_request: Request, { params }: Context) {
   try {
     return NextResponse.json(await completeUpload(userId, id));
   } catch (err) {
-    if (err instanceof AttachmentError) return NextResponse.json({ error: err.message }, { status: err.status });
+    if (err instanceof AttachmentError) return await errorResponse(err.message, err.status);
     throw err;
   }
 }

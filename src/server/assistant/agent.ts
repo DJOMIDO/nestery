@@ -9,6 +9,7 @@ import { addDays, startOfWeek } from "@/lib/tasks";
 import type { WeatherPlace } from "@/lib/weather";
 import type { ChatProvider } from "@/server/assistant/providers/types";
 import { runTool, TOOL_SPECS, toolLabel, type ToolContext } from "@/server/assistant/tools";
+import { translatorFor } from "@/server/i18n";
 
 // Model calls per user message; stops runaway tool loops
 const MAX_STEPS = 8;
@@ -67,6 +68,8 @@ export interface AssistantRun {
 
 export async function runAssistant(run: AssistantRun) {
   const { provider, emit } = run;
+  // What the user sees of the run (status lines), in the interface language
+  const t = await translatorFor(run.locale);
   // A message can be just images
   const message = run.message || "(See the attached image.)";
   const text = run.notes.length ? `${run.notes.map((n) => `(${n})`).join("\n")}\n\n${message}` : message;
@@ -120,14 +123,16 @@ export async function runAssistant(run: AssistantRun) {
         messages.push(provider.userMessage(EMPTY_REPLY_NUDGE));
         continue;
       }
-      emit({ type: "text", text: "(The model didn't give an answer. Try again, or choose a larger model in Settings.)" });
+      emit({ type: "text", text: t("assistant.noAnswer") });
       break;
     }
     if (turn.stop === "done") break;
 
     // Tool calls of one turn run together and are answered in one message
-    for (const label of new Set(turn.toolCalls.map((c) => toolLabel(c.name)))) {
-      emit({ type: "status", label });
+    for (const name of new Set(turn.toolCalls.map((c) => c.name))) {
+      // The status line in the interface language; English for an unknown tool
+      const key = `assistant.tools.${name}` as "assistant.tools.list_tasks";
+      emit({ type: "status", label: t.has(key) ? t(key) : toolLabel(name) });
     }
     const results = await Promise.all(
       turn.toolCalls.map(async (call) => ({ id: call.id, ...(await runTool(call.name, call.input, ctx)) }))

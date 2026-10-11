@@ -55,9 +55,33 @@
       <svg viewBox="0 0 256 256" aria-hidden="true">
         <path d="M 128 0 C 147.68 0 164.04 14.213 167.377 32.934 C 182.974 22.055 204.594 23.574 218.51 37.49 C 232.426 51.406 233.944 73.025 223.066 88.622 C 241.787 91.96 256 108.32 256 128 C 256 147.68 241.787 164.04 223.065 167.377 C 233.944 182.974 232.426 204.594 218.51 218.51 C 204.594 232.426 182.974 233.944 167.377 223.065 C 164.04 241.787 147.68 256 128 256 C 108.32 256 91.959 241.787 88.622 223.065 C 73.025 233.944 51.406 232.426 37.49 218.51 C 23.574 204.594 22.055 182.974 32.934 167.377 C 14.213 164.04 0 147.68 0 128 C 0 108.32 14.213 91.96 32.934 88.622 C 22.056 73.025 23.574 51.406 37.49 37.49 C 51.406 23.574 73.025 22.055 88.622 32.934 C 91.96 14.213 108.32 0 128 0 Z" />
       </svg>
-      <h1>You're offline</h1>
-      <p>Nestery needs a connection to load your tasks, notes and calendar.</p>
-      <button type="button" onclick="location.reload()">Try again</button>
+      <h1 id="title">You're offline</h1>
+      <p id="text">Nestery needs a connection to load your tasks, notes and calendar.</p>
+      <button id="retry" type="button" onclick="location.reload()">Try again</button>
     </main>
+    <script>
+      // Static and cached, so it can't ask the server: the language comes from
+      // the cookie the app sets, else the browser
+      (function () {
+        var TEXT = {
+          "zh-CN": ["你已离线", "Nestery 需要网络连接才能加载你的任务、笔记和日历。", "重试"],
+          "zh-TW": ["你已離線", "Nestery 需要網路連線才能載入你的任務、筆記和行事曆。", "重試"],
+          fr: ["Tu es hors ligne", "Nestery a besoin d’une connexion pour charger tes tâches, tes notes et ton calendrier.", "Réessayer"],
+        };
+        var cookie = (document.cookie.match(/(?:^|; )NEXT_LOCALE=([^;]*)/) || [])[1];
+        var lang = (navigator.language || "").toLowerCase();
+        var locale =
+          cookie && TEXT[cookie] ? cookie
+          : lang.indexOf("zh") === 0 ? (/hant|-tw|-hk|-mo/.test(lang) ? "zh-TW" : "zh-CN")
+          : lang.indexOf("fr") === 0 ? "fr"
+          : null;
+        if (!locale) return;
+        document.documentElement.lang = locale;
+        document.title = TEXT[locale][0] + " · Nestery";
+        document.getElementById("title").textContent = TEXT[locale][0];
+        document.getElementById("text").textContent = TEXT[locale][1];
+        document.getElementById("retry").textContent = TEXT[locale][2];
+      })();
+    </script>
   </body>
 </html>

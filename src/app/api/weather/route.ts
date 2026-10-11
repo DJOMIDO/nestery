@@ -2,7 +2,7 @@
 
 import { NextResponse } from "next/server";
 import { getSettings } from "@/server/settings";
-import { getUserId, unauthorized } from "@/server/session";
+import { errorResponse, getUserId, unauthorized } from "@/server/session";
 import { todayWeather } from "@/server/weather";
 
 // GET /api/weather: today's weather at the place chosen in Settings, or null
@@ -17,6 +17,6 @@ export async function GET() {
   try {
     return NextResponse.json(await todayWeather(weatherPlace, timeZone));
   } catch {
-    return NextResponse.json({ error: "Weather is unavailable right now" }, { status: 502 });
+    return await errorResponse("Weather is unavailable right now", 502);
   }
 }
