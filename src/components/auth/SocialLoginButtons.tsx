@@ -4,6 +4,8 @@
 
 "use client";
 
+import { useTranslations } from "next-intl";
+import { useAuthErrorText } from "@/components/auth/useAuthErrorText";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -15,6 +17,8 @@ import { SOCIAL_PROVIDER_LABELS, type SocialProviderId } from "@/lib/socialProvi
 export function SocialLoginButtons() {
   const providers = useSocialProviders();
   const [pending, setPending] = useState<SocialProviderId | null>(null);
+  const t = useTranslations("auth");
+  const errorText = useAuthErrorText();
 
   if (providers.length === 0) return null;
 
@@ -24,14 +28,14 @@ export function SocialLoginButtons() {
       // Leaves for the provider's page and comes back to /dashboard
       await signInWithSocial(provider);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "An unexpected error occurred.");
+      toast.error(errorText(error));
       setPending(null);
     }
   };
 
   return (
     <div className="pt-4 border-t text-center space-y-3">
-      <p className="text-sm text-muted-foreground">Or continue with</p>
+      <p className="text-sm text-muted-foreground">{t("orContinue")}</p>
       <div className="space-y-2">
         {providers.map((provider) => (
           <Button
@@ -42,7 +46,7 @@ export function SocialLoginButtons() {
             disabled={pending !== null}
           >
             <ProviderIcon provider={provider} />
-            Continue with {SOCIAL_PROVIDER_LABELS[provider]}
+            {t("continueWith", { provider: SOCIAL_PROVIDER_LABELS[provider] })}
           </Button>
         ))}
       </div>

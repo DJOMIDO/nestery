@@ -1,6 +1,8 @@
 // app/forgot-password/page.tsx
 "use client";
 
+import { useTranslations } from "next-intl";
+import { useAuthErrorText } from "@/components/auth/useAuthErrorText";
 import { useState } from "react";
 import Link from "next/link";
 import { AuthShell } from "@/components/auth/AuthShell";
@@ -15,18 +17,21 @@ export default function ForgotPasswordPage() {
   const [sentTo, setSentTo] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
+  const t = useTranslations("auth");
+  const tCommon = useTranslations("common");
+  const errorText = useAuthErrorText();
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     const address = email.trim();
-    if (!/^\S+@\S+\.\S+$/.test(address)) return setError("Enter the email you signed up with");
+    if (!/^\S+@\S+\.\S+$/.test(address)) return setError(t("forgot.enterEmail"));
     setError(null);
     setSending(true);
     try {
       await requestPasswordReset(address);
       setSentTo(address);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      setError(errorText(err));
     } finally {
       setSending(false);
     }
@@ -35,45 +40,47 @@ export default function ForgotPasswordPage() {
   return (
     <AuthShell
       seed={31}
-      tagline="Back to your nest in a moment."
-      title={sentTo ? "Check your inbox" : "Forgot your password?"}
-      subtitle={sentTo ? "Follow the link to choose a new password." : "We'll email you a link to choose a new one."}
+      tagline={t("forgot.tagline")}
+      title={sentTo ? t("signup.checkInbox") : t("forgot.title")}
+      subtitle={sentTo ? t("forgot.sentSubtitle") : t("forgot.subtitle")}
     >
       {sentTo ? (
         <div className="space-y-4 text-sm">
           {/* Same answer whether or not the account exists */}
           <p>
-            If there&apos;s a Nestery account for <strong>{sentTo}</strong>, a link to reset the password is on its
-            way. It works for 1 hour.
+            {t.rich("forgot.sent", { email: sentTo, b: (chunks) => <strong>{chunks}</strong> })}
           </p>
-          <p className="text-muted-foreground">Nothing there after a few minutes? Check your spam folder.</p>
+          <p className="text-muted-foreground">{t("forgot.spam")}</p>
           <Button variant="outline" asChild>
-            <Link href="/login">Back to sign in</Link>
+            <Link href="/login">{t("backToSignIn")}</Link>
           </Button>
         </div>
       ) : (
         <form onSubmit={submit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">{tCommon("email")}</Label>
             <Input
               id="email"
               type="email"
               autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
+              placeholder={t("emailPlaceholder")}
             />
             {error && <p className="text-sm text-red-500">{error}</p>}
           </div>
           <Button type="submit" className="w-full" disabled={sending}>
             {sending && <Spinner />}
-            {sending ? "Sending…" : "Send reset link"}
+            {sending ? tCommon("sending") : t("forgot.send")}
           </Button>
           <p className="text-center text-sm">
-            Remembered it?{" "}
-            <Link href="/login" className="font-medium text-leaf underline-offset-4 hover:underline">
-              Sign in
-            </Link>
+            {t.rich("forgot.remembered", {
+              link: (chunks) => (
+                <Link href="/login" className="font-medium text-leaf underline-offset-4 hover:underline">
+                  {chunks}
+                </Link>
+              ),
+            })}
           </p>
         </form>
       )}

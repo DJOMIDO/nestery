@@ -26,7 +26,8 @@
     "somethingWrong": "發生了一些問題",
     "password": "密碼",
     "email": "電子郵件",
-    "remove": "移除"
+    "remove": "移除",
+    "language": "語言"
   },
   "nav": {
     "dashboard": "首頁",
@@ -845,5 +846,121 @@
     "matches": "符合的地點",
     "noMatches": "沒有符合的結果。",
     "source": "天氣資料來自 <a1>Open-Meteo</a1>（<a2>CC BY 4.0</a2>）。"
+  },
+  "auth": {
+    "emailPlaceholder": "you@example.com",
+    "orContinue": "或使用以下方式繼續",
+    "continueWith": "使用 {provider} 繼續",
+    "unexpected": "發生了未預期的錯誤。",
+    "couldNotSend": "郵件傳送失敗",
+    "resent": "已重新寄出確認連結",
+    "sendAgain": "重新傳送",
+    "backToSignIn": "返回登入",
+    "signIn": "登入",
+    "errors": {
+      "INVALID_EMAIL_OR_PASSWORD": "電子郵件或密碼不正確",
+      "USER_ALREADY_EXISTS": "這個電子郵件已經註冊過了",
+      "PASSWORD_TOO_SHORT": "密碼太短",
+      "INVALID_TOKEN": "這個連結已過期或已被使用"
+    },
+    "validation": {
+      "email": "電子郵件地址無效",
+      "password": "請輸入密碼",
+      "username": "使用者名稱至少需要 2 個字元",
+      "passwordLength": "密碼至少需要 8 個字元",
+      "confirm": "請再次輸入密碼",
+      "mismatch": "兩次輸入的密碼不一致"
+    },
+    "login": {
+      "tagline": "歡迎回到你的小窩。",
+      "title": "歡迎回來",
+      "subtitle": "登入後繼續上次的進度。",
+      "forgot": "忘記密碼？",
+      "success": "登入成功",
+      "unverified": "請先確認你的電子郵件。我們已寄送新的連結到 <b>{email}</b>。",
+      "signingIn": "登入中…",
+      "new": "第一次使用 Nestery？<link>建立帳戶</link>"
+    },
+    "signup": {
+      "tagline": "就當是自己家。",
+      "title": "建立你的帳戶",
+      "subtitle": "你的任務和筆記，都在一個地方。",
+      "checkInbox": "請查收郵件",
+      "oneMore": "還差一步就能完成註冊。",
+      "sent": "我們已寄送確認連結到 <b>{email}</b>。開啟連結確認電子郵件後就會自動登入。",
+      "spam": "幾分鐘後還沒收到？請查看垃圾郵件資料夾，或者重新傳送。",
+      "created": "帳戶建立成功",
+      "username": "使用者名稱",
+      "usernamePlaceholder": "你的名字",
+      "confirm": "確認密碼",
+      "signingUp": "註冊中…",
+      "signUp": "註冊",
+      "haveAccount": "已經有帳戶了？<link>登入</link>"
+    },
+    "forgot": {
+      "tagline": "馬上就能回到你的小窩。",
+      "title": "忘記密碼了？",
+      "subtitle": "我們會寄信給你，附上設定新密碼的連結。",
+      "sentSubtitle": "點擊郵件中的連結設定新密碼。",
+      "enterEmail": "請輸入註冊時使用的電子郵件",
+      "sent": "如果 <b>{email}</b> 有 Nestery 帳戶，重設密碼的連結正在寄送中，1 小時內有效。",
+      "spam": "幾分鐘後還沒收到？請查看垃圾郵件資料夾。",
+      "send": "傳送重設連結",
+      "remembered": "想起來了？<link>登入</link>"
+    },
+    "reset": {
+      "tooShort": "請至少使用 8 個字元",
+      "mismatch": "兩次輸入的密碼不一致",
+      "badLink": "這個連結無法使用",
+      "badLinkSubtitle": "重設連結只能使用一次，1 小時內有效。",
+      "badLinkText": "連結已過期或已被使用。請重新申請，並使用最新的那封郵件。",
+      "newLink": "傳送新連結",
+      "done": "密碼已變更",
+      "doneSubtitle": "現在可以用新密碼登入了。",
+      "doneText": "為了你的帳戶安全，其他已登入的裝置都已登出。",
+      "title": "設定新密碼",
+      "subtitle": "請至少使用 8 個字元。",
+      "new": "新密碼",
+      "confirm": "確認新密碼",
+      "change": "變更密碼"
+    }
+  },
+  "home": {
+    "title": "安放日常的寧靜小窩。",
+    "subtitle": "任務、筆記、行事曆和一目了然的每一天，都匯聚在一個安靜而私密的空間裡。",
+    "getStarted": "開始使用",
+    "features": "Nestery 裡有什麼",
+    "tiles": {
+      "calendar": {
+        "title": "行事曆",
+        "text": "月檢視和週檢視、重複活動，還能直接訂閱課表或其他行事曆。"
+      },
+      "notes": {
+        "title": "筆記",
+        "text": "富文字或 Markdown，支援待辦清單和表格，邊寫邊儲存。"
+      },
+      "dashboard": {
+        "title": "首頁",
+        "text": "一眼看清你的一天。"
+      },
+      "tasks": {
+        "title": "任務",
+        "text": "清單或看板，支援截止日期、提醒和標籤。"
+      }
+    },
+    "preview": {
+      "today": "今天",
+      "event1": "10:00 演算法課",
+      "event2": "14:00 團隊會議",
+      "holiday": "TW · 國定假日",
+      "noteTitle": "旅行計畫",
+      "noteText": "記得早點<mark>訂火車票</mark>",
+      "passport": "護照",
+      "hello": "你好，小明！",
+      "summary": "2 個活動 · 3 個任務到期",
+      "openTasks": "未完成任務",
+      "eventsToday": "今日活動",
+      "tag": "#家務"
+    }
   }
 }

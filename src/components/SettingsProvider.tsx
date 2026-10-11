@@ -8,7 +8,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import { useRouter } from "next/navigation";
 import { useLocale } from "next-intl";
 import { toast } from "sonner";
-import { LOCALE_COOKIE, LOCALE_COOKIE_MAX_AGE, type Locale } from "@/i18n/config";
+import { isLocale, LOCALE_COOKIE, LOCALE_COOKIE_MAX_AGE, type Locale } from "@/i18n/config";
 import { request } from "@/lib/api";
 import { guessHolidayCountries } from "@/lib/calendar";
 import {
@@ -51,17 +51,16 @@ const CACHE_KEY = "nestery-settings";
 
 // The page's language comes from the NEXT_LOCALE cookie (src/i18n/request.ts).
 // Signed in on a new browser, the cookie doesn't hold the saved language yet:
-// set it (or clear it, to follow the browser) and render again.
-function syncLanguageCookie(saved: Locale | null, current: Locale): boolean {
+// set it and render again (returns true). Without a saved language, a choice
+// made before signing in (the picker on the sign-in pages) becomes the
+// account's (returns the language to save).
+function syncLanguageCookie(saved: Locale | null, current: Locale): boolean | Locale {
   const cookie = document.cookie.match(new RegExp(`(?:^|; )${LOCALE_COOKIE}=([^;]*)`))?.[1] ?? null;
   if (saved && saved !== current) {
     document.cookie = `${LOCALE_COOKIE}=${saved}; path=/; max-age=${LOCALE_COOKIE_MAX_AGE}; samesite=lax`;
     return true;
   }
-  if (!saved && cookie) {
-    document.cookie = `${LOCALE_COOKIE}=; path=/; max-age=0; samesite=lax`;
-    return true;
-  }
+  if (!saved && isLocale(cookie)) return cookie;
   return false;
 }
 
@@ -102,7 +101,14 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     request<Settings>("/api/settings")
       .then(async (loaded) => {
         remember(loaded);
-        if (syncLanguageCookie(loaded.language, locale)) router.refresh();
+        const sync = syncLanguageCookie(loaded.language, locale);
+        if (sync === true) router.refresh();
+        else if (sync) {
+          // Quietly; the page is already in this language
+          request<Settings>("/api/settings", { method: "PATCH", body: JSON.stringify({ language: sync }) })
+            .then(remember)
+            .catch(() => {});
+        }
         // Keep the stored zone in sync with this browser, quietly
         const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
         if (zone && zone !== loaded.timeZone) {

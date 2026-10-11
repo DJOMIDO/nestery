@@ -2,7 +2,8 @@
 
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -19,11 +20,17 @@ import { signInSchema } from "@/lib/authSchema";
 import { AuthError, resendVerificationEmail, signInWithEmail } from "@/lib/auth-client";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { SocialLoginButtons } from "@/components/auth/SocialLoginButtons";
+import { useAuthErrorText } from "@/components/auth/useAuthErrorText";
 
-type LoginFormData = z.infer<typeof signInSchema>;
+type LoginFormData = z.infer<ReturnType<typeof signInSchema>>;
 
 export default function LoginPage() {
   const router = useRouter();
+  const t = useTranslations("auth");
+  const tCommon = useTranslations("common");
+  const tValidation = useTranslations("auth.validation");
+  const errorText = useAuthErrorText();
+  const schema = useMemo(() => signInSchema(tValidation), [tValidation]);
 
   // Set when the account's email isn't confirmed yet (a new link was sent)
   const [unverified, setUnverified] = useState<string | null>(null);
@@ -34,23 +41,21 @@ export default function LoginPage() {
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<LoginFormData>({
-    resolver: zodResolver(signInSchema),
+    resolver: zodResolver(schema),
   });
 
   const onSubmit = async (data: LoginFormData) => {
     setUnverified(null);
     try {
       await signInWithEmail(data.email, data.password);
-      toast.success("Logged in successfully");
+      toast.success(t("login.success"));
       router.push("/dashboard");
     } catch (error: unknown) {
       if (error instanceof AuthError && error.code === "EMAIL_NOT_VERIFIED") {
         // Better Auth has just sent a fresh confirmation link
         setUnverified(data.email);
-      } else if (error instanceof Error) {
-        toast.error(error.message);
       } else {
-        toast.error("An unexpected error occurred.");
+        toast.error(errorText(error));
       }
     }
   };
@@ -60,9 +65,9 @@ export default function LoginPage() {
     setResending(true);
     try {
       await resendVerificationEmail(unverified);
-      toast.success("Sent another confirmation link");
+      toast.success(t("resent"));
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not send the email");
+      toast.error(error instanceof Error ? errorText(error) : t("couldNotSend"));
     } finally {
       setResending(false);
     }
@@ -71,14 +76,14 @@ export default function LoginPage() {
   return (
     <AuthShell
       seed={11}
-      tagline="Welcome back to your nest."
-      title="Welcome back"
-      subtitle="Sign in to pick up where you left off."
+      tagline={t("login.tagline")}
+      title={t("login.title")}
+      subtitle={t("login.subtitle")}
     >
       <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
         <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
-          <Input id="email" type="email" {...register("email")} placeholder="you@example.com" />
+          <Label htmlFor="email">{tCommon("email")}</Label>
+          <Input id="email" type="email" {...register("email")} placeholder={t("emailPlaceholder")} />
           {errors.email && (
             <p className="text-red-500 text-sm">{errors.email.message}</p>
           )}
@@ -86,9 +91,9 @@ export default function LoginPage() {
 
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">{tCommon("password")}</Label>
             <Link href="/forgot-password" className="text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline">
-              Forgot password?
+              {t("login.forgot")}
             </Link>
           </div>
           <Input id="password" type="password" {...register("password")} placeholder="••••••••" />
@@ -100,27 +105,30 @@ export default function LoginPage() {
         {unverified && (
           <div role="alert" className="space-y-2 rounded-md border bg-leaf-soft/60 p-3 text-sm">
             <p>
-              Please confirm your email first. We&apos;ve sent a new link to <strong>{unverified}</strong>.
+              {t.rich("login.unverified", { email: unverified, b: (chunks) => <strong>{chunks}</strong> })}
             </p>
             <Button type="button" variant="outline" size="sm" onClick={resend} disabled={resending}>
               {resending && <Spinner />}
-              {resending ? "Sending…" : "Send it again"}
+              {resending ? tCommon("sending") : t("sendAgain")}
             </Button>
           </div>
         )}
 
         <Button type="submit" className="w-full" disabled={isSubmitting}>
-          {isSubmitting ? "Signing in..." : "Sign in"}
+          {isSubmitting ? t("login.signingIn") : t("signIn")}
         </Button>
       </form>
 
       <SocialLoginButtons />
 
       <div className="text-center text-sm">
-        New to Nestery?{" "}
-        <Link href="/signup" className="font-medium text-leaf underline-offset-4 hover:underline">
-          Create an account
-        </Link>
+        {t.rich("login.new", {
+          link: (chunks) => (
+            <Link href="/signup" className="font-medium text-leaf underline-offset-4 hover:underline">
+              {chunks}
+            </Link>
+          ),
+        })}
       </div>
     </AuthShell>
   );

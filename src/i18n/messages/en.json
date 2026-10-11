@@ -26,7 +26,8 @@
     "somethingWrong": "Something went wrong",
     "password": "Password",
     "email": "Email",
-    "remove": "Remove"
+    "remove": "Remove",
+    "language": "Language"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -845,5 +846,121 @@
     "matches": "Matching places",
     "noMatches": "No matches.",
     "source": "Weather data by <a1>Open-Meteo</a1> (<a2>CC BY 4.0</a2>)."
+  },
+  "auth": {
+    "emailPlaceholder": "you@example.com",
+    "orContinue": "Or continue with",
+    "continueWith": "Continue with {provider}",
+    "unexpected": "An unexpected error occurred.",
+    "couldNotSend": "Could not send the email",
+    "resent": "Sent another confirmation link",
+    "sendAgain": "Send it again",
+    "backToSignIn": "Back to sign in",
+    "signIn": "Sign in",
+    "errors": {
+      "INVALID_EMAIL_OR_PASSWORD": "Invalid email or password",
+      "USER_ALREADY_EXISTS": "An account with this email already exists",
+      "PASSWORD_TOO_SHORT": "The password is too short",
+      "INVALID_TOKEN": "This link has expired or was already used"
+    },
+    "validation": {
+      "email": "Invalid email address",
+      "password": "Enter your password",
+      "username": "Username must be at least 2 characters",
+      "passwordLength": "Password must be at least 8 characters",
+      "confirm": "Please confirm your password",
+      "mismatch": "Passwords do not match"
+    },
+    "login": {
+      "tagline": "Welcome back to your nest.",
+      "title": "Welcome back",
+      "subtitle": "Sign in to pick up where you left off.",
+      "forgot": "Forgot password?",
+      "success": "Logged in successfully",
+      "unverified": "Please confirm your email first. We've sent a new link to <b>{email}</b>.",
+      "signingIn": "Signing in…",
+      "new": "New to Nestery? <link>Create an account</link>"
+    },
+    "signup": {
+      "tagline": "Make yourself at home.",
+      "title": "Create your account",
+      "subtitle": "Your tasks and notes, all in one place.",
+      "checkInbox": "Check your inbox",
+      "oneMore": "One more step to finish creating your account.",
+      "sent": "We've sent a confirmation link to <b>{email}</b>. Open it to confirm your email and you'll be signed in.",
+      "spam": "Nothing there after a few minutes? Check your spam folder, or send the link again.",
+      "created": "Account created successfully",
+      "username": "Username",
+      "usernamePlaceholder": "Your Name",
+      "confirm": "Confirm Password",
+      "signingUp": "Signing up…",
+      "signUp": "Sign up",
+      "haveAccount": "Already have an account? <link>Sign in</link>"
+    },
+    "forgot": {
+      "tagline": "Back to your nest in a moment.",
+      "title": "Forgot your password?",
+      "subtitle": "We'll email you a link to choose a new one.",
+      "sentSubtitle": "Follow the link to choose a new password.",
+      "enterEmail": "Enter the email you signed up with",
+      "sent": "If there's a Nestery account for <b>{email}</b>, a link to reset the password is on its way. It works for 1 hour.",
+      "spam": "Nothing there after a few minutes? Check your spam folder.",
+      "send": "Send reset link",
+      "remembered": "Remembered it? <link>Sign in</link>"
+    },
+    "reset": {
+      "tooShort": "Use at least 8 characters",
+      "mismatch": "The passwords don't match",
+      "badLink": "This link doesn't work",
+      "badLinkSubtitle": "Reset links work once, for 1 hour.",
+      "badLinkText": "The link has expired or was already used. Ask for a new one and use the latest email.",
+      "newLink": "Send a new link",
+      "done": "Password changed",
+      "doneSubtitle": "You can sign in with your new password.",
+      "doneText": "For your security, any other devices signed in to your account have been signed out.",
+      "title": "Choose a new password",
+      "subtitle": "Use at least 8 characters.",
+      "new": "New password",
+      "confirm": "Confirm new password",
+      "change": "Change password"
+    }
+  },
+  "home": {
+    "title": "A calm home for your everyday.",
+    "subtitle": "Tasks, notes, your calendar and your day at a glance — gathered in one quiet, personal space.",
+    "getStarted": "Get started",
+    "features": "What's in Nestery",
+    "tiles": {
+      "calendar": {
+        "title": "Calendar",
+        "text": "Months and weeks, repeating events, and your class timetable or other calendars subscribed right in."
+      },
+      "notes": {
+        "title": "Notes",
+        "text": "Rich text or Markdown, with checklists and tables, saved as you type."
+      },
+      "dashboard": {
+        "title": "Dashboard",
+        "text": "Your day at a glance, across everything."
+      },
+      "tasks": {
+        "title": "Tasks",
+        "text": "Lists or a board, with due dates, reminders and tags."
+      }
+    },
+    "preview": {
+      "today": "Today",
+      "event1": "10:00 Algo",
+      "event2": "14:00 Team call",
+      "holiday": "FR · Holiday",
+      "noteTitle": "Trip ideas",
+      "noteText": "Remember to <mark>book the train</mark> early",
+      "passport": "Passport",
+      "hello": "Hello, Sam!",
+      "summary": "2 events · 3 tasks due",
+      "openTasks": "open tasks",
+      "eventsToday": "events today",
+      "tag": "#home"
+    }
   }
 }
