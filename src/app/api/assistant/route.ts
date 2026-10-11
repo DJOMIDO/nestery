@@ -7,6 +7,7 @@ import { runAssistant } from "@/server/assistant/agent";
 import { ProviderError } from "@/server/assistant/providers/types";
 import { assistantStatus, resolveAssistant, takeServerQuota } from "@/server/assistant/settings";
 import { todayIn } from "@/server/assistant/tools";
+import { requestLocale } from "@/i18n/request";
 import { getSettings } from "@/server/settings";
 import { getSessionUser, parseInput, unauthorized } from "@/server/session";
 
@@ -77,6 +78,8 @@ export async function POST(request: Request) {
   }
 
   const encoder = new TextEncoder();
+  // Read while handling the request (the stream runs after it returns)
+  const locale = await requestLocale();
   const stream = new ReadableStream({
     async start(controller) {
       const emit = (event: AssistantStreamEvent) => controller.enqueue(encoder.encode(`${JSON.stringify(event)}\n`));
@@ -87,6 +90,7 @@ export async function POST(request: Request) {
           timeZone,
           today,
           dateTime: { dateLocale: settings.dateLocale, hourCycle: settings.hourCycle, weekStart: settings.weekStart },
+          locale,
           place: settings.weatherPlace,
           history: input.data.history,
           message: input.data.message,

@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
-import { Figtree, Geist_Mono, Noto_Sans_SC } from "next/font/google";
+import { Figtree, Geist_Mono, Noto_Sans_SC, Noto_Sans_TC } from "next/font/google";
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale } from "next-intl/server";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "@/components/ui/sonner";
@@ -15,6 +17,13 @@ const figtree = Figtree({
 // and only where no earlier font in the stack covers them.
 const notoSansSC = Noto_Sans_SC({
   variable: "--font-noto-sans-sc",
+  preload: false,
+  adjustFontFallback: false,
+});
+
+// The same for Traditional Chinese, used when the page is in zh-TW
+const notoSansTC = Noto_Sans_TC({
+  variable: "--font-noto-sans-tc",
   preload: false,
   adjustFontFallback: false,
 });
@@ -42,21 +51,31 @@ export const viewport: Viewport = {
   ],
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // From the user's saved language (cookie) or the browser's (src/i18n/request.ts)
+  const locale = await getLocale();
   return (
     // The font variables go on <html>: Tailwind sets the page font there, so
-    // on <body> they'd be undefined where it's read
-    <html lang="en" className={`${figtree.variable} ${notoSansSC.variable} ${geistMono.variable}`} suppressHydrationWarning>
+    // on <body> they'd be undefined where it's read. `lang` also picks the
+    // Chinese fonts (Simplified or Traditional) in globals.css.
+    <html
+      lang={locale}
+      className={`${figtree.variable} ${notoSansSC.variable} ${notoSansTC.variable} ${geistMono.variable}`}
+      suppressHydrationWarning
+    >
       <body className="antialiased">
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          {children}
-          <Toaster />
-          <ServiceWorker />
-        </ThemeProvider>
+        {/* Passes this language's messages to client components */}
+        <NextIntlClientProvider>
+          <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+            {children}
+            <Toaster />
+            <ServiceWorker />
+          </ThemeProvider>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

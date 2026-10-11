@@ -134,6 +134,13 @@
       "when": 1791644602518,
       "tag": "0018_exotic_centennial",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1791751992797,
+      "tag": "0019_shocking_moon_knight",
+      "breakpoints": true
     }
   ]
 }

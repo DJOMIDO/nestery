@@ -1,11 +1,14 @@
 // src/components/SettingsProvider.tsx
 // Loads the user's settings once for all signed-in pages and shares them,
-// along with a date formatter built from the "Date & time" preferences.
+// along with a date formatter built from the "Language & time" preferences.
 
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useLocale } from "next-intl";
 import { toast } from "sonner";
+import { LOCALE_COOKIE, LOCALE_COOKIE_MAX_AGE, type Locale } from "@/i18n/config";
 import { request } from "@/lib/api";
 import { guessHolidayCountries } from "@/lib/calendar";
 import {
@@ -17,6 +20,8 @@ import {
 import type { WeatherPlace } from "@/lib/weather";
 
 export interface Settings extends DateTimePrefs {
+  // Interface language; null follows the browser
+  language: Locale | null;
   holidayCountries: string[];
   // IANA zone, kept in sync with the browser (the calendar feed uses it)
   timeZone: string | null;
@@ -32,6 +37,7 @@ export type SettingsInput = Partial<Omit<Settings, "saved" | "feedToken">>;
 
 const DEFAULT_SETTINGS: Settings = {
   ...DEFAULT_DATE_TIME,
+  language: null,
   holidayCountries: [],
   timeZone: null,
   weatherPlace: null,
@@ -42,6 +48,22 @@ const DEFAULT_SETTINGS: Settings = {
 // Last known settings, so a reload starts in the user's format instead of
 // flashing the defaults. Per browser only; the server copy is the source of truth.
 const CACHE_KEY = "nestery-settings";
+
+// The page's language comes from the NEXT_LOCALE cookie (src/i18n/request.ts).
+// Signed in on a new browser, the cookie doesn't hold the saved language yet:
+// set it (or clear it, to follow the browser) and render again.
+function syncLanguageCookie(saved: Locale | null, current: Locale): boolean {
+  const cookie = document.cookie.match(new RegExp(`(?:^|; )${LOCALE_COOKIE}=([^;]*)`))?.[1] ?? null;
+  if (saved && saved !== current) {
+    document.cookie = `${LOCALE_COOKIE}=${saved}; path=/; max-age=${LOCALE_COOKIE_MAX_AGE}; samesite=lax`;
+    return true;
+  }
+  if (!saved && cookie) {
+    document.cookie = `${LOCALE_COOKIE}=; path=/; max-age=0; samesite=lax`;
+    return true;
+  }
+  return false;
+}
 
 interface SettingsContextValue {
   settings: Settings;
@@ -57,6 +79,8 @@ interface SettingsContextValue {
 const SettingsContext = createContext<SettingsContextValue | null>(null);
 
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
+  const locale = useLocale();
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
   const [loading, setLoading] = useState(true);
   const [guessedCountries, setGuessedCountries] = useState<string[]>([]);
@@ -78,6 +102,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     request<Settings>("/api/settings")
       .then(async (loaded) => {
         remember(loaded);
+        if (syncLanguageCookie(loaded.language, locale)) router.refresh();
         // Keep the stored zone in sync with this browser, quietly
         const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
         if (zone && zone !== loaded.timeZone) {
@@ -90,6 +115,8 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       })
       .catch((err) => toast.error((err as Error).message))
       .finally(() => setLoading(false));
+    // Once per page load; a language change in Settings refreshes the page itself
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const save = useCallback(async (input: SettingsInput) => {
@@ -119,8 +146,8 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
 
   const { dateLocale, hourCycle, weekStart } = settings;
   const format = useMemo(
-    () => createFormatter({ dateLocale, hourCycle, weekStart }),
-    [dateLocale, hourCycle, weekStart]
+    () => createFormatter({ dateLocale, hourCycle, weekStart }, locale),
+    [dateLocale, hourCycle, weekStart, locale]
   );
 
   return (

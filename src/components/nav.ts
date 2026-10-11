@@ -5,15 +5,16 @@ import { CalendarDays, LayoutDashboard, ListTodo, NotebookPen, Plane } from "luc
 import type { LucideIcon } from "lucide-react";
 
 export interface NavItem {
-  label: string;
+  // Its label in messages (nav.<key>)
+  key: "dashboard" | "tasks" | "notes" | "calendar" | "travel";
   href: string;
   icon: LucideIcon;
 }
 
 export const navItems: NavItem[] = [
-  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { label: "Tasks", href: "/tasks", icon: ListTodo },
-  { label: "Notes", href: "/notes", icon: NotebookPen },
-  { label: "Calendar", href: "/calendar", icon: CalendarDays },
-  { label: "Travel", href: "/travel", icon: Plane },
+  { key: "dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { key: "tasks", href: "/tasks", icon: ListTodo },
+  { key: "notes", href: "/notes", icon: NotebookPen },
+  { key: "calendar", href: "/calendar", icon: CalendarDays },
+  { key: "travel", href: "/travel", icon: Plane },
 ];

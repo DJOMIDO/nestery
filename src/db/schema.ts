@@ -208,8 +208,12 @@ export const userSettings = pgTable("user_settings", {
     .references(() => user.id, { onDelete: "cascade" }),
   // ISO 3166-1 alpha-2 codes, e.g. ["FR", "CN"]
   holidayCountries: text().array().notNull().default([]),
-  // How dates are written (a BCP 47 locale such as "en-US" or "zh-CN")
-  dateLocale: text().notNull().default("en-US"),
+  // The interface language ("en", "zh-CN", "zh-TW", "fr"); null follows the
+  // browser. The NEXT_LOCALE cookie mirrors it for each request.
+  language: text(),
+  // How dates are written (a BCP 47 locale such as "en-US" or "zh-CN"); null
+  // follows the interface language
+  dateLocale: text(),
   // "h12" or "h23"; null follows the date locale
   hourCycle: text(),
   // 1 = Monday, 0 = Sunday

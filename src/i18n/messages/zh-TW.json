@@ -1,0 +1,56 @@
+{
+  "common": {
+    "saved": "已儲存"
+  },
+  "nav": {
+    "dashboard": "首頁",
+    "tasks": "任務",
+    "notes": "筆記",
+    "calendar": "行事曆",
+    "travel": "旅程",
+    "assistant": "助理（{shortcut}）",
+    "expandSidebar": "展開側邊欄",
+    "collapseSidebar": "收合側邊欄",
+    "expandSidebarHint": "展開側邊欄（{shortcut}）",
+    "collapseSidebarHint": "收合側邊欄（{shortcut}）",
+    "openAssistant": "開啟助理",
+    "openMenu": "開啟選單",
+    "closeMenu": "關閉選單",
+    "accountMenu": "帳戶選單",
+    "user": "使用者",
+    "settings": "設定",
+    "theme": "主題",
+    "themeLight": "淺色",
+    "themeDark": "深色",
+    "themeSystem": "跟隨系統",
+    "logOut": "登出"
+  },
+  "settings": {
+    "title": "設定",
+    "subtitle": "你的 Nestery 偏好設定。",
+    "sectionsLabel": "設定類別",
+    "allSettings": "所有設定",
+    "sections": {
+      "account": { "label": "帳戶", "description": "個人資料、密碼、登入方式、裝置" },
+      "assistant": { "label": "助理", "description": "AI 模型與你的 API 金鑰" },
+      "languageTime": { "label": "語言與時間", "description": "語言、日期格式、12/24 小時制、每週起始日" },
+      "calendar": { "label": "行事曆", "description": "國定假日、其他行事曆、分享" },
+      "weather": { "label": "天氣", "description": "首頁天氣顯示的地點" }
+    },
+    "languageTime": {
+      "title": "語言與時間",
+      "description": "Nestery 的介面語言，以及日期和時間的顯示方式。",
+      "language": "語言",
+      "languageAuto": "跟隨瀏覽器",
+      "dateFormat": "日期格式",
+      "dateMatchLanguage": "跟隨語言",
+      "timeFormat": "時間格式",
+      "timeMatchDate": "跟隨日期格式",
+      "hour12": "12 小時制",
+      "hour24": "24 小時制",
+      "weekStart": "每週第一天",
+      "monday": "星期一",
+      "sunday": "星期日"
+    }
+  }
+}

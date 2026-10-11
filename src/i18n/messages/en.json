@@ -1,0 +1,56 @@
+{
+  "common": {
+    "saved": "Saved"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "tasks": "Tasks",
+    "notes": "Notes",
+    "calendar": "Calendar",
+    "travel": "Travel",
+    "assistant": "Assistant ({shortcut})",
+    "expandSidebar": "Expand sidebar",
+    "collapseSidebar": "Collapse sidebar",
+    "expandSidebarHint": "Expand sidebar ({shortcut})",
+    "collapseSidebarHint": "Collapse sidebar ({shortcut})",
+    "openAssistant": "Open assistant",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "accountMenu": "Account menu",
+    "user": "User",
+    "settings": "Settings",
+    "theme": "Theme",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "themeSystem": "System",
+    "logOut": "Log out"
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Preferences for your Nestery.",
+    "sectionsLabel": "Settings sections",
+    "allSettings": "All settings",
+    "sections": {
+      "account": { "label": "Account", "description": "Profile, password, sign-in, devices" },
+      "assistant": { "label": "Assistant", "description": "AI model and your API key" },
+      "languageTime": { "label": "Language & time", "description": "Language, date format, 12/24-hour time, week start" },
+      "calendar": { "label": "Calendar", "description": "Holidays, other calendars, sharing" },
+      "weather": { "label": "Weather", "description": "Place for the dashboard's weather" }
+    },
+    "languageTime": {
+      "title": "Language & time",
+      "description": "The language of Nestery, and how dates and times are shown.",
+      "language": "Language",
+      "languageAuto": "Match browser",
+      "dateFormat": "Date format",
+      "dateMatchLanguage": "Match language",
+      "timeFormat": "Time format",
+      "timeMatchDate": "Match date format",
+      "hour12": "12-hour",
+      "hour24": "24-hour",
+      "weekStart": "Week starts on",
+      "monday": "Monday",
+      "sunday": "Sunday"
+    }
+  }
+}

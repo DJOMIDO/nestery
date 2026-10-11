@@ -1,0 +1,56 @@
+{
+  "common": {
+    "saved": "Enregistré"
+  },
+  "nav": {
+    "dashboard": "Tableau de bord",
+    "tasks": "Tâches",
+    "notes": "Notes",
+    "calendar": "Calendrier",
+    "travel": "Voyages",
+    "assistant": "Assistant ({shortcut})",
+    "expandSidebar": "Déplier la barre latérale",
+    "collapseSidebar": "Replier la barre latérale",
+    "expandSidebarHint": "Déplier la barre latérale ({shortcut})",
+    "collapseSidebarHint": "Replier la barre latérale ({shortcut})",
+    "openAssistant": "Ouvrir l’assistant",
+    "openMenu": "Ouvrir le menu",
+    "closeMenu": "Fermer le menu",
+    "accountMenu": "Menu du compte",
+    "user": "Utilisateur",
+    "settings": "Paramètres",
+    "theme": "Thème",
+    "themeLight": "Clair",
+    "themeDark": "Sombre",
+    "themeSystem": "Système",
+    "logOut": "Se déconnecter"
+  },
+  "settings": {
+    "title": "Paramètres",
+    "subtitle": "Les préférences de votre Nestery.",
+    "sectionsLabel": "Catégories de paramètres",
+    "allSettings": "Tous les paramètres",
+    "sections": {
+      "account": { "label": "Compte", "description": "Profil, mot de passe, connexion, appareils" },
+      "assistant": { "label": "Assistant", "description": "Modèle d’IA et votre clé d’API" },
+      "languageTime": { "label": "Langue et heure", "description": "Langue, format de date, 12/24 h, début de semaine" },
+      "calendar": { "label": "Calendrier", "description": "Jours fériés, autres calendriers, partage" },
+      "weather": { "label": "Météo", "description": "Lieu de la météo du tableau de bord" }
+    },
+    "languageTime": {
+      "title": "Langue et heure",
+      "description": "La langue de Nestery, et l’affichage des dates et des heures.",
+      "language": "Langue",
+      "languageAuto": "Selon le navigateur",
+      "dateFormat": "Format de date",
+      "dateMatchLanguage": "Selon la langue",
+      "timeFormat": "Format de l’heure",
+      "timeMatchDate": "Selon le format de date",
+      "hour12": "12 heures",
+      "hour24": "24 heures",
+      "weekStart": "La semaine commence le",
+      "monday": "Lundi",
+      "sunday": "Dimanche"
+    }
+  }
+}
