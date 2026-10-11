@@ -54,7 +54,7 @@
   },
   "settings": {
     "title": "Paramètres",
-    "subtitle": "Les préférences de votre Nestery.",
+    "subtitle": "Les préférences de ton Nestery.",
     "sectionsLabel": "Catégories de paramètres",
     "allSettings": "Tous les paramètres",
     "sections": {
@@ -64,7 +64,7 @@
       },
       "assistant": {
         "label": "Assistant",
-        "description": "Modèle d’IA et votre clé d’API"
+        "description": "Modèle d’IA et ta clé d’API"
       },
       "languageTime": {
         "label": "Langue et heure",
@@ -105,8 +105,8 @@
     "close": "Fermer",
     "closeHint": "Fermer (Échap)",
     "needsModel": "L’assistant a besoin d’un modèle d’IA pour discuter.",
-    "addKey": "Ajoutez votre propre clé d’API dans <link>Paramètres › Assistant</link>.",
-    "intro": "Posez vos questions sur vos tâches, votre calendrier, vos notes ou la météo. Je peux aussi préparer des tâches et des événements que vous confirmerez.",
+    "addKey": "Ajoute ta propre clé d’API dans <link>Paramètres › Assistant</link>.",
+    "intro": "Pose-moi tes questions sur tes tâches, ton calendrier, tes notes ou la météo. Je peux aussi préparer des tâches et des événements que tu confirmeras.",
     "tryAsking": "Quelques idées",
     "examples": {
       "tasks": "Que me reste-t-il à faire cette semaine ?",
@@ -116,7 +116,7 @@
       "trip": "Quand est mon prochain voyage ?"
     },
     "onlyImages": "Seules les images peuvent être jointes.",
-    "maxImages": "Joignez au plus {count} images par message.",
+    "maxImages": "Joins au plus {count} images par message.",
     "thinking": "Réflexion",
     "interrupted": "La réponse a été interrompue.",
     "imageToSend": "Image à envoyer",
@@ -124,7 +124,7 @@
     "removeImage": "Retirer l’image",
     "attachImage": "Joindre une image",
     "attachImageHint": "Joindre une image (ou la coller / la déposer)",
-    "placeholder": "Posez votre question…",
+    "placeholder": "Pose ta question…",
     "message": "Message",
     "stop": "Arrêter",
     "send": "Envoyer",
@@ -149,11 +149,11 @@
     "clearTag": "Retirer le filtre #{tag}",
     "clearDate": "Retirer le filtre de date",
     "dueOn": "Échéance le {date}",
-    "quickAdd": "Ajoutez une tâche et appuyez sur Entrée",
+    "quickAdd": "Ajoute une tâche et appuie sur Entrée",
     "quickAddLabel": "Ajout rapide de tâche",
     "loading": "Chargement des tâches",
     "noMatch": "Aucune tâche ne correspond à ces filtres.",
-    "empty": "Aucune tâche pour l’instant. Ajoutez la première ci-dessus.",
+    "empty": "Aucune tâche pour l’instant. Ajoute la première ci-dessus.",
     "deleted": "Tâche supprimée",
     "details": "Détails de la tâche",
     "overview": "Aperçu des tâches",
@@ -191,7 +191,7 @@
     "board": {
       "addTask": "Ajouter une tâche",
       "addTaskTo": "Ajouter une tâche dans « {column} »",
-      "dropToComplete": "Glissez des tâches ici pour les terminer",
+      "dropToComplete": "Glisse des tâches ici pour les terminer",
       "noTasks": "Aucune tâche",
       "showMore": "Afficher {count} de plus",
       "draggable": "Tâche déplaçable",
@@ -204,7 +204,7 @@
     "overviewPanel": {
       "calendar": "Calendrier",
       "tags": "Étiquettes",
-      "tagsEmpty": "Ajoutez des étiquettes à vos tâches pour les filtrer ici.",
+      "tagsEmpty": "Ajoute des étiquettes à tes tâches pour les filtrer ici.",
       "thisWeek": "Cette semaine",
       "loadingTags": "Chargement des étiquettes"
     },
@@ -272,7 +272,7 @@
       "today": "Aujourd’hui : {counts}",
       "events": "{count, plural, one {# événement} other {# événements}}",
       "tasksDue": "{count, plural, one {# tâche} other {# tâches}} à rendre",
-      "nothing": "Rien de prévu aujourd’hui. Profitez du calme.",
+      "nothing": "Rien de prévu aujourd’hui. Profite du calme.",
       "nextInline": "ensuite : {title} à <t>{time}</t>",
       "nextLine": "Ensuite : {title} à <t>{time}</t>",
       "task": "Tâche",
@@ -303,7 +303,7 @@
       "tasksDue": "{count, plural, one {# tâche} other {# tâches}} à rendre aujourd’hui",
       "nothing": "Rien de prévu aujourd’hui.",
       "wet": "{kind, select, snow {Neige probable} storm {Orages probables} other {Pluie probable}} {when, select, now {en ce moment} other {à partir de {time}}}",
-      "choosePlace": "Choisissez un lieu pour voir la météo",
+      "choosePlace": "Choisis un lieu pour voir la météo",
       "loading": "Chargement de la journée"
     },
     "reminders": {
@@ -347,9 +347,9 @@
     "newNote": "Nouvelle note",
     "search": "Rechercher dans les notes",
     "loading": "Chargement des notes",
-    "noMatch": "Aucune note ne correspond à votre recherche.",
+    "noMatch": "Aucune note ne correspond à ta recherche.",
     "empty": "Aucune note pour l’instant.",
-    "firstNote": "Créez votre première note pour commencer.",
+    "firstNote": "Crée ta première note pour commencer.",
     "deleted": "Note supprimée",
     "untitled": "Sans titre",
     "noText": "Pas d’autre texte",
@@ -373,7 +373,7 @@
       "titlePlaceholder": "Sans titre",
       "titleLabel": "Titre de la note",
       "contentLabel": "Contenu de la note",
-      "startWriting": "Commencez à écrire…",
+      "startWriting": "Commence à écrire…",
       "deleteFileConfirm": "Supprimer {name} ? Il sera aussi retiré de la note."
     },
     "toolbar": {
@@ -411,7 +411,7 @@
       "edit": "Modifier le lien",
       "remove": "Retirer le lien",
       "link": "Lien",
-      "placeholder": "Collez ou saisissez un lien",
+      "placeholder": "Colle ou saisis un lien",
       "url": "Adresse du lien",
       "apply": "Appliquer le lien"
     },
@@ -433,12 +433,12 @@
     "today": "Aujourd’hui",
     "newEvent": "Nouvel événement",
     "editEvent": "Modifier l’événement",
-    "holidaysGuessed": "Jours fériés de {countries} affichés d’après votre navigateur.",
+    "holidaysGuessed": "Jours fériés de {countries} affichés d’après ton navigateur.",
     "noHolidays": "Aucun jour férié affiché.",
     "chooseCountries": "Choisir les pays et régions",
     "eventDeleted": "Événement supprimé",
     "seriesDeleted": "Événement récurrent supprimé",
-    "movedOne": "Seule cette occurrence a été déplacée. Modifiez l’événement pour changer toute la série.",
+    "movedOne": "Seule cette occurrence a été déplacée. Modifie l’événement pour changer toute la série.",
     "dropDue": "Échéance le {date}",
     "allDay": "Toute la journée",
     "dayItems": "{day}, {count, plural, =0 {rien de prévu} one {# élément} other {# éléments}}",
@@ -478,9 +478,9 @@
       "notes": "Notes",
       "notesPlaceholder": "Lieu, détails…",
       "titleRequired": "Le titre de l’événement est obligatoire",
-      "chooseDates": "Choisissez une date de début et de fin",
+      "chooseDates": "Choisis une date de début et de fin",
       "endsBeforeStart": "L’événement se termine avant de commencer",
-      "overlap": "Chaque occurrence dure plus longtemps que l’intervalle jusqu’à la suivante : elles se chevaucheraient. Réduisez Début/Fin à une seule occurrence et utilisez « Fin de la récurrence » pour arrêter à une date.",
+      "overlap": "Chaque occurrence dure plus longtemps que l’intervalle jusqu’à la suivante : elles se chevaucheraient. Réduis Début/Fin à une seule occurrence et utilise « Fin de la récurrence » pour arrêter à une date.",
       "applyTo": "Appliquer à",
       "scopeQuestion": "{action, select, save {Enregistrer les modifications pour} other {Supprimer}} cet événement seulement, ou toute la série ?",
       "thisEvent": "Cet événement",
@@ -529,7 +529,7 @@
       "train": "Trains"
     },
     "loading": "Chargement des trajets",
-    "empty": "Aucun trajet pour l’instant. Utilisez « Nouveau trajet » pour ajouter un vol ou un train, collez une confirmation de réservation pour que l’assistant la lise, ou importez un fichier CSV.",
+    "empty": "Aucun trajet pour l’instant. Utilise « Nouveau trajet » pour ajouter un vol ou un train, colle une confirmation de réservation pour que l’assistant la lise, ou importe un fichier CSV.",
     "upcoming": "À venir ({count})",
     "upcomingLabel": "À venir",
     "past": "Passés ({count})",
@@ -541,7 +541,7 @@
     "nextTrip": "Prochain voyage",
     "daysAway": "{days, plural, =0 {Aujourd’hui} =1 {Demain} other {Dans # jours}}",
     "moreComing": "{count, plural, one {# autre à venir} other {# autres à venir}}",
-    "overviewEmpty": "Rien de prévu. Utilisez « Nouveau trajet » pour en ajouter un, ou pour coller une réservation que l’assistant lira.",
+    "overviewEmpty": "Rien de prévu. Utilise « Nouveau trajet » pour en ajouter un, ou pour coller une réservation que l’assistant lira.",
     "inYear": "En {year}",
     "stats": {
       "journeys": "{count, plural, one {trajet} other {trajets}}",
@@ -553,7 +553,7 @@
     "weather": "{conditions} à {place}",
     "rainChance": ", {percent} % de risque de pluie",
     "rainShort": " · pluie {percent} %",
-    "yourTime": "{time} chez vous",
+    "yourTime": "{time} chez toi",
     "duration": "{hours, plural, =0 {} other {# h }}{minutes} min",
     "editFlight": "Modifier le vol",
     "editTrain": "Modifier le trajet en train",
@@ -591,7 +591,7 @@
       "remindMe": "Me rappeler",
       "noReminder": "Pas de rappel",
       "reminderHint": "Affiché dans la carte Rappels du tableau de bord, et comme alerte dans les applis de calendrier abonnées à Nestery.",
-      "reminderNeedsTime": "Ajoutez une heure de départ pour recevoir un rappel.",
+      "reminderNeedsTime": "Ajoute une heure de départ pour recevoir un rappel.",
       "moreDetails": "Plus de détails",
       "fromCity": "Ville de départ",
       "toCity": "Ville d’arrivée",
@@ -600,11 +600,11 @@
       "notes": "Notes",
       "airlinePlaceholder": "AF ou Air France",
       "required": {
-        "carrier": "Indiquez la compagnie",
-        "number": "Indiquez le numéro de vol",
-        "origin": "Indiquez le lieu de départ",
-        "destination": "Indiquez la destination",
-        "departureDate": "Indiquez la date de départ"
+        "carrier": "Indique la compagnie",
+        "number": "Indique le numéro de vol",
+        "origin": "Indique le lieu de départ",
+        "destination": "Indique la destination",
+        "departureDate": "Indique la date de départ"
       },
       "incomplete": "{end, select, departure {{part, select, date {La date de départ} other {L’heure de départ}}} other {{part, select, date {La date d’arrivée} other {L’heure d’arrivée}}}} est incomplète",
       "departureTime": "Heure de départ",
@@ -641,12 +641,12 @@
       "template": "Modèle",
       "choose": "Choisir un fichier CSV",
       "tooLarge": "Le fichier dépasse 2 Mo.",
-      "otherKind": "Ce fichier semble concerner des {kind, select, flight {vols} other {trains}}. Choisissez « {kind, select, flight {Vols} other {Trains}} » ci-dessus.",
-      "missing": "Colonnes manquantes : {columns}. Utilisez les colonnes du modèle.",
+      "otherKind": "Ce fichier semble concerner des {kind, select, flight {vols} other {trains}}. Choisis « {kind, select, flight {Vols} other {Trains}} » ci-dessus.",
+      "missing": "Colonnes manquantes : {columns}. Utilise les colonnes du modèle.",
       "noRows": "Le fichier ne contient aucune ligne.",
       "found": "{count, plural, one {# ligne trouvée} other {# lignes trouvées}}. Les premières :",
       "imported": "<b>{count}</b> {count, plural, one {importé} other {importés}}",
-      "skipped": ", {count} déjà dans votre liste",
+      "skipped": ", {count} déjà dans ta liste",
       "withErrors": ", {count} avec des erreurs",
       "line": "Ligne {line} : {message}",
       "importing": "Importation…",
@@ -655,24 +655,24 @@
     }
   },
   "account": {
-    "reauth": "Par sécurité, déconnectez-vous puis reconnectez-vous, et réessayez.",
+    "reauth": "Par sécurité, déconnecte-toi puis reconnecte-toi, et réessaie.",
     "profile": {
       "title": "Profil",
       "name": "Nom",
-      "nameTooShort": "Votre nom doit comporter au moins 2 caractères",
+      "nameTooShort": "Ton nom doit comporter au moins 2 caractères",
       "nameUpdated": "Nom mis à jour",
       "changeEmail": "Changer d’e-mail",
-      "emailHint": "Le changement doit être confirmé depuis votre adresse actuelle et la nouvelle."
+      "emailHint": "Le changement doit être confirmé depuis ton adresse actuelle et la nouvelle."
     },
     "email": {
-      "invalid": "Saisissez une adresse e-mail valide",
-      "same": "C’est déjà votre adresse e-mail",
-      "sent": "Consultez <b>{current}</b> et approuvez le changement. Nous enverrons ensuite un lien à <b>{next}</b> ; votre adresse change dès que vous l’ouvrez.",
+      "invalid": "Saisis une adresse e-mail valide",
+      "same": "C’est déjà ton adresse e-mail",
+      "sent": "Consulte <b>{current}</b> et approuve le changement. Nous enverrons ensuite un lien à <b>{next}</b> ; ton adresse change dès que tu l’ouvres.",
       "new": "Nouvelle adresse e-mail",
       "send": "Envoyer la confirmation"
     },
     "password": {
-      "noPassword": "Vous vous connectez avec {methods} : votre compte n’a donc pas de mot de passe à changer.",
+      "noPassword": "Tu te connectes avec {methods} : ton compte n’a donc pas de mot de passe à changer.",
       "tooShort": "Le nouveau mot de passe doit comporter au moins 8 caractères",
       "mismatch": "Les nouveaux mots de passe ne correspondent pas",
       "changedSignedOut": "Mot de passe modifié ; les autres appareils ont été déconnectés",
@@ -687,19 +687,19 @@
     },
     "methods": {
       "title": "Méthodes de connexion",
-      "description": "Les façons de vous connecter à Nestery.",
+      "description": "Les façons de te connecter à Nestery.",
       "emailPassword": "E-mail et mot de passe",
       "connected": "Connecté",
       "notSetUp": "Non configuré",
       "connect": "Connecter",
       "disconnect": "Déconnecter",
       "disconnected": "{provider} déconnecté",
-      "onlyWayShort": "C’est votre seul moyen de connexion",
-      "onlyWay": "{provider} est votre seul moyen de connexion : il ne peut pas être déconnecté."
+      "onlyWayShort": "C’est ton seul moyen de connexion",
+      "onlyWay": "{provider} est ton seul moyen de connexion : il ne peut pas être déconnecté."
     },
     "devices": {
       "title": "Appareils",
-      "description": "Là où vous êtes connecté.",
+      "description": "Là où tu es connecté.",
       "unknown": "Appareil inconnu",
       "browser": "Navigateur",
       "unknownSystem": "système inconnu",
@@ -709,39 +709,39 @@
       "active": "Actif {time}",
       "signOut": "Déconnecter",
       "signOutAll": "Déconnecter tous les autres appareils",
-      "signedOutOthers": "Vos autres appareils ont été déconnectés"
+      "signedOutOthers": "Tes autres appareils ont été déconnectés"
     },
     "delete": {
       "title": "Supprimer le compte",
-      "description": "Supprime définitivement votre compte et tout son contenu : tâches, notes, événements, abonnements de calendrier et paramètres. Cette action est irréversible.",
+      "description": "Supprime définitivement ton compte et tout son contenu : tâches, notes, événements, abonnements de calendrier et paramètres. Cette action est irréversible.",
       "open": "Supprimer mon compte",
-      "typeEmail": "Saisissez votre adresse e-mail, <b>{email}</b>, pour confirmer",
+      "typeEmail": "Saisis ton adresse e-mail, <b>{email}</b>, pour confirmer",
       "forever": "Supprimer définitivement le compte",
-      "done": "Votre compte a été supprimé"
+      "done": "Ton compte a été supprimé"
     }
   },
   "assistantSettings": {
     "title": "Assistant",
-    "intro": "L’assistant (<icon></icon> dans la barre latérale, ou {shortcut}) utilise un modèle d’IA avec votre propre clé d’API ; le fournisseur vous facture selon l’usage. Ce que l’assistant consulte (tâches, événements, notes) est envoyé à ce fournisseur.",
+    "intro": "L’assistant (<icon></icon> dans la barre latérale, ou {shortcut}) utilise un modèle d’IA avec ta propre clé d’API ; le fournisseur te facture selon l’usage. Ce que l’assistant consulte (tâches, événements, notes) est envoyé à ce fournisseur.",
     "iconLabel": "Icône de l’assistant",
-    "serverKey": "Vous pouvez utiliser la clé de l’application ({limit} messages par jour). Ajoutez la vôtre pour l’utiliser sans limite.",
+    "serverKey": "Tu peux utiliser la clé de l’application ({limit} messages par jour). Ajoute la tienne pour l’utiliser sans limite.",
     "cantStore": "Ce serveur ne peut pas encore enregistrer de clés d’API (ASSISTANT_ENCRYPTION_KEY n’est pas défini).",
     "provider": "Fournisseur",
     "customProvider": "Autre (compatible OpenAI)",
     "baseUrl": "URL de base",
-    "baseUrlHint": "Tout service avec une API de chat compatible OpenAI. Un serveur sur votre propre ordinateur (LM Studio : <code>http://localhost:1234/v1</code>) ne fonctionne qu’en développant Nestery en local.",
+    "baseUrlHint": "Tout service avec une API de chat compatible OpenAI. Un serveur sur ton propre ordinateur (LM Studio : <code>http://localhost:1234/v1</code>) ne fonctionne qu’en développant Nestery en local.",
     "apiKey": "Clé d’API",
     "apiKeyOptional": "Clé d’API (si le serveur en demande une)",
     "savedKey": "Clé enregistrée {hint}",
     "removeHint": "Supprimer la clé et les réglages",
     "remove": "Supprimer la clé",
     "createKey": "<link>Créer une clé</link>. ",
-    "stored": "Elle est stockée chiffrée et n’est utilisée que pour vos propres requêtes.",
-    "keepKey": " Laissez vide pour garder la clé enregistrée.",
+    "stored": "Elle est stockée chiffrée et n’est utilisée que pour tes propres requêtes.",
+    "keepKey": " Laisse vide pour garder la clé enregistrée.",
     "model": "Modèle",
-    "modelPlaceholder": "Chargez la liste ou saisissez un identifiant de modèle",
+    "modelPlaceholder": "Charge la liste ou saisis un identifiant de modèle",
     "loadModels": "Charger les modèles",
-    "modelsHint": "Liste les modèles accessibles avec votre clé, ce qui la vérifie aussi. Choisissez-en un qui gère l’appel d’outils ; les petits modèles locaux peuvent mal les utiliser.",
+    "modelsHint": "Liste les modèles accessibles avec ta clé, ce qui la vérifie aussi. Choisis-en un qui gère l’appel d’outils ; les petits modèles locaux peuvent mal les utiliser.",
     "saved": "Réglages de l’assistant enregistrés",
     "removed": "Réglages de l’assistant supprimés"
   },
@@ -753,10 +753,10 @@
       "share": "Nestery dans d’autres applis"
     },
     "holidays": {
-      "description": "Les jours fériés des pays et régions choisis apparaissent dans votre calendrier et votre tableau de bord. Jusqu’à {max}.",
+      "description": "Les jours fériés des pays et régions choisis apparaissent dans ton calendrier et ton tableau de bord. Jusqu’à {max}.",
       "none": "Aucune sélection.",
       "removeRegion": "Retirer {name}",
-      "loadError": "Impossible de charger la liste. Réessayez plus tard.",
+      "loadError": "Impossible de charger la liste. Réessaie plus tard.",
       "search": "Rechercher des pays et régions",
       "list": "Pays et régions",
       "noData": "Pas de données",
@@ -765,12 +765,12 @@
       "saved": "Jours fériés enregistrés"
     },
     "subs": {
-      "description": "Importez des calendriers d’ailleurs dans Nestery : abonnez-vous à un lien pour rester synchronisé, ou importez un fichier une fois.",
+      "description": "Importe des calendriers d’ailleurs dans Nestery : abonne-toi à un lien pour rester synchronisé, ou importe un fichier une fois.",
       "title": "Abonnements",
-      "hint": "Affichés à côté de vos événements, en lecture seule : emploi du temps, calendrier de votre iPhone, matchs… Collez son lien iCalendar (.ics ou webcal). Il s’actualise toutes les heures.",
+      "hint": "Affichés à côté de tes événements, en lecture seule : emploi du temps, calendrier de ton iPhone, matchs… Colle son lien iCalendar (.ics ou webcal). Il s’actualise toutes les heures.",
       "whereLink": "Où trouver le lien d’un calendrier ?",
-      "ade": "<b>ADE (emplois du temps universitaires)</b> : ouvrez votre emploi du temps, choisissez « Exporter l’agenda », générez l’URL et copiez-la.",
-      "icloud": "<b>iPhone / iCloud</b> : dans l’app Calendrier, touchez Calendriers, puis ⓘ à côté du calendrier, activez « Calendrier public » et partagez le lien. Toute personne disposant du lien peut voir le calendrier.",
+      "ade": "<b>ADE (emplois du temps universitaires)</b> : ouvre ton emploi du temps, choisis « Exporter l’agenda », génère l’URL et copie-la.",
+      "icloud": "<b>iPhone / iCloud</b> : dans l’app Calendrier, touche Calendriers, puis ⓘ à côté du calendrier, active « Calendrier public » et partage le lien. Toute personne disposant du lien peut voir le calendrier.",
       "google": "<b>Google Agenda</b> : Paramètres → le calendrier → « Adresse secrète au format iCal ».",
       "outlook": "<b>Outlook</b> : Paramètres → Calendrier → Calendriers partagés → Publier un calendrier → Lien ICS.",
       "colorFor": "Couleur de {name}",
@@ -784,7 +784,7 @@
       "updated": "Mis à jour {time}",
       "notFetched": "Pas encore récupéré",
       "hidden": " · Masqué dans le calendrier",
-      "needNameLink": "Donnez un nom au calendrier et collez son lien",
+      "needNameLink": "Donne un nom au calendrier et colle son lien",
       "subscribed": "Abonné à {name}",
       "name": "Nom",
       "namePlaceholder": "Emploi du temps",
@@ -803,7 +803,7 @@
     },
     "import": {
       "title": "Importer un fichier",
-      "description": "Les événements d’un fichier .ics deviennent vos propres événements, modifiables. Réimporter le même fichier ignore ceux déjà ajoutés.",
+      "description": "Les événements d’un fichier .ics deviennent tes propres événements, modifiables. Réimporter le même fichier ignore ceux déjà ajoutés.",
       "tooLarge": "Le fichier est trop volumineux (plus de 5 Mo)",
       "done": "{count, plural, one {# événement importé} other {# événements importés}} depuis {file}",
       "choose": "Choisir un fichier .ics",
@@ -819,7 +819,7 @@
       "import": "Importer"
     },
     "feed": {
-      "description": "Un lien privé vers vos événements, les échéances de vos tâches ouvertes et vos trajets, pour Calendrier d’Apple (iPhone : Réglages → Apps → Calendrier → Comptes de calendrier → Ajouter un compte → Autre → Ajouter un calendrier avec abonnement), Google Agenda ou Outlook. Les applis vérifient les changements toutes les quelques heures ; toute personne disposant du lien peut voir votre calendrier.",
+      "description": "Un lien privé vers tes événements, les échéances de tes tâches ouvertes et tes trajets, pour Calendrier d’Apple (iPhone : Réglages → Apps → Calendrier → Comptes de calendrier → Ajouter un compte → Autre → Ajouter un calendrier avec abonnement), Google Agenda ou Outlook. Les applis vérifient les changements toutes les quelques heures ; toute personne disposant du lien peut voir ton calendrier.",
       "create": "Créer le lien du calendrier",
       "forApple": "Pour Calendrier d’Apple et les téléphones (ouvre l’app)",
       "forGoogle": "Pour Google Agenda (Autres agendas → À partir de l’URL) et Outlook",
@@ -830,7 +830,7 @@
       "newLink": "Nouveau lien",
       "created": "Nouveau lien de calendrier créé",
       "turnedOff": "Lien de calendrier désactivé",
-      "copyFailed": "Copie impossible ; sélectionnez le lien et copiez-le",
+      "copyFailed": "Copie impossible ; sélectionne le lien et copie-le",
       "copied": "Copié",
       "copy": "Copier le lien"
     }
@@ -848,7 +848,7 @@
     "source": "Données météo par <a1>Open-Meteo</a1> (<a2>CC BY 4.0</a2>)."
   },
   "auth": {
-    "emailPlaceholder": "vous@exemple.com",
+    "emailPlaceholder": "toi@exemple.com",
     "orContinue": "Ou continuer avec",
     "continueWith": "Continuer avec {provider}",
     "unexpected": "Une erreur inattendue s’est produite.",
@@ -865,75 +865,75 @@
     },
     "validation": {
       "email": "Adresse e-mail invalide",
-      "password": "Saisissez votre mot de passe",
+      "password": "Saisis ton mot de passe",
       "username": "Le nom d’utilisateur doit comporter au moins 2 caractères",
       "passwordLength": "Le mot de passe doit comporter au moins 8 caractères",
-      "confirm": "Veuillez confirmer votre mot de passe",
+      "confirm": "Confirme ton mot de passe",
       "mismatch": "Les mots de passe ne correspondent pas"
     },
     "login": {
-      "tagline": "Bon retour dans votre nid.",
-      "title": "Bon retour",
-      "subtitle": "Connectez-vous pour reprendre là où vous en étiez.",
+      "tagline": "Te revoilà dans ton nid.",
+      "title": "Ravi de te revoir",
+      "subtitle": "Connecte-toi pour reprendre là où tu t’étais arrêté.",
       "forgot": "Mot de passe oublié ?",
       "success": "Connexion réussie",
-      "unverified": "Confirmez d’abord votre adresse e-mail. Nous avons envoyé un nouveau lien à <b>{email}</b>.",
+      "unverified": "Confirme d’abord ton adresse e-mail. Nous avons envoyé un nouveau lien à <b>{email}</b>.",
       "signingIn": "Connexion…",
       "new": "Nouveau sur Nestery ? <link>Créer un compte</link>"
     },
     "signup": {
-      "tagline": "Faites comme chez vous.",
-      "title": "Créez votre compte",
-      "subtitle": "Vos tâches et vos notes, au même endroit.",
-      "checkInbox": "Consultez votre boîte de réception",
-      "oneMore": "Plus qu’une étape pour créer votre compte.",
-      "sent": "Nous avons envoyé un lien de confirmation à <b>{email}</b>. Ouvrez-le pour confirmer votre adresse et vous serez connecté.",
-      "spam": "Rien après quelques minutes ? Vérifiez vos indésirables, ou renvoyez le lien.",
+      "tagline": "Fais comme chez toi.",
+      "title": "Crée ton compte",
+      "subtitle": "Tes tâches et tes notes, au même endroit.",
+      "checkInbox": "Consulte ta boîte de réception",
+      "oneMore": "Plus qu’une étape pour créer ton compte.",
+      "sent": "Nous avons envoyé un lien de confirmation à <b>{email}</b>. Ouvre-le pour confirmer ton adresse et tu seras connecté.",
+      "spam": "Rien après quelques minutes ? Vérifie tes indésirables, ou renvoie le lien.",
       "created": "Compte créé",
       "username": "Nom d’utilisateur",
-      "usernamePlaceholder": "Votre nom",
+      "usernamePlaceholder": "Ton nom",
       "confirm": "Confirmer le mot de passe",
       "signingUp": "Inscription…",
       "signUp": "S’inscrire",
       "haveAccount": "Déjà un compte ? <link>Se connecter</link>"
     },
     "forgot": {
-      "tagline": "De retour dans votre nid dans un instant.",
+      "tagline": "De retour dans ton nid dans un instant.",
       "title": "Mot de passe oublié ?",
-      "subtitle": "Nous vous enverrons un lien pour en choisir un nouveau.",
-      "sentSubtitle": "Suivez le lien pour choisir un nouveau mot de passe.",
-      "enterEmail": "Saisissez l’e-mail utilisé à l’inscription",
+      "subtitle": "Nous t’enverrons un lien pour en choisir un nouveau.",
+      "sentSubtitle": "Suis le lien pour choisir un nouveau mot de passe.",
+      "enterEmail": "Saisis l’e-mail utilisé à l’inscription",
       "sent": "S’il existe un compte Nestery pour <b>{email}</b>, un lien de réinitialisation est en route. Il est valable 1 heure.",
-      "spam": "Rien après quelques minutes ? Vérifiez vos indésirables.",
+      "spam": "Rien après quelques minutes ? Vérifie tes indésirables.",
       "send": "Envoyer le lien",
-      "remembered": "Ça vous revient ? <link>Se connecter</link>"
+      "remembered": "Ça te revient ? <link>Se connecter</link>"
     },
     "reset": {
-      "tooShort": "Utilisez au moins 8 caractères",
+      "tooShort": "Utilise au moins 8 caractères",
       "mismatch": "Les mots de passe ne correspondent pas",
       "badLink": "Ce lien ne fonctionne pas",
       "badLinkSubtitle": "Les liens de réinitialisation fonctionnent une fois, pendant 1 heure.",
-      "badLinkText": "Le lien a expiré ou a déjà été utilisé. Demandez-en un nouveau et utilisez le dernier e-mail.",
+      "badLinkText": "Le lien a expiré ou a déjà été utilisé. Demandes-en un nouveau et utilise le dernier e-mail.",
       "newLink": "Envoyer un nouveau lien",
       "done": "Mot de passe modifié",
-      "doneSubtitle": "Vous pouvez vous connecter avec votre nouveau mot de passe.",
-      "doneText": "Par sécurité, les autres appareils connectés à votre compte ont été déconnectés.",
-      "title": "Choisissez un nouveau mot de passe",
-      "subtitle": "Utilisez au moins 8 caractères.",
+      "doneSubtitle": "Tu peux te connecter avec ton nouveau mot de passe.",
+      "doneText": "Par sécurité, les autres appareils connectés à ton compte ont été déconnectés.",
+      "title": "Choisis un nouveau mot de passe",
+      "subtitle": "Utilise au moins 8 caractères.",
       "new": "Nouveau mot de passe",
       "confirm": "Confirmer le nouveau mot de passe",
       "change": "Changer le mot de passe"
     }
   },
   "home": {
-    "title": "Un refuge paisible pour votre quotidien.",
-    "subtitle": "Tâches, notes, calendrier et votre journée en un coup d’œil, réunis dans un espace calme et personnel.",
+    "title": "Un refuge paisible pour ton quotidien.",
+    "subtitle": "Tâches, notes, calendrier et ta journée en un coup d’œil, réunis dans un espace calme et personnel.",
     "getStarted": "Commencer",
     "features": "Ce que propose Nestery",
     "tiles": {
       "calendar": {
         "title": "Calendrier",
-        "text": "Mois et semaines, événements récurrents, et votre emploi du temps ou d’autres calendriers abonnés directement."
+        "text": "Mois et semaines, événements récurrents, et ton emploi du temps ou d’autres calendriers abonnés directement."
       },
       "notes": {
         "title": "Notes",
@@ -941,7 +941,7 @@
       },
       "dashboard": {
         "title": "Tableau de bord",
-        "text": "Votre journée en un coup d’œil."
+        "text": "Ta journée en un coup d’œil."
       },
       "tasks": {
         "title": "Tâches",
