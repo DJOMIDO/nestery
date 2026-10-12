@@ -390,6 +390,10 @@
       "startWriting": "Commence à écrire…",
       "deleteFileConfirm": "Supprimer {name} ? Il sera aussi retiré de la note."
     },
+    "slash": {
+      "label": "Insérer un bloc",
+      "divider": "Séparateur"
+    },
     "toolbar": {
       "formatting": "Mise en forme",
       "blockType": "Type de bloc : {type}",

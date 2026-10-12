@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { NoteAttachments } from "@/components/notes/NoteAttachments";
 import { NoteBubbleMenu } from "@/components/notes/NoteBubbleMenu";
 import { NoteToolbar } from "@/components/notes/NoteToolbar";
+import { SlashCommand } from "@/components/notes/SlashMenu";
 import { noteExtensions } from "@/components/notes/extensions";
 import { downloadMarkdown, noteToMarkdown } from "@/components/notes/markdown";
 import { useNoteAttachments } from "@/hooks/useNoteAttachments";
@@ -144,7 +145,11 @@ export function NoteEditor({
   }, [flush]);
 
   const editor = useEditor({
-    extensions: noteExtensions(t("editor.startWriting")),
+    extensions: [
+      ...noteExtensions(t("editor.startWriting")),
+      // "/" at the start of a line: insert a block, or attach a file
+      SlashCommand.configure({ onAttach: () => () => fileInput.current?.click() }),
+    ],
     content: withoutAttachmentEmoji(note.content),
     immediatelyRender: false,
     editorProps: {

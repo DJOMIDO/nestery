@@ -390,6 +390,10 @@
       "startWriting": "開始寫作…",
       "deleteFileConfirm": "刪除 {name}？它也會從筆記中移除。"
     },
+    "slash": {
+      "label": "插入內容",
+      "divider": "分隔線"
+    },
     "toolbar": {
       "formatting": "格式",
       "blockType": "段落類型：{type}",
