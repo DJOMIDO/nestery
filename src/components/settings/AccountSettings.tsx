@@ -5,10 +5,10 @@
 
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
-import { KeyRound, Laptop, LogOut, Smartphone, Trash2 } from "lucide-react";
+import { Camera, KeyRound, Laptop, LogOut, Smartphone, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Loading, Spinner } from "@/components/ui/spinner";
@@ -18,6 +18,8 @@ import { useFormat } from "@/components/SettingsProvider";
 import { request } from "@/lib/api";
 import { authClient } from "@/lib/auth-client";
 import { ProviderIcon } from "@/components/auth/ProviderIcon";
+import { UserAvatar } from "@/components/UserAvatar";
+import { AVATAR_TYPES, MAX_AVATAR_BYTES, isAvatarType } from "@/lib/avatar";
 import {
   SOCIAL_PROVIDERS,
   SOCIAL_PROVIDER_LABELS,
@@ -51,7 +53,7 @@ interface LinkedAccount {
 }
 
 export function AccountSettings() {
-  const { data: session, isPending } = authClient.useSession();
+  const { data: session, isPending, refetch } = authClient.useSession();
   const [accounts, setAccounts] = useState<LinkedAccount[] | null>(null);
   const [providers, setProviders] = useState<SocialProviderId[]>([]);
   const errorMessage = useErrorMessage();
@@ -82,7 +84,12 @@ export function AccountSettings() {
 
   return (
     <div className="space-y-6">
-      <ProfileCard name={session.user.name} email={session.user.email} />
+      <ProfileCard
+        name={session.user.name}
+        email={session.user.email}
+        image={session.user.image}
+        onImageChange={() => refetch()}
+      />
       <PasswordCard hasPassword={hasPassword} socialNames={socialNames} loading={accounts === null} />
       <SignInMethodsCard accounts={accounts} providers={providers} onChange={loadAccounts} />
       <SessionsCard currentToken={session.session.token} />
@@ -105,7 +112,94 @@ function Card({ title, description, children }: { title: string; description?: s
 
 // ---- Profile -------------------------------------------------------------
 
-function ProfileCard({ name, email }: { name: string; email: string }) {
+// The photo shown in the sidebar: uploaded straight to storage, then
+// checked by the server, which makes it the user's image
+function AvatarField({ name, image, onChange }: { name: string; image?: string | null; onChange: () => void }) {
+  const [busy, setBusy] = useState(false);
+  const input = useRef<HTMLInputElement>(null);
+  const t = useTranslations("account.profile");
+  const errorMessage = useErrorMessage();
+
+  const upload = async (file: File) => {
+    if (!isAvatarType(file.type)) return toast.error(t("photoType"));
+    if (file.size > MAX_AVATAR_BYTES) return toast.error(t("photoTooLarge"));
+    setBusy(true);
+    try {
+      const { id, uploadUrl, uploadHeaders } = await request<{
+        id: string;
+        uploadUrl: string;
+        // Signed with the URL, so they must be sent as they are
+        uploadHeaders: Record<string, string>;
+      }>("/api/account/avatar", { method: "POST", body: JSON.stringify({ contentType: file.type, size: file.size }) });
+      const put = await fetch(uploadUrl, { method: "PUT", body: file, headers: uploadHeaders });
+      if (!put.ok) throw new Error(t("photoUploadFailed", { status: put.status }));
+      await request(`/api/account/avatar/${id}/complete`, { method: "POST" });
+      onChange();
+      toast.success(t("photoUpdated"));
+    } catch (err) {
+      toast.error(errorMessage(err));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const remove = async () => {
+    setBusy(true);
+    try {
+      await request("/api/account/avatar", { method: "DELETE" });
+      onChange();
+      toast.success(t("photoRemoved"));
+    } catch (err) {
+      toast.error(errorMessage(err));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="flex items-center gap-4">
+      <UserAvatar name={name} image={image} className="size-16 text-xl" />
+      <div className="space-y-2">
+        <div className="flex flex-wrap gap-2">
+          <Button type="button" variant="outline" size="sm" disabled={busy} onClick={() => input.current?.click()}>
+            {busy ? <Spinner /> : <Camera />}
+            {image ? t("changePhoto") : t("uploadPhoto")}
+          </Button>
+          {image && (
+            <Button type="button" variant="ghost" size="sm" disabled={busy} onClick={remove}>
+              {t("removePhoto")}
+            </Button>
+          )}
+        </div>
+        <p className="text-xs text-muted-foreground">{t("photoHint")}</p>
+      </div>
+      <input
+        ref={input}
+        type="file"
+        accept={AVATAR_TYPES.join(",")}
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          // Lets the same file be picked again
+          e.target.value = "";
+          if (file) upload(file);
+        }}
+      />
+    </div>
+  );
+}
+
+function ProfileCard({
+  name,
+  email,
+  image,
+  onImageChange,
+}: {
+  name: string;
+  email: string;
+  image?: string | null;
+  onImageChange: () => void;
+}) {
   const [value, setValue] = useState(name);
   const [changingEmail, setChangingEmail] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -131,6 +225,7 @@ function ProfileCard({ name, email }: { name: string; email: string }) {
 
   return (
     <Card title={t("profile.title")}>
+      <AvatarField name={name} image={image} onChange={onImageChange} />
       <form onSubmit={save} className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="account-name">{t("profile.name")}</Label>

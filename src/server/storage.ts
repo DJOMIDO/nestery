@@ -99,12 +99,13 @@ export async function deleteStored(key: string) {
   await s3().send(new DeleteObjectCommand({ Bucket: Bucket(), Key: key }));
 }
 
-// Everything under a prefix (e.g. a deleted account's files)
-export async function deleteStoredPrefix(prefix: string) {
+// Everything under a prefix (e.g. a deleted account's files), apart from
+// the key to keep, if given
+export async function deleteStoredPrefix(prefix: string, keep?: string) {
   let token: string | undefined;
   do {
     const page = await s3().send(new ListObjectsV2Command({ Bucket: Bucket(), Prefix: prefix, ContinuationToken: token }));
-    const keys = (page.Contents ?? []).map((o) => ({ Key: o.Key! }));
+    const keys = (page.Contents ?? []).filter((o) => o.Key !== keep).map((o) => ({ Key: o.Key! }));
     if (keys.length) await s3().send(new DeleteObjectsCommand({ Bucket: Bucket(), Delete: { Objects: keys } }));
     token = page.IsTruncated ? page.NextContinuationToken : undefined;
   } while (token);

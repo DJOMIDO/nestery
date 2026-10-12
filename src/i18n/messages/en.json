@@ -676,7 +676,16 @@
       "nameTooShort": "Your name needs at least 2 characters",
       "nameUpdated": "Name updated",
       "changeEmail": "Change email",
-      "emailHint": "Changing it needs a confirmation from your current and your new address."
+      "emailHint": "Changing it needs a confirmation from your current and your new address.",
+      "uploadPhoto": "Upload photo",
+      "changePhoto": "Change photo",
+      "removePhoto": "Remove",
+      "photoHint": "JPEG, PNG, WebP, GIF or AVIF, up to 1 MB",
+      "photoType": "Choose a JPEG, PNG, WebP, GIF or AVIF image.",
+      "photoTooLarge": "The image is larger than 1 MB.",
+      "photoUploadFailed": "Uploading the photo failed ({status}).",
+      "photoUpdated": "Photo updated",
+      "photoRemoved": "Photo removed"
     },
     "email": {
       "invalid": "Enter a valid email address",
@@ -996,6 +1005,9 @@
     "keyCantUseModel": "This key can't use “{model}”. Pick one from the list.",
     "maxTags": "At most 10 tags",
     "attachmentsOff": "Attachments are not set up on this server.",
+    "avatarsOff": "Photo uploads are not set up on this server.",
+    "avatarType": "Choose a JPEG, PNG, WebP, GIF or AVIF image.",
+    "avatarTooLarge": "The image is larger than 1 MB.",
     "chooseModel": "Choose a model",
     "serverNotFound": "Could not find that server",
     "enterBaseUrlExample": "Enter a link such as https://api.example.com/v1",

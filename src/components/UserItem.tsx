@@ -8,6 +8,8 @@ import { useTheme } from "next-themes";
 import { useTranslations } from "next-intl";
 import { ChevronsUpDown, LogOut, Monitor, Moon, Settings, Sun } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { authClient } from "@/lib/auth-client";
+import { UserAvatar } from "@/components/UserAvatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -38,15 +40,7 @@ export function UserItem({ collapsed, name, onLogout }: UserItemProps) {
   const { theme = "system", setTheme } = useTheme();
   // Settings lives in this menu, so highlight the trigger while on that page
   const isSettings = usePathname().startsWith("/settings");
-
-  const getInitials = (fullName: string) => {
-    const parts = fullName.trim().split(" ").filter(Boolean);
-    if (parts.length === 0) return "";
-    if (parts.length === 1) return parts[0][0].toUpperCase();
-    return parts[0][0].toUpperCase() + parts[1][0].toUpperCase();
-  };
-
-  const initials = getInitials(name);
+  const image = authClient.useSession().data?.user.image;
 
   return (
     <DropdownMenu>
@@ -58,9 +52,7 @@ export function UserItem({ collapsed, name, onLogout }: UserItemProps) {
         )}
         aria-label={t("accountMenu")}
       >
-        <div className="w-8 h-8 rounded-full bg-forest text-white font-bold flex items-center justify-center text-sm shrink-0">
-          {initials}
-        </div>
+        <UserAvatar name={name} image={image} className="size-8 text-sm" />
 
         {!collapsed && (
           <>

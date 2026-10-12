@@ -676,7 +676,16 @@
       "nameTooShort": "Ton nom doit comporter au moins 2 caractères",
       "nameUpdated": "Nom mis à jour",
       "changeEmail": "Changer d’e-mail",
-      "emailHint": "Le changement doit être confirmé depuis ton adresse actuelle et la nouvelle."
+      "emailHint": "Le changement doit être confirmé depuis ton adresse actuelle et la nouvelle.",
+      "uploadPhoto": "Importer une photo",
+      "changePhoto": "Changer de photo",
+      "removePhoto": "Retirer",
+      "photoHint": "JPEG, PNG, WebP, GIF ou AVIF, 1 Mo maximum",
+      "photoType": "Choisis une image JPEG, PNG, WebP, GIF ou AVIF.",
+      "photoTooLarge": "L’image dépasse 1 Mo.",
+      "photoUploadFailed": "L’envoi de la photo a échoué ({status}).",
+      "photoUpdated": "Photo mise à jour",
+      "photoRemoved": "Photo retirée"
     },
     "email": {
       "invalid": "Saisis une adresse e-mail valide",
@@ -996,6 +1005,9 @@
     "keyCantUseModel": "Cette clé ne peut pas utiliser « {model} ». Choisis-en un dans la liste.",
     "maxTags": "10 étiquettes au maximum",
     "attachmentsOff": "Les pièces jointes ne sont pas configurées sur ce serveur.",
+    "avatarsOff": "L’envoi de photos n’est pas configuré sur ce serveur.",
+    "avatarType": "Choisis une image JPEG, PNG, WebP, GIF ou AVIF.",
+    "avatarTooLarge": "L’image dépasse 1 Mo.",
     "chooseModel": "Choisis un modèle",
     "serverNotFound": "Serveur introuvable",
     "enterBaseUrlExample": "Saisis un lien comme https://api.example.com/v1",

@@ -676,7 +676,16 @@
       "nameTooShort": "名字至少需要 2 个字符",
       "nameUpdated": "名字已更新",
       "changeEmail": "更改邮箱",
-      "emailHint": "更改邮箱需要当前邮箱和新邮箱分别确认。"
+      "emailHint": "更改邮箱需要当前邮箱和新邮箱分别确认。",
+      "uploadPhoto": "上传头像",
+      "changePhoto": "更换头像",
+      "removePhoto": "移除",
+      "photoHint": "支持 JPEG、PNG、WebP、GIF 或 AVIF，不超过 1 MB",
+      "photoType": "请选择 JPEG、PNG、WebP、GIF 或 AVIF 格式的图片。",
+      "photoTooLarge": "图片超过了 1 MB。",
+      "photoUploadFailed": "头像上传失败（{status}）。",
+      "photoUpdated": "头像已更新",
+      "photoRemoved": "头像已移除"
     },
     "email": {
       "invalid": "请输入有效的邮箱地址",
@@ -996,6 +1005,9 @@
     "keyCantUseModel": "这个密钥不能使用“{model}”，请从列表中选一个。",
     "maxTags": "最多 10 个标签",
     "attachmentsOff": "这台服务器没有配置附件功能。",
+    "avatarsOff": "这台服务器没有配置头像上传。",
+    "avatarType": "请选择 JPEG、PNG、WebP、GIF 或 AVIF 格式的图片。",
+    "avatarTooLarge": "图片超过了 1 MB。",
     "chooseModel": "请选择模型",
     "serverNotFound": "找不到这个服务器",
     "enterBaseUrlExample": "请输入类似 https://api.example.com/v1 的链接",
