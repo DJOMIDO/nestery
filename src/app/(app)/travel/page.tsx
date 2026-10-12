@@ -327,7 +327,7 @@ function JourneyRow({
               {j.carrierName && ` · ${j.carrierName}`}
             </span>
             <span className="flex shrink-0 items-center gap-2">
-              {weather && <JourneyWeatherBadge weather={weather} />}
+              {weather?.arrival && <JourneyWeatherBadge weather={weather.arrival} />}
               {j.departureTime && formatClock(format, j.departureTime)}
             </span>
           </p>

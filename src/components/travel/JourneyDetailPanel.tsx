@@ -178,14 +178,15 @@ export function JourneyDetailPanel({ journey: j, weather, onSave, onDelete, onCl
         )}
       </div>
 
-      {weather && !ended && (
+      {(weather?.departure || weather?.arrival) && !ended && (
         <div className="grid grid-cols-2 gap-2">
+          {/* Each in its own column, even when the other is missing */}
           {weather.departure ? (
             <WeatherTile label={t("weatherDeparture")} weather={weather.departure} />
           ) : (
             <span />
           )}
-          <WeatherTile label={t("weatherArrival")} weather={weather} />
+          {weather.arrival && <WeatherTile label={t("weatherArrival")} weather={weather.arrival} />}
         </div>
       )}
 

@@ -83,10 +83,12 @@ export interface PlaceWeather {
   precipitation: number | null; // highest chance that day, %
 }
 
-// The forecast at a journey's destination on its arrival day, and at its
-// origin on the departure day when that is known and not yet past
-export interface JourneyWeather extends PlaceWeather {
+// The forecasts at a journey's two ends: at the origin on the departure
+// day, at the destination on the arrival day. Either can be missing (a
+// place not found, a day past or too far ahead).
+export interface JourneyWeather {
   departure?: PlaceWeather;
+  arrival?: PlaceWeather;
 }
 
 export interface Airline {

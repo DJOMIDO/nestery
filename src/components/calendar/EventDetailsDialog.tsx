@@ -38,7 +38,8 @@ export function EventDetailsDialog({ event, open, onOpenChange }: EventDetailsDi
   const source = event?.source;
   // Journeys: the forecast at the destination, loaded when one is opened
   const journeyId = open ? source?.journeyId : undefined;
-  const weather = useJourneyWeather(journeyId ?? "", !!journeyId)[journeyId ?? ""];
+  // At the destination on arrival
+  const weather = useJourneyWeather(journeyId ?? "", !!journeyId)[journeyId ?? ""]?.arrival;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
