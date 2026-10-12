@@ -8,6 +8,7 @@ import { useTranslations } from "next-intl";
 import { ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 
 import { SideBarItem } from "@/components/SideBarItem";
+import { Shortcut } from "@/components/Shortcut";
 import { useAssistant } from "@/components/assistant/AssistantProvider";
 import { NesteryMark } from "@/components/brand/NatureShapes";
 import { UserItem } from "@/components/UserItem";
@@ -84,7 +85,7 @@ export function Sidebar({ className = "" }: { className?: string }) {
       </div>
 
       <div className="px-2 pb-6 space-y-3">
-        <SideBarItem icon={Sparkles} label={t("assistant", { shortcut: shortcut("J") })} onClick={assistant.toggle} collapsed={collapsed} />
+        <SideBarItem icon={Sparkles} label={t.rich("assistant", { shortcut: () => <Shortcut k="J" /> })} onClick={assistant.toggle} collapsed={collapsed} />
         <UserItem
           name={username || t("user")}
           collapsed={collapsed}

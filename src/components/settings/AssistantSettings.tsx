@@ -10,7 +10,7 @@ import { KeyRound, Sparkles, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Loading, Spinner } from "@/components/ui/spinner";
-import { useShortcut } from "@/hooks/useShortcut";
+import { Shortcut } from "@/components/Shortcut";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -29,7 +29,6 @@ export function AssistantSettings() {
   const [saved, setSaved] = useState<AssistantSettingsView | null>(null);
   const [status, setStatus] = useState<AssistantStatus | null>(null);
   const [loading, setLoading] = useState(true);
-  const shortcut = useShortcut();
   const t = useTranslations("assistantSettings");
   const tCommon = useTranslations("common");
 
@@ -141,7 +140,7 @@ export function AssistantSettings() {
         <h2 className="font-semibold">{t("title")}</h2>
         <p className="text-sm text-muted-foreground">
           {t.rich("intro", {
-            shortcut: shortcut("J"),
+            shortcut: () => <Shortcut k="J" />,
             // The same icon as the sidebar's Assistant item
             icon: () => <Sparkles className="inline size-3.5 -translate-y-px" aria-label={t("iconLabel")} />,
           })}

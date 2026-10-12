@@ -35,7 +35,7 @@
     "notes": "筆記",
     "calendar": "行事曆",
     "travel": "旅程",
-    "assistant": "助理（{shortcut}）",
+    "assistant": "助理（<shortcut></shortcut>）",
     "expandSidebar": "展開側邊欄",
     "collapseSidebar": "收合側邊欄",
     "expandSidebarHint": "展開側邊欄（{shortcut}）",
@@ -736,7 +736,7 @@
   },
   "assistantSettings": {
     "title": "助理",
-    "intro": "助理（側邊欄裡的 <icon></icon>，或按 {shortcut}）使用你自己的 API 金鑰呼叫 AI 模型，費用由服務商依用量向你收取。助理查詢的內容（任務、活動、筆記）會傳送給該服務商。",
+    "intro": "助理（側邊欄裡的 <icon></icon>，或按 <shortcut></shortcut>）使用你自己的 API 金鑰呼叫 AI 模型，費用由服務商依用量向你收取。助理查詢的內容（任務、活動、筆記）會傳送給該服務商。",
     "iconLabel": "助理圖示",
     "serverKey": "你可以使用應用程式內建的金鑰（每天 {limit} 則訊息）。加入你自己的金鑰即可不受限制地使用。",
     "cantStore": "這台伺服器暫時無法儲存 API 金鑰（未設定 ASSISTANT_ENCRYPTION_KEY）。",

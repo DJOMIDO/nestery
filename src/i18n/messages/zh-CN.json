@@ -35,7 +35,7 @@
     "notes": "笔记",
     "calendar": "日历",
     "travel": "出行",
-    "assistant": "助手（{shortcut}）",
+    "assistant": "助手（<shortcut></shortcut>）",
     "expandSidebar": "展开侧边栏",
     "collapseSidebar": "收起侧边栏",
     "expandSidebarHint": "展开侧边栏（{shortcut}）",
@@ -736,7 +736,7 @@
   },
   "assistantSettings": {
     "title": "助手",
-    "intro": "助手（侧边栏里的 <icon></icon>，或按 {shortcut}）使用你自己的 API 密钥调用 AI 模型，费用由服务商按用量向你收取。助手查询的内容（任务、日程、笔记）会发送给该服务商。",
+    "intro": "助手（侧边栏里的 <icon></icon>，或按 <shortcut></shortcut>）使用你自己的 API 密钥调用 AI 模型，费用由服务商按用量向你收取。助手查询的内容（任务、日程、笔记）会发送给该服务商。",
     "iconLabel": "助手图标",
     "serverKey": "你可以使用应用自带的密钥（每天 {limit} 条消息）。添加你自己的密钥即可不受限制地使用。",
     "cantStore": "这台服务器暂时无法保存 API 密钥（未设置 ASSISTANT_ENCRYPTION_KEY）。",
