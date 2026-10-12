@@ -16,11 +16,12 @@ export default function AppLayout({
   return (
     <SettingsProvider>
       <AssistantProvider>
-        <div className="flex flex-col h-screen">
+        {/* With the sidebar there is no header to keep clear of the status bar */}
+        <div className="flex flex-col h-screen desktop:pt-[var(--safe-top)]">
           <MobileHeader />
           <div className="flex flex-1 overflow-hidden">
             <Sidebar />
-            <main className="flex-1 overflow-auto bg-background text-foreground p-6">
+            <main className="flex-1 overflow-auto bg-background text-foreground p-6 pb-[calc(1.5rem+var(--safe-bottom))]">
               {children}
             </main>
           </div>

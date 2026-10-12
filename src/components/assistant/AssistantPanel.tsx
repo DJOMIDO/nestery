@@ -305,10 +305,13 @@ export function AssistantPanel({
         // Floats 2rem from the screen's edges, like the dashboard's cards.
         // Normal is a chat window in the bottom corner; wide reaches the
         // middle of the screen and its full height.
-        "sm:right-8 sm:bottom-8 sm:overflow-hidden sm:rounded-lg sm:border",
+        // Full screen on phones keeps clear of the status bar, the home
+        // indicator (see the header and the form) and, sideways, the notch
+        "max-sm:pl-[var(--safe-left)] max-sm:pr-[var(--safe-right)]",
+        "sm:right-[calc(2rem+var(--safe-right))] sm:bottom-[calc(2rem+var(--safe-bottom))] sm:overflow-hidden sm:rounded-lg sm:border",
         wide
-          ? "sm:top-8 sm:w-[max(26rem,calc(50vw_-_2rem))]"
-          : "sm:top-auto sm:h-[min(40rem,calc(100dvh_-_4rem))] sm:w-[26rem]",
+          ? "sm:top-[calc(2rem+var(--safe-top))] sm:w-[max(26rem,calc(50vw_-_2rem))]"
+          : "sm:top-auto sm:h-[min(40rem,calc(100dvh_-_4rem_-_var(--safe-top)_-_var(--safe-bottom)))] sm:w-[26rem]",
         // Closed, it moves past the edge margin and its shadow too
         open ? "translate-x-0" : "translate-x-full sm:translate-x-[calc(100%_+_4rem)]",
         dragging && "ring-2 ring-inset ring-leaf"
@@ -329,7 +332,7 @@ export function AssistantPanel({
         attach(Array.from(e.dataTransfer.files));
       }}
     >
-      <header className="flex items-center gap-2 px-4 py-3">
+      <header className="flex items-center gap-2 px-4 py-3 max-sm:pt-[calc(0.75rem+var(--safe-top))]">
         <Sparkles className="size-4 text-leaf" />
         <div className="min-w-0 flex-1">
           <h2 className="font-semibold leading-tight">{t("title")}</h2>
@@ -451,7 +454,7 @@ export function AssistantPanel({
           e.preventDefault();
           send(input);
         }}
-        className="p-3"
+        className="p-3 max-sm:pb-[calc(0.75rem+var(--safe-bottom))]"
       >
         {attachments.length > 0 && (
           <div className="mb-2 flex flex-wrap gap-2">

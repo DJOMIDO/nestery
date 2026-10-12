@@ -39,9 +39,10 @@ export function MobileSidebar({
         onClick={() => setOpen(false)}
       />
 
-      <aside className="fixed inset-y-0 left-0 z-50 w-full max-w-xs bg-sidebar text-sidebar-foreground flex flex-col">
+      <aside className="fixed inset-y-0 left-0 z-50 w-full max-w-xs bg-sidebar text-sidebar-foreground flex flex-col pl-[var(--safe-left)]">
 
-        <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
+        {/* Clear of the status bar and, below, the home indicator */}
+        <div className="flex items-center justify-between p-4 pt-[calc(1rem+var(--safe-top))] border-b border-sidebar-border">
           <span className="flex items-center gap-2">
             <NesteryMark className="size-6" />
             <span className="text-xl font-bold">Nestery</span>
@@ -72,7 +73,7 @@ export function MobileSidebar({
           })}
         </nav>
 
-        <div className="p-2 border-t space-y-1 border-sidebar-border">
+        <div className="p-2 pb-[calc(0.5rem+var(--safe-bottom))] border-t space-y-1 border-sidebar-border">
           <UserItem
             name={username || t("user")}
             collapsed={false}

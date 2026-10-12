@@ -44,7 +44,7 @@ export function Sidebar({ className = "" }: { className?: string }) {
   return (
     <aside
       // Raised above the page so the edge handle can overlap the content
-      className={`group/sidebar relative z-20 hidden md:flex h-screen bg-sidebar text-sidebar-foreground border-r border-sidebar-border
+      className={`group/sidebar relative z-20 hidden desktop:flex h-screen bg-sidebar text-sidebar-foreground border-r border-sidebar-border
         flex-col justify-between transition-all duration-300
         ${collapsed ? "w-16" : "w-48"} ${className}`}
     >
@@ -84,7 +84,7 @@ export function Sidebar({ className = "" }: { className?: string }) {
         </nav>
       </div>
 
-      <div className="px-2 pb-6 space-y-3">
+      <div className="px-2 pb-[calc(1.5rem+var(--safe-bottom))] space-y-3">
         <SideBarItem icon={Sparkles} label={t.rich("assistant", { shortcut: () => <Shortcut k="J" /> })} onClick={assistant.toggle} collapsed={collapsed} />
         <UserItem
           name={username || t("user")}
