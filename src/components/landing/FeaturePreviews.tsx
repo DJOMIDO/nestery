@@ -4,14 +4,14 @@
 // dark mode. The drawings are decorative; screen readers get the heading and
 // sentence of each tile.
 
-import { Check, Code2 } from "lucide-react";
+import { Check, CloudSun, Code2, Plane, Plus, Sparkles } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { NatureShape, type ShapeName } from "@/components/brand/NatureShapes";
 import { cn } from "@/lib/utils";
 
 interface Tile {
   // Its title and sentence in messages (home.tiles.<key>)
-  key: "calendar" | "notes" | "dashboard" | "tasks";
+  key: "calendar" | "notes" | "dashboard" | "tasks" | "assistant" | "travel";
   preview: React.ReactNode;
   shape: ShapeName;
   shapeColor: string;
@@ -47,6 +47,20 @@ const TILES: Tile[] = [
     shape: "pinwheel",
     shapeColor: "var(--forest)",
     wide: true,
+  },
+  {
+    key: "assistant",
+    preview: <AssistantPreview />,
+    shape: "quatrefoil",
+    shapeColor: "var(--leaf)",
+    wide: true,
+  },
+  {
+    key: "travel",
+    preview: <TravelPreview />,
+    shape: "seeds",
+    shapeColor: "var(--bark)",
+    wide: false,
   },
 ];
 
@@ -220,6 +234,67 @@ function TasksPreview() {
           </span>
         ))}
       </div>
+    </div>
+  );
+}
+
+function AssistantPreview() {
+  const t = useTranslations("home.preview");
+  return (
+    <div className="flex h-full flex-col justify-center gap-1.5 text-[10px]">
+      {/* The question, then the answer with a task to confirm */}
+      <span className="self-end rounded-lg rounded-br-sm bg-leaf-soft px-2 py-1 text-leaf">{t("askWeek")}</span>
+      <span className="flex items-start gap-1.5">
+        <Sparkles className="mt-0.5 size-3 shrink-0 text-leaf" />
+        <span>{t("answerWeek")}</span>
+      </span>
+      <span className="ml-4.5 flex items-center gap-2 rounded-md border bg-card px-2 py-1">
+        <span className="flex size-3 shrink-0 items-center justify-center rounded-sm border border-muted-foreground/40" />
+        <span className="min-w-0 flex-1 truncate">
+          <span className="text-muted-foreground">{t("addTask")} · </span>
+          {t("proposedTask")}
+        </span>
+        <span className="flex items-center gap-0.5 rounded bg-forest px-1.5 py-0.5 text-[9px] text-white">
+          <Plus className="size-2.5" strokeWidth={3} /> {t("add")}
+        </span>
+      </span>
+    </div>
+  );
+}
+
+function TravelPreview() {
+  const t = useTranslations("home.preview");
+  return (
+    <div className="flex h-full flex-col justify-between text-[10px]">
+      {/* A ticket: the airline, the route with times, then the stub */}
+      <span className="flex items-center gap-1.5">
+        <span className="flex size-4 items-center justify-center rounded border bg-white">
+          {/* eslint-disable-next-line @next/next/no-img-element -- a small static logo */}
+          <img src="/carriers/AF.svg" alt="" className="size-3 object-contain" />
+        </span>
+        <span className="font-semibold">AF 117</span>
+      </span>
+      <span className="grid grid-cols-[auto_1fr_auto] items-center gap-2">
+        <span>
+          <span className="block text-sm leading-none font-bold">PVG</span>
+          <span className="text-muted-foreground">{t("fromCity")}</span>
+        </span>
+        <span className="flex items-center gap-1">
+          <span className="h-px flex-1 bg-border" />
+          <Plane className="size-3 text-leaf" />
+          <span className="h-px flex-1 bg-border" />
+        </span>
+        <span className="text-right">
+          <span className="block text-sm leading-none font-bold">CDG</span>
+          <span className="text-muted-foreground">{t("toCity")}</span>
+        </span>
+      </span>
+      <span className="flex items-center justify-between border-t border-dashed pt-1.5 text-muted-foreground">
+        <span>{t("seat")}</span>
+        <span className="flex items-center gap-1">
+          <CloudSun className="size-3 text-leaf" /> 18°/11°
+        </span>
+      </span>
     </div>
   );
 }

@@ -954,7 +954,7 @@
   },
   "home": {
     "title": "Un refuge paisible pour ton quotidien.",
-    "subtitle": "Tâches, notes, calendrier et ta journée en un coup d’œil, réunis dans un espace calme et personnel.",
+    "subtitle": "Tâches, notes, calendrier, voyages et ta journée en un coup d’œil, avec un assistant IA pour t’aider, réunis dans un espace calme et personnel.",
     "getStarted": "Commencer",
     "features": "Ce que propose Nestery",
     "tiles": {
@@ -973,6 +973,14 @@
       "tasks": {
         "title": "Tâches",
         "text": "Listes ou tableau, avec échéances, rappels et étiquettes."
+      },
+      "assistant": {
+        "title": "Assistant",
+        "text": "Pose tes questions sur tes tâches, ton calendrier, tes notes ou la météo. Il prépare tâches, événements et trajets que tu confirmes, avec ta propre clé d’API."
+      },
+      "travel": {
+        "title": "Voyages",
+        "text": "Vols et trains, avec la météo aux deux bouts, le décalage horaire et des rappels."
       }
     },
     "preview": {
@@ -987,7 +995,15 @@
       "summary": "2 événements · 3 tâches à rendre",
       "openTasks": "tâches ouvertes",
       "eventsToday": "événements aujourd’hui",
-      "tag": "#maison"
+      "tag": "#maison",
+      "askWeek": "Qu’est-ce qu’il me reste cette semaine ?",
+      "answerWeek": "3 tâches, et un appel jeudi. J’ajoute la réservation du train ?",
+      "addTask": "Ajouter une tâche",
+      "proposedTask": "Réserver le train",
+      "add": "Ajouter",
+      "fromCity": "Shanghai",
+      "toCity": "Paris",
+      "seat": "Siège 32K"
     }
   },
   "serverErrors": {

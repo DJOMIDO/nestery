@@ -32,7 +32,17 @@ export function LanguageSwitcher({ className }: { className?: string }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className={cn("gap-1.5 text-muted-foreground", className)} aria-label={t("language")}>
+        {/* A pill of its own, above the pages' background shapes, so it
+            reads on any of them */}
+        <Button
+          variant="ghost"
+          size="sm"
+          className={cn(
+            "z-10 gap-1.5 rounded-full border bg-background/85 text-foreground backdrop-blur-sm hover:bg-background",
+            className
+          )}
+          aria-label={t("language")}
+        >
           <Languages className="size-4" />
           {LOCALE_NAMES[locale]}
         </Button>
