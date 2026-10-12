@@ -226,13 +226,14 @@ export function EventDetailsDialog({ event, open, onOpenChange, forecast, onEdit
 // "☁ 18°/11° Cloudy in Paris · 40% rain"
 function WeatherLine({ weather }: { weather: PlaceWeather }) {
   const t = useTranslations("travel");
+  const format = useFormat();
   const weatherLabel = useWeatherLabel();
   return (
     <p className="flex items-center gap-2">
       <WeatherIcon code={weather.code} className="size-4 shrink-0 text-leaf" />
       <span>
         <span className="font-medium">
-          {weather.high}°/{weather.low}°
+          {format.temperature(weather.high)}/{format.temperature(weather.low)}
         </span>{" "}
         <span className="text-muted-foreground">
           {t("weather", { conditions: weatherLabel(weather.code), place: weather.place })}

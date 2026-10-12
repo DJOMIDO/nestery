@@ -78,10 +78,10 @@ export function TodayCard({
                   })}
                 >
                   <WeatherIcon code={weather.current.code} isDay={weather.current.isDay} className="size-4 shrink-0 text-leaf" />
-                  <span className="font-semibold">{weather.current.temperature}°</span>
+                  <span className="font-semibold">{format.temperature(weather.current.temperature)}</span>
                   {/* Three columns leave little room on medium screens */}
                   <span className="text-xs text-muted-foreground md:hidden xl:inline">
-                    {weather.high}°/{weather.low}°
+                    {format.temperature(weather.high)}/{format.temperature(weather.low)}
                   </span>
                 </span>
               )

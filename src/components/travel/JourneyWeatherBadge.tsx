@@ -7,9 +7,11 @@ import { WeatherIcon } from "@/components/weather/WeatherIcon";
 import { useWeatherLabel } from "@/components/weather/useWeatherLabel";
 import type { PlaceWeather } from "@/lib/travel";
 import { cn } from "@/lib/utils";
+import { useFormat } from "@/components/SettingsProvider";
 
 export function JourneyWeatherBadge({ weather, className }: { weather: PlaceWeather; className?: string }) {
   const t = useTranslations("travel");
+  const format = useFormat();
   const weatherLabel = useWeatherLabel();
   const rain =
     weather.precipitation !== null && weather.precipitation >= 30
@@ -21,7 +23,7 @@ export function JourneyWeatherBadge({ weather, className }: { weather: PlaceWeat
       title={t("weather", { conditions: weatherLabel(weather.code), place: weather.place }) + rain}
     >
       <WeatherIcon code={weather.code} className="size-3.5 shrink-0 text-leaf" />
-      {weather.high}°/{weather.low}°
+      {format.temperature(weather.high)}/{format.temperature(weather.low)}
     </span>
   );
 }

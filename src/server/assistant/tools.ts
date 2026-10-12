@@ -285,8 +285,14 @@ const weatherTool = tool({
     if (!where) throw new ToolError("The user has not chosen a place in Settings > Weather; ask which place");
     return {
       place: [where.name, where.detail].filter(Boolean).join(", "),
-      temperatureUnit: "°C",
-      days: (await dailyForecast(where, timeZone, days)).map((d) => ({ ...d, dateText: format.dayWithWeekday(d.date) })),
+      // The user's unit (Settings > Weather): say temperatures in it
+      temperatureUnit: `°${format.temperatureUnit}`,
+      days: (await dailyForecast(where, timeZone, days)).map((d) => ({
+        ...d,
+        high: format.temperature(d.high),
+        low: format.temperature(d.low),
+        dateText: format.dayWithWeekday(d.date),
+      })),
     };
   },
 });

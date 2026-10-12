@@ -27,17 +27,22 @@ export type HourCycle = "h12" | "h23";
 // 0 = Sunday, 1 = Monday
 export type WeekStart = 0 | 1;
 
+export type TemperatureUnit = "C" | "F";
+
 export interface DateTimePrefs {
   // null follows the interface language
   dateLocale: DateLocale | null;
   hourCycle: HourCycle | null;
   weekStart: WeekStart;
+  // null follows the date format: °F for US English, °C otherwise
+  temperatureUnit: TemperatureUnit | null;
 }
 
 export const DEFAULT_DATE_TIME: DateTimePrefs = {
   dateLocale: null,
   hourCycle: null,
   weekStart: 1,
+  temperatureUnit: null,
 };
 
 type DateInput = string | Date;
@@ -47,8 +52,12 @@ const toDate = (d: DateInput) =>
   d instanceof Date ? d : d.length === 10 ? new Date(`${d}T00:00`) : new Date(d);
 
 // `locale`: the interface language, for a dateLocale that follows it
-export function createFormatter({ dateLocale: chosen, hourCycle, weekStart }: DateTimePrefs, locale: Locale) {
+export function createFormatter(
+  { dateLocale: chosen, hourCycle, weekStart, temperatureUnit }: DateTimePrefs,
+  locale: Locale
+) {
   const dateLocale = chosen ?? DATE_LOCALE_OF[locale];
+  const unit: TemperatureUnit = temperatureUnit ?? (dateLocale === "en-US" ? "F" : "C");
   // Words like "yesterday" are interface text, so in the interface language
   const relativeFormat = new Intl.RelativeTimeFormat(locale, { numeric: "auto" });
   const date = (d: DateInput, options: Intl.DateTimeFormatOptions) =>
@@ -60,6 +69,10 @@ export function createFormatter({ dateLocale: chosen, hourCycle, weekStart }: Da
   };
 
   return {
+    // The unit temperatures are shown in
+    temperatureUnit: unit,
+    // A temperature from the weather service (°C) in that unit: "20°", "68°"
+    temperature: (celsius: number) => `${Math.round(unit === "F" ? (celsius * 9) / 5 + 32 : celsius)}°`,
     // Sep 28 · 28 Sep · 28 sept. · 9月28日
     day: (d: DateInput) => date(d, { month: "short", day: "numeric" }),
     // Sep 28, 2025 (for dates outside the current year)

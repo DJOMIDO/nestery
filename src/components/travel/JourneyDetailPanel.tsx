@@ -239,6 +239,7 @@ const timeDifferenceParts = (minutes: number) => ({
 // The forecast at one end, on the day the journey is there
 function WeatherTile({ label, weather }: { label: string; weather: PlaceWeather }) {
   const t = useTranslations("travel");
+  const format = useFormat();
   const weatherLabel = useWeatherLabel();
   return (
     <div className="flex min-w-0 items-center gap-3 rounded-md bg-muted/50 px-3 py-2">
@@ -249,7 +250,7 @@ function WeatherTile({ label, weather }: { label: string; weather: PlaceWeather 
         </p>
         <p className="truncate">
           <span className="font-medium">
-            {weather.high}°/{weather.low}°
+            {format.temperature(weather.high)}/{format.temperature(weather.low)}
           </span>{" "}
           <span className="text-muted-foreground">
             {weatherLabel(weather.code)}

@@ -888,6 +888,10 @@
     }
   },
   "weatherSettings": {
+    "unit": "Unité de température",
+    "unitAuto": "Selon le format de date",
+    "celsius": "Celsius",
+    "fahrenheit": "Fahrenheit",
     "title": "Météo",
     "description": "Le lieu dont la météo s’affiche dans la carte Aujourd’hui du tableau de bord.",
     "set": "Météo réglée sur {name}",

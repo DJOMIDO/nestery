@@ -1,12 +1,14 @@
 // src/components/settings/WeatherSettings.tsx
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { MapPin, Search, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { createFormatter, type TemperatureUnit } from "@/lib/format";
 import { useSettings } from "@/components/SettingsProvider";
 import { request } from "@/lib/api";
 import { describePlace, type WeatherPlace } from "@/lib/weather";
@@ -57,6 +59,10 @@ export function WeatherSettings() {
   };
 
   const current = settings.weatherPlace;
+  // What "match the date format" gives with the current date format
+  const locale = useLocale() as Parameters<typeof createFormatter>[1];
+  const autoUnit = createFormatter({ ...settings, temperatureUnit: null }, locale).temperatureUnit;
+  const changeUnit = (value: string) => save({ temperatureUnit: value === "auto" ? null : (value as TemperatureUnit) });
 
   return (
     <section className="space-y-4 rounded-lg border bg-card p-5">
@@ -111,6 +117,31 @@ export function WeatherSettings() {
           {results.length === 0 && <li className="px-3 py-2 text-sm text-muted-foreground">{t("noMatches")}</li>}
         </ul>
       )}
+
+      {/* Everywhere temperatures show: the dashboard, the calendar, Travel and
+          the assistant's answers */}
+      <div className="space-y-2">
+        <label htmlFor="temperature-unit" className="text-sm font-medium">
+          {t("unit")}
+        </label>
+        <Select value={settings.temperatureUnit ?? "auto"} onValueChange={changeUnit} disabled={loading}>
+          <SelectTrigger id="temperature-unit" className="w-full sm:w-64">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {[
+              { value: "auto", label: t("unitAuto"), hint: `°${autoUnit}` },
+              { value: "C", label: t("celsius"), hint: "°C" },
+              { value: "F", label: t("fahrenheit"), hint: "°F" },
+            ].map((o) => (
+              <SelectItem key={o.value} value={o.value}>
+                {o.label}
+                <span className="text-muted-foreground">· {o.hint}</span>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
 
       <p className="text-xs text-muted-foreground">
         {t.rich("source", {

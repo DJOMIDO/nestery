@@ -17,6 +17,7 @@ import {
   createFormatter,
   DATE_LOCALES,
   type DateLocale,
+  type DateTimePrefs,
   type HourCycle,
   type WeekStart,
 } from "@/lib/format";
@@ -32,7 +33,7 @@ export function LanguageTimeSettings() {
   const router = useRouter();
   const locale = useLocale();
   const { settings, loading, save } = useSettings();
-  const { language, dateLocale, hourCycle, weekStart } = settings;
+  const { language, dateLocale, hourCycle, weekStart, temperatureUnit } = settings;
 
   const apply = async (input: SettingsInput) => {
     if (await save(input)) toast.success(tCommon("saved"));
@@ -46,7 +47,7 @@ export function LanguageTimeSettings() {
 
   // Preview a candidate choice with the other settings unchanged
   const preview = (change: Partial<typeof settings>) =>
-    createFormatter({ dateLocale, hourCycle, weekStart, ...change }, locale);
+    createFormatter({ dateLocale, hourCycle, weekStart, temperatureUnit, ...change } as DateTimePrefs, locale);
 
   return (
     <section className="space-y-5 rounded-lg border bg-card p-5">

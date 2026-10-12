@@ -89,7 +89,7 @@ export function DayAgenda({ day, today, items, weather, onOpen, onNewEvent, onTo
               {weather && (
                 <span className="flex items-center gap-1" title={weatherLabel(weather.code)}>
                   <WeatherIcon code={weather.code} className="size-3.5 text-leaf" />
-                  {weather.high}°/{weather.low}° {weatherLabel(weather.code)}
+                  {format.temperature(weather.high)}/{format.temperature(weather.low)} {weatherLabel(weather.code)}
                 </span>
               )}
             </p>

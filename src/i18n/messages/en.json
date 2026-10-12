@@ -888,6 +888,10 @@
     }
   },
   "weatherSettings": {
+    "unit": "Temperature unit",
+    "unitAuto": "Match the date format",
+    "celsius": "Celsius",
+    "fahrenheit": "Fahrenheit",
     "title": "Weather",
     "description": "The place whose weather appears on your dashboard's Today card.",
     "set": "Weather set to {name}",

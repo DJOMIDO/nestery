@@ -150,10 +150,10 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const { dateLocale, hourCycle, weekStart } = settings;
+  const { dateLocale, hourCycle, weekStart, temperatureUnit } = settings;
   const format = useMemo(
-    () => createFormatter({ dateLocale, hourCycle, weekStart }, locale),
-    [dateLocale, hourCycle, weekStart, locale]
+    () => createFormatter({ dateLocale, hourCycle, weekStart, temperatureUnit }, locale),
+    [dateLocale, hourCycle, weekStart, temperatureUnit, locale]
   );
 
   return (
