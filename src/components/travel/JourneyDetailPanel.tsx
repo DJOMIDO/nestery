@@ -147,7 +147,7 @@ export function JourneyDetailPanel({ journey: j, weather, onSave, onDelete, onCl
         <div className="grid grid-cols-[1fr_auto_1fr] items-start gap-3">
           <End
             place={j.origin}
-            name={j.originName ?? j.originCity}
+            name={placeLabel(j.originAirport, j.originName ?? j.originCity)}
             date={j.departureDate}
             time={j.departureTime}
             yours={yourTime(times?.start, j.departureTz)}
@@ -161,7 +161,7 @@ export function JourneyDetailPanel({ journey: j, weather, onSave, onDelete, onCl
           </div>
           <End
             place={j.destination}
-            name={j.destinationName ?? j.destinationCity}
+            name={placeLabel(j.destinationAirport, j.destinationName ?? j.destinationCity)}
             date={j.arrivalDate ?? (j.arrivalTime ? j.departureDate : null)}
             time={j.arrivalTime}
             dayShift={dayShift}
@@ -222,6 +222,12 @@ export function JourneyDetailPanel({ journey: j, weather, onSave, onDelete, onCl
     </div>
   );
 }
+
+// Under the code: the airport's full name, after its city when the name
+// doesn't say it ("伦敦 · 希思罗机场", but "上海浦东国际机场"); the city
+// or station's city otherwise
+const placeLabel = (airport: string | undefined, city: string | null | undefined) =>
+  airport ? (city && !airport.includes(city) ? `${city} · ${airport}` : airport) : city;
 
 // "+6 h", "-5 h 30 min": the parts for travel.timeDifference
 const timeDifferenceParts = (minutes: number) => ({
@@ -285,7 +291,7 @@ function End({
   return (
     <div className={alignEnd ? "min-w-0 text-right" : "min-w-0"}>
       <p className={big ? "text-3xl font-bold tracking-tight" : "break-words text-lg font-semibold"}>{place}</p>
-      {name && <p className="truncate text-sm text-muted-foreground">{name}</p>}
+      {name && <p className="line-clamp-2 break-words text-sm text-muted-foreground">{name}</p>}
       {time && (
         <p className="mt-2 text-xl font-semibold tabular-nums">
           {formatClock(format, time)}

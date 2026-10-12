@@ -42,8 +42,12 @@ export interface Journey {
   updatedAt: string;
   // From the airport and airline lists, when the codes are known
   carrierName?: string;
+  // Flights: the airports' cities (or names, when the city isn't known)
   originName?: string;
   destinationName?: string;
+  // Flights: the airports' full names
+  originAirport?: string;
+  destinationAirport?: string;
   // Flights between known airports: great-circle distance
   distanceKm?: number;
 }
@@ -59,6 +63,8 @@ export type JourneyInput = Omit<
   | "carrierName"
   | "originName"
   | "destinationName"
+  | "originAirport"
+  | "destinationAirport"
   | "distanceKm"
 >;
 

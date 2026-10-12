@@ -5,9 +5,11 @@
 // (and its city) on OpenStreetMap. An end that isn't found is left out; the
 // other still shows.
 
+import type { Locale } from "@/i18n/config";
 import type { JourneyWeather, PlaceWeather } from "@/lib/travel";
 import { addDays } from "@/lib/tasks";
 import type { WeatherPlace } from "@/lib/weather";
+import { currentLocale } from "@/server/i18n";
 import { findAirport, listJourneys } from "@/server/travel";
 import { dailyForecast } from "@/server/weather";
 
@@ -19,7 +21,8 @@ const daysBetween = (from: string, to: string) => Math.round((Date.parse(to) - D
 // Journey id -> forecast, for journeys arriving from `today` (the user's day)
 // through the next two weeks
 export async function journeyWeather(userId: string, today: string) {
-  return weatherForJourneys(await listJourneys(userId), today);
+  const locale = await currentLocale();
+  return weatherForJourneys(await listJourneys(userId, locale), today, locale);
 }
 
 type JourneyStop = Pick<
@@ -37,10 +40,12 @@ interface End {
   day: string;
 }
 
-// The same for given journeys (separate from the query so it can be tested)
+// The same for given journeys (separate from the query so it can be tested),
+// with airports' cities named in `locale`
 export async function weatherForJourneys(
   journeys: JourneyStop[],
-  today: string
+  today: string,
+  locale: Locale = "en"
 ): Promise<Record<string, JourneyWeather>> {
   const lastDay = addDays(today, DAYS_AHEAD - 1);
   const inRange = (day: string) => day >= today && day <= lastDay;
@@ -74,7 +79,7 @@ export async function weatherForJourneys(
   const located: (WeatherPlace | null)[] = [];
   for (const end of ends) {
     if (end.kind === "flight") {
-      const airport = findAirport(end.code);
+      const airport = findAirport(end.code, locale);
       located.push(
         airport
           ? await placeOf(`airport:${airport.iata}`, async () => ({
