@@ -6,6 +6,7 @@
 "use client";
 
 import { useEffect, useId, useState } from "react";
+import { useLocale } from "next-intl";
 import { Input } from "@/components/ui/input";
 import { request } from "@/lib/api";
 import type { Airline, Airport } from "@/lib/travel";
@@ -30,6 +31,7 @@ interface CodeInputProps {
 
 export function CodeInput({ id, list, value, onChange, placeholder, className, autoFocus }: CodeInputProps) {
   const listId = useId();
+  const locale = useLocale();
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
@@ -43,7 +45,7 @@ export function CodeInput({ id, list, value, onChange, placeholder, className, a
     }
     let cancelled = false;
     const timer = setTimeout(() => {
-      request<(Airport | Airline)[]>(`/api/travel/${list}?q=${encodeURIComponent(query)}`)
+      request<(Airport | Airline)[]>(`/api/travel/${list}?q=${encodeURIComponent(query)}&lang=${locale}`)
         .then((items) => {
           if (cancelled) return;
           setSuggestions(items.map(toSuggestion));
@@ -55,7 +57,7 @@ export function CodeInput({ id, list, value, onChange, placeholder, className, a
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [query, list]);
+  }, [query, list, locale]);
 
   const choose = (s: Suggestion) => {
     onChange(s.code);
