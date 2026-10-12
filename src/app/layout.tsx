@@ -49,7 +49,12 @@ const metadata: Metadata = {
 
 // The window's title bar (installed app) and the phone's status bar follow
 // the page background of each theme
+// `viewportFit: "cover"` makes iOS report the status bar's and the home
+// indicator's room as env(safe-area-inset-*), which edge-to-edge parts of the
+// page (headers, drawers, the assistant's input) keep clear of. Elsewhere
+// those are 0.
 export const viewport: Viewport = {
+  viewportFit: "cover",
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#f5f6f0" },
     { media: "(prefers-color-scheme: dark)", color: "#0a0f0b" },

@@ -17,7 +17,7 @@ export function MobileHeader() {
   return (
     <>
 
-      <header className="flex items-center justify-between md:hidden bg-sidebar text-sidebar-foreground px-4 py-2 border-b border-sidebar-border">
+      <header className="flex items-center justify-between desktop:hidden bg-sidebar text-sidebar-foreground px-4 pb-2 pt-[calc(0.5rem+var(--safe-top))] border-b border-sidebar-border">
         <span className="flex items-center gap-2">
           <NesteryMark className="size-6" />
           <span className="text-xl font-bold">Nestery</span>

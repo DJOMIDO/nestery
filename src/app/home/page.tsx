@@ -11,10 +11,11 @@ export default function LandingPage() {
   const t = useTranslations("home");
   const tAuth = useTranslations("auth");
   return (
-    <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-background px-6 py-16 text-center">
+    <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-background px-6 pt-[calc(4rem+var(--safe-top))] pb-[calc(4rem+var(--safe-bottom))] text-center">
       <NatureScatter seed={7} />
       {/* No settings before signing in: the language is picked here */}
-      <LanguageSwitcher className="absolute top-4 right-4" />
+      {/* Lower in iPhone home-screen apps, out of the blurred band under the status bar */}
+      <LanguageSwitcher className="absolute top-[calc(1rem+var(--safe-top))] right-4 standalone:max-md:top-[calc(3.5rem+var(--safe-top))]" />
 
       <div className="relative w-full max-w-4xl space-y-8">
         <div className="flex items-center justify-center gap-2">

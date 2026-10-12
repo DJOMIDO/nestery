@@ -24,14 +24,17 @@ export function AuthShell({ tagline, title, subtitle, seed, children }: AuthShel
       </div>
 
       {/* Right: the form, with the language picker (no settings before signing in) */}
-      <div className="relative flex flex-col">
-        <LanguageSwitcher className="absolute top-3 right-3 z-10" />
+      {/* Below the status bar on iPhones, where the page reaches the top */}
+      <div className="relative flex flex-col pt-[var(--safe-top)]">
+        {/* iOS blurs a band under the status bar in home-screen apps: on
+            phones the picker sits below the pattern strip, out of it */}
+        <LanguageSwitcher className="absolute top-[calc(0.75rem+var(--safe-top))] right-3 z-10 standalone:max-md:top-[calc(6.75rem+var(--safe-top))]" />
         {/* Narrow screens: a strip of the pattern in place of the left half */}
         <div className="relative h-24 overflow-hidden md:hidden">
           <NatureGrid seed={seed} cols={8} rows={1} />
         </div>
 
-        <main className="flex flex-1 items-center justify-center px-6 py-12">
+        <main className="flex flex-1 items-center justify-center px-6 py-12 pb-[calc(3rem+var(--safe-bottom))]">
           <div className="w-full max-w-sm space-y-6">
             {/* Brand card */}
             <div className="rounded-lg border bg-muted/50 p-4">

@@ -14,6 +14,14 @@ const Toaster = ({ ...props }: ToasterProps) => {
       theme={theme as ToasterProps["theme"]}
       className="toaster group"
       position="top-right"
+      // Clear of the status bar and, sideways, the notch on iPhones (sonner's
+      // own offsets plus their room)
+      offset={{ top: "calc(24px + var(--safe-top))", right: "calc(24px + var(--safe-right))" }}
+      mobileOffset={{
+        top: "calc(16px + var(--safe-top))",
+        right: "calc(16px + var(--safe-right))",
+        left: "calc(16px + var(--safe-left))",
+      }}
       richColors
       // Inline variables win over sonner's own per-theme defaults
       // Inline variables win over sonner's own per-theme defaults. Borders
