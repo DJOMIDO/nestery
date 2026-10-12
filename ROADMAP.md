@@ -70,6 +70,18 @@ tracks what is done, what is planned next, and ideas that were considered.
   import) and the link for other apps are one "Calendar" section, below
   Date & time; old links to the former sections still land on their part
 
+- Event details first: opening any event shows when and how long, how it
+  repeats, its meeting link, notes and the day's weather, with Edit and
+  Delete for your own events (one occurrence or the series) instead of
+  going straight to the form. Addresses, phone numbers and email addresses
+  in an event's location and notes are picked out (a map, a call or an
+  email a tap away) and linked in the notes; dates, times, meeting IDs and
+  booking numbers are not taken for phones.
+- A richer day agenda beside the calendar: Today/Tomorrow/Yesterday, the
+  day's counts and forecast, all-day items as chips, a timeline with each
+  calendar's color, end times and durations, a line marking now (what has
+  ended is dimmed), and the day's tasks, which can be ticked off there
+
 **Planned**
 - "This and following occurrences" when editing a repeating event.
 
@@ -88,6 +100,11 @@ tracks what is done, what is planned next, and ideas that were considered.
   reset password, email verification required to sign in when SMTP is set
   up (existing accounts were marked verified), changing the email address
   (approved from the old address, confirmed from the new one)
+- Profile photo: JPEG, PNG, WebP, GIF or AVIF up to 1 MB (no SVG), uploaded
+  straight to object storage and checked by the server, shown in the
+  sidebar with initials as the fallback; replacing or removing it deletes
+  the stored files. GitHub and Google sign-ins show the provider's photo
+  until another is chosen.
 
 ## Weather
 
@@ -99,10 +116,14 @@ Open-Meteo (no API key, free), fetched on the server.
   conditions in the title row, high and low, a line when rain or snow is
   likely later today); the place is chosen in Settings > Weather
 
+- Phase 2a: the day's forecast (two weeks ahead, at the chosen place) in
+  the calendar's day agenda and event details; journeys get the forecast
+  at both ends (see Travel)
+
 **Planned**
 - °C / °F choice
-- Phase 2: weather on the calendar, per day in the month and week views and
-  for events and trips that have a place
+- Phase 2b: an icon per day in the calendar's month and week views (the
+  two-week forecast is already served by /api/weather/days)
 
 ## Assistant
 
@@ -164,9 +185,12 @@ can be reused; existing journeys move over through a CSV export and import.
   next and At a glance (next trip), in the calendar feed for other apps,
   and in the assistant (list_journeys). They are shown from the journeys
   table, not copied into events, so edits in Travel apply everywhere.
-- The destination's forecast on arrival for journeys in the next two weeks,
-  in the Travel list and the calendar's journey details (flights by the
-  airport's position, trains by their destination city)
+- Forecasts for journeys in the next two weeks, at both ends: the origin
+  on the departure day and the destination on arrival, each shown even
+  when the other isn't found. Flights use the airports' positions; train
+  stations are located on OpenStreetMap (Photon), by "station, city" when
+  a city is given, with names checked so unknown ones match nothing. The
+  assistant is asked to fill in train cities when it reads a booking.
 - Layout like Tasks: the list on the left; on the right an overview (next
   trip with countdown and weather, this year's journeys, destinations and
   km flown) or the selected journey (route, local times at each end with
@@ -182,8 +206,54 @@ can be reused; existing journeys move over through a CSV export and import.
   phone subscribed to Nestery notifies (Apple Calendar: turn off "Remove
   Alerts" for the subscription)
 
+- Ticket-style details: the carrier's logo and number, the route with
+  large local times and +1 for next-day arrivals, duration, distance and
+  time difference, both ends' weather, and the other fields in a grid. On
+  phones and tablets a journey opens these details in a dialog (Edit and
+  Delete at the bottom) rather than the form.
+- Carrier logos: airline symbols from soaring-symbols (MIT, 78 airlines),
+  Google Flights' images for the rest, the code if those fail; ~85 train
+  companies across Greater China, Japan, Korea, Europe, the UK and Ireland,
+  North America, Australia and New Zealand, and Morocco, matched by the
+  names people write for them (free files from Wikimedia Commons, else the
+  company's logo as shown on Wikipedia; sources in CREDITS.json).
+  `npm run travel:logos` refreshes them, train logos incrementally.
+- Airport and airline names in Simplified and Traditional Chinese (see
+  Languages)
+
 **Planned**
 - Phase 3: statistics and a route map
+
+## Languages
+
+**Done**
+- English, Simplified Chinese, Traditional Chinese (Taiwan wording) and
+  French, with next-intl and no language prefix in URLs. The language
+  comes from the user's setting, mirrored in a cookie for signed-out
+  pages, else the browser's, else English; signed-out pages have their own
+  picker. Every page is translated, as are emails, API error messages,
+  relative times, weather descriptions and repeat rules; French says *tu*.
+- Settings > Language & time: the date format follows the language unless
+  chosen; Traditional Chinese pages use the Traditional cuts of the fonts
+- Journeys keep airport and airline codes, so their names follow the
+  language: Chinese names and cities from Wikidata (`npm run travel:data`)
+  for the Chinese interfaces, English otherwise. Suggestions match names
+  in either language, including short airline names such as 东航.
+
+**Planned**
+- French reviewed by a native speaker. Train stations stay as typed.
+
+## App
+
+**Done**
+- Installable as an app (PWA). On iPhones the page keeps clear of the
+  status bar, the home indicator and, held sideways, the notch; the
+  language picker sits below the band iOS blurs under the status bar.
+  Phones held sideways keep the header and menu (the sidebar needs a
+  screen at least 32rem tall).
+- Shortcut hints draw ⌘ in the system font
+- Landing page: tiles for Calendar, Notes, Dashboard, Tasks, the assistant
+  and Travel, drawn in the theme's colors
 
 ## Suggested order
 
@@ -197,8 +267,8 @@ can be reused; existing journeys move over through a CSV export and import.
 
 - **Notifications**: reminders that reach the user when Nestery isn't open,
   for tasks and journeys alike: email over the existing SMTP setup, checked
-  by a scheduled job (Vercel Cron) that records what was sent; perhaps
-  browser push later. Today reminders are shown in the app (and journeys'
+  by a scheduled job (Vercel Cron) that records what was sent; or web
+  push, which iPhones now allow for apps added to the home screen. Today reminders are shown in the app (and journeys'
   as calendar-feed alerts).
 
 Tools worth borrowing from Nextcloud, in rough order of priority:
