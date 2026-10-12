@@ -8,6 +8,7 @@ import { db } from "@/db";
 import { notes } from "@/db/schema";
 import { EMPTY_NOTE_CONTENT, type NoteContent } from "@/lib/notes";
 import { claimLinkedAttachments, releaseNoteAttachments } from "@/server/attachments";
+import { tagList } from "@/server/tags";
 
 const MAX_CONTENT_BYTES = 1_000_000;
 
@@ -26,6 +27,7 @@ const noteFields = {
   content: noteContent,
   contentText: z.string().max(MAX_CONTENT_BYTES, "Note is too large"),
   pinned: z.boolean(),
+  tags: tagList,
 };
 
 export const createNoteInput = z.object({
@@ -33,6 +35,7 @@ export const createNoteInput = z.object({
   content: noteFields.content.default(EMPTY_NOTE_CONTENT),
   contentText: noteFields.contentText.default(""),
   pinned: noteFields.pinned.default(false),
+  tags: noteFields.tags.default([]),
 });
 
 export const updateNoteInput = z
@@ -100,10 +103,15 @@ export async function deleteNote(userId: string, id: string) {
   return deleted.length > 0;
 }
 
-// Notes containing every word of `query` in the title or text (any case),
-// most recently edited first
+// Notes containing every word of `query` in the title, text or tags (any
+// case; "#trip" finds the tag trip), most recently edited first
 export async function searchNotes(userId: string, query: string, limit = 10) {
-  const words = query.trim().split(/\s+/).filter(Boolean).slice(0, 5);
+  const words = query
+    .trim()
+    .split(/\s+/)
+    .map((word) => word.replace(/^#+/, ""))
+    .filter(Boolean)
+    .slice(0, 5);
   const escape = (word: string) => `%${word.replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
   return db
     .select()
@@ -111,7 +119,13 @@ export async function searchNotes(userId: string, query: string, limit = 10) {
     .where(
       and(
         eq(notes.userId, userId),
-        ...words.map((word) => or(ilike(notes.title, escape(word)), ilike(notes.contentText, escape(word))))
+        ...words.map((word) =>
+          or(
+            ilike(notes.title, escape(word)),
+            ilike(notes.contentText, escape(word)),
+            ilike(sql`array_to_string(${notes.tags}, ' ')`, escape(word))
+          )
+        )
       )
     )
     .orderBy(desc(notes.updatedAt))

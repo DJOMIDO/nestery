@@ -41,6 +41,15 @@ export function NoteListItem({ note, selected, onSelect }: NoteListItemProps) {
           </span>
         </div>
         <NotePreview note={note} className="mt-0.5 text-sm" />
+        {note.tags.length > 0 && (
+          <span className="mt-1 flex flex-wrap gap-1">
+            {note.tags.map((tag) => (
+              <span key={tag} className="rounded bg-bark-soft px-1.5 text-[11px] text-bark">
+                #{tag}
+              </span>
+            ))}
+          </span>
+        )}
       </button>
     </li>
   );

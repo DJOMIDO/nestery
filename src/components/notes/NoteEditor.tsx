@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button";
 import { NoteAttachments } from "@/components/notes/NoteAttachments";
 import { NoteBubbleMenu } from "@/components/notes/NoteBubbleMenu";
 import { NoteToolbar } from "@/components/notes/NoteToolbar";
+import { SlashCommand } from "@/components/notes/SlashMenu";
+import { TagInput } from "@/components/TagInput";
 import { noteExtensions } from "@/components/notes/extensions";
 import { downloadMarkdown, noteToMarkdown } from "@/components/notes/markdown";
 import { useNoteAttachments } from "@/hooks/useNoteAttachments";
@@ -77,6 +79,7 @@ export function NoteEditor({
   onBack,
 }: NoteEditorProps) {
   const [title, setTitle] = useState(note.title);
+  const [tags, setTags] = useState(note.tags);
   const t = useTranslations("notes");
   const [status, setStatus] = useState<SaveStatus>("saved");
   // Link editor open in the bubble menu
@@ -144,7 +147,11 @@ export function NoteEditor({
   }, [flush]);
 
   const editor = useEditor({
-    extensions: noteExtensions(t("editor.startWriting")),
+    extensions: [
+      ...noteExtensions(t("editor.startWriting")),
+      // "/" at the start of a line: insert a block, or attach a file
+      SlashCommand.configure({ onAttach: () => () => fileInput.current?.click() }),
+    ],
     content: withoutAttachmentEmoji(note.content),
     immediatelyRender: false,
     editorProps: {
@@ -344,7 +351,18 @@ export function NoteEditor({
           maxLength={200}
           placeholder={t("editor.titlePlaceholder")}
           aria-label={t("editor.titleLabel")}
-          className="w-full bg-transparent text-2xl font-bold outline-none placeholder:text-muted-foreground/60 mb-3"
+          className="w-full bg-transparent text-2xl font-bold outline-none placeholder:text-muted-foreground/60 mb-1"
+        />
+        {/* Shared with tasks; saved with the rest of the note */}
+        <TagInput
+          bare
+          value={tags}
+          onChange={(next) => {
+            setTags(next);
+            queue({ tags: next });
+          }}
+          placeholder={t("editor.addTags")}
+          className="mb-3"
         />
         {sourceMode && (
           <textarea

@@ -13,6 +13,7 @@ import {
 } from "drizzle-orm";
 import type { PgUpdateSetSource } from "drizzle-orm/pg-core";
 import { z } from "zod";
+import { tagList } from "@/server/tags";
 import { db } from "@/db";
 import { tasks } from "@/db/schema";
 import { TASK_PRIORITIES, TASK_STATUSES } from "@/lib/tasks";
@@ -24,16 +25,8 @@ const dateString = z
 const taskFields = {
   title: z.string().trim().min(1, "Task title is required"),
   description: z.string().nullish(),
-  tags: z
-    .array(
-      z
-        .string()
-        .trim()
-        .min(1, "Tags cannot be empty")
-        .max(32, "Tags must be at most 32 characters")
-    )
-    .max(10, "At most 10 tags")
-    .transform((tags) => [...new Set(tags)]),
+  // Shared with notes (see server/tags)
+  tags: tagList,
   status: z.enum(TASK_STATUSES),
   priority: z.enum(TASK_PRIORITIES),
   dueDate: dateString.nullish(),
