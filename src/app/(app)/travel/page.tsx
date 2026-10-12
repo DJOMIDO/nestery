@@ -16,6 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useFormat } from "@/components/SettingsProvider";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { ImportDialog } from "@/components/travel/ImportDialog";
 import { JourneyDetailPanel, formatClock } from "@/components/travel/JourneyDetailPanel";
 import { JourneyDialog } from "@/components/travel/JourneyDialog";
@@ -44,31 +45,29 @@ export default function TravelPage() {
 
 function TravelPageContent() {
   const { journeys, loading, createJourney, updateJourney, deleteJourney, reload } = useJourneys();
-  // Details in the side panel on large screens (Tailwind `lg`); a dialog otherwise
+  // The selected journey's details: in the side panel on large screens
+  // (Tailwind `lg`), in a dialog otherwise. Both edit in place.
   const isWide = useMediaQuery("(min-width: 1024px)");
   const [filter, setFilter] = useState<Filter>("all");
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [dialog, setDialog] = useState<{ kind: JourneyKind; journey: Journey | null } | null>(null);
+  // Adding a journey of this kind
+  const [adding, setAdding] = useState<JourneyKind | null>(null);
   const [importOpen, setImportOpen] = useState(false);
   const [showPast, setShowPast] = useState<boolean | null>(null);
   const assistant = useAssistant();
   const t = useTranslations("travel");
   const format = useFormat();
 
-  const open = (journey: Journey) =>
-    isWide ? setSelectedId(journey.id) : setDialog({ kind: journey.kind, journey });
+  const open = (journey: Journey) => setSelectedId(journey.id);
 
   // ?journey=<id> (from the calendar or the assistant) opens it once loaded
   const router = useRouter();
   const linked = useSearchParams().get("journey");
   useEffect(() => {
     if (!linked || loading) return;
-    const journey = journeys.find((j) => j.id === linked);
-    if (journey) open(journey);
+    if (journeys.some((j) => j.id === linked)) setSelectedId(linked);
     router.replace("/travel", { scroll: false });
-    // `open` only depends on isWide, listed below
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [linked, loading, journeys, router, isWide]);
+  }, [linked, loading, journeys, router]);
 
   // Reloaded when a journey's places or dates change
   const weatherVersion = journeys
@@ -93,14 +92,13 @@ function TravelPageContent() {
 
   // Past is folded while there is something coming up, unless opened
   const pastOpen = showPast ?? upcoming.length === 0;
-  const selected = isWide ? (journeys.find((j) => j.id === selectedId) ?? null) : null;
+  const selected = journeys.find((j) => j.id === selectedId) ?? null;
 
   const handleDelete = async (journey: Journey) => {
     if (!window.confirm(t("deleteConfirm", { label: journeyLabel(journey), date: format.dayWithWeekday(journey.departureDate) })))
       return;
     if (await deleteJourney(journey.id)) {
       if (selectedId === journey.id) setSelectedId(null);
-      setDialog(null);
     }
   };
 
@@ -129,7 +127,7 @@ function TravelPageContent() {
           {(["flight", "train"] as const).map((kind) => {
             const Icon = journeyIcon(kind);
             return (
-              <DropdownMenuItem key={kind} onSelect={() => setDialog({ kind, journey: null })}>
+              <DropdownMenuItem key={kind} onSelect={() => setAdding(kind)}>
                 <Icon /> {kind === "flight" ? t("flight") : t("train")}
               </DropdownMenuItem>
             );
@@ -232,18 +230,33 @@ function TravelPageContent() {
         </div>
       </aside>
 
-      {dialog && (
+      {/* Smaller screens: the same details in a dialog */}
+      {!isWide && selected && (
+        <Dialog open onOpenChange={(isOpen) => !isOpen && setSelectedId(null)}>
+          <DialogContent showCloseButton={false} className="max-h-[90dvh] overflow-y-auto sm:max-w-lg">
+            {/* The panel's own heading is visual; this names the dialog */}
+            <DialogTitle className="sr-only">{t("details")}</DialogTitle>
+            <JourneyDetailPanel
+              key={selected.id}
+              journey={selected}
+              weather={weather[selected.id]}
+              onSave={(input) => updateJourney(selected.id, input)}
+              onDelete={() => handleDelete(selected)}
+              onClose={() => setSelectedId(null)}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {adding && (
         <JourneyDialog
           open
-          onOpenChange={(isOpen) => !isOpen && setDialog(null)}
-          kind={dialog.kind}
-          journey={dialog.journey}
-          onDelete={dialog.journey ? () => handleDelete(dialog.journey!) : undefined}
+          onOpenChange={(isOpen) => !isOpen && setAdding(null)}
+          kind={adding}
           onSubmit={async (input) => {
-            if (dialog.journey) return updateJourney(dialog.journey.id, input);
             const created = await createJourney(input);
             // Show what was just added
-            if (created && isWide) setSelectedId(created.id);
+            if (created) setSelectedId(created.id);
             return created;
           }}
         />
