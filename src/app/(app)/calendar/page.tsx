@@ -37,6 +37,7 @@ import { useJourneyEvents } from "@/hooks/useJourneys";
 import { useSubscriptionEvents, useSubscriptions } from "@/hooks/useSubscriptions";
 import { useFormat, useHolidayCountries } from "@/components/SettingsProvider";
 import { useTasks } from "@/hooks/useTasks";
+import { useWeatherDays } from "@/hooks/useWeather";
 import {
   dayDiff,
   eventKey,
@@ -125,6 +126,8 @@ function CalendarPageContent() {
     [first, last]
   );
   const holidays = useHolidays(countries, years);
+  // The next two weeks' weather at the user's place, for the agenda and details
+  const forecast = useWeatherDays();
 
   const items = useMemo(
     () => itemsByDay(days, { events: shownEvents, tasks, holidays }),
@@ -168,13 +171,11 @@ function CalendarPageContent() {
     setEventDialogOpen(true);
   };
 
+  // Events open their details first; the user's own can be edited from there
   const openItem = (item: CalendarItem) => {
-    if (item.kind === "event" && item.event.source) {
+    if (item.kind === "event") {
       setViewingEvent(item.event);
       setDetailsOpen(true);
-    } else if (item.kind === "event") {
-      setEditingEvent(item.event);
-      setEventDialogOpen(true);
     } else if (item.kind === "task" || item.kind === "reminder") {
       setEditingTask(item.task);
       setTaskDialogOpen(true);
@@ -426,9 +427,12 @@ function CalendarPageContent() {
         <div className="flex min-h-0 flex-col gap-6">
           <DayAgenda
             day={selected}
+            today={today}
             items={items.get(selected) ?? []}
+            weather={forecast?.days.get(selected)}
             onOpen={openItem}
             onNewEvent={() => openNewEvent()}
+            onToggleTask={(task) => updateTask(task.id, { status: task.status === "done" ? "todo" : "done" })}
           />
           {subscriptions.length > 0 && (
             <CalendarList
@@ -464,7 +468,21 @@ function CalendarPageContent() {
         onSubmit={handleEventSubmit}
         onDelete={handleDeleteEvent}
       />
-      <EventDetailsDialog event={viewingEvent} open={detailsOpen} onOpenChange={setDetailsOpen} />
+      <EventDetailsDialog
+        event={viewingEvent}
+        open={detailsOpen}
+        onOpenChange={setDetailsOpen}
+        forecast={forecast}
+        onEdit={(event) => {
+          setDetailsOpen(false);
+          setEditingEvent(event);
+          setEventDialogOpen(true);
+        }}
+        onDelete={(event, scope) => {
+          setDetailsOpen(false);
+          handleDeleteEvent(event, scope);
+        }}
+      />
       <TaskDialog
         open={taskDialogOpen}
         onOpenChange={setTaskDialogOpen}
