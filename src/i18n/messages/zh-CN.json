@@ -888,6 +888,10 @@
     }
   },
   "weatherSettings": {
+    "unit": "温度单位",
+    "unitAuto": "跟随日期格式",
+    "celsius": "摄氏度",
+    "fahrenheit": "华氏度",
     "title": "天气",
     "description": "主页“今天”卡片上显示哪个地方的天气。",
     "set": "天气地点已设为 {name}",

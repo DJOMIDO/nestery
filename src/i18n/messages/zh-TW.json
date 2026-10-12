@@ -888,6 +888,10 @@
     }
   },
   "weatherSettings": {
+    "unit": "溫度單位",
+    "unitAuto": "跟隨日期格式",
+    "celsius": "攝氏",
+    "fahrenheit": "華氏",
     "title": "天氣",
     "description": "首頁「今天」卡片上顯示哪個地方的天氣。",
     "set": "天氣地點已設為 {name}",

@@ -227,6 +227,8 @@ export const userSettings = pgTable("user_settings", {
   feedToken: text().unique(),
   // Place for the dashboard's weather (Settings > Weather); null = not set
   weatherPlace: jsonb().$type<WeatherPlace>(),
+  // "C" or "F"; null follows the date format (°F for US English)
+  temperatureUnit: text(),
   updatedAt: timestamp({ withTimezone: true })
     .notNull()
     .defaultNow()

@@ -90,7 +90,12 @@ export async function POST(request: Request) {
           userId: user.id,
           timeZone,
           today,
-          dateTime: { dateLocale: settings.dateLocale, hourCycle: settings.hourCycle, weekStart: settings.weekStart },
+          dateTime: {
+            dateLocale: settings.dateLocale,
+            hourCycle: settings.hourCycle,
+            weekStart: settings.weekStart,
+            temperatureUnit: settings.temperatureUnit,
+          },
           locale,
           place: settings.weatherPlace,
           history: input.data.history,

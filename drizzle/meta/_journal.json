@@ -148,6 +148,13 @@
       "when": 1791827306413,
       "tag": "0020_note_tags",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1791829555758,
+      "tag": "0021_temperature_unit",
+      "breakpoints": true
     }
   ]
 }
