@@ -4,13 +4,14 @@
 
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import type { ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 import * as Tooltip from "@radix-ui/react-tooltip";
 
 type SideBarItemProps =
   | {
       icon: LucideIcon;
-      label: string;
+      label: ReactNode;
       href: string;
       collapsed: boolean;
       isActive?: boolean;
@@ -18,7 +19,7 @@ type SideBarItemProps =
     }
   | {
       icon: LucideIcon;
-      label: string;
+      label: ReactNode;
       onClick: () => void;
       collapsed: boolean;
     };

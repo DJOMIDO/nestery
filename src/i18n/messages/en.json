@@ -35,7 +35,7 @@
     "notes": "Notes",
     "calendar": "Calendar",
     "travel": "Travel",
-    "assistant": "Assistant ({shortcut})",
+    "assistant": "Assistant (<shortcut></shortcut>)",
     "expandSidebar": "Expand sidebar",
     "collapseSidebar": "Collapse sidebar",
     "expandSidebarHint": "Expand sidebar ({shortcut})",
@@ -736,7 +736,7 @@
   },
   "assistantSettings": {
     "title": "Assistant",
-    "intro": "The assistant (<icon></icon> in the sidebar, or {shortcut}) uses an AI model with your own API key; the provider bills you for what you use. What the assistant looks up (tasks, events, notes) is sent to that provider.",
+    "intro": "The assistant (<icon></icon> in the sidebar, or <shortcut></shortcut>) uses an AI model with your own API key; the provider bills you for what you use. What the assistant looks up (tasks, events, notes) is sent to that provider.",
     "iconLabel": "Assistant icon",
     "serverKey": "You can use the app's own key ({limit} messages a day). Add yours to use it without a limit.",
     "cantStore": "This server can't store API keys yet (ASSISTANT_ENCRYPTION_KEY is not set).",

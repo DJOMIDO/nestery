@@ -35,7 +35,7 @@
     "notes": "Notes",
     "calendar": "Calendrier",
     "travel": "Voyages",
-    "assistant": "Assistant ({shortcut})",
+    "assistant": "Assistant (<shortcut></shortcut>)",
     "expandSidebar": "Déplier la barre latérale",
     "collapseSidebar": "Replier la barre latérale",
     "expandSidebarHint": "Déplier la barre latérale ({shortcut})",
@@ -736,7 +736,7 @@
   },
   "assistantSettings": {
     "title": "Assistant",
-    "intro": "L’assistant (<icon></icon> dans la barre latérale, ou {shortcut}) utilise un modèle d’IA avec ta propre clé d’API ; le fournisseur te facture selon l’usage. Ce que l’assistant consulte (tâches, événements, notes) est envoyé à ce fournisseur.",
+    "intro": "L’assistant (<icon></icon> dans la barre latérale, ou <shortcut></shortcut>) utilise un modèle d’IA avec ta propre clé d’API ; le fournisseur te facture selon l’usage. Ce que l’assistant consulte (tâches, événements, notes) est envoyé à ce fournisseur.",
     "iconLabel": "Icône de l’assistant",
     "serverKey": "Tu peux utiliser la clé de l’application ({limit} messages par jour). Ajoute la tienne pour l’utiliser sans limite.",
     "cantStore": "Ce serveur ne peut pas encore enregistrer de clés d’API (ASSISTANT_ENCRYPTION_KEY n’est pas défini).",
