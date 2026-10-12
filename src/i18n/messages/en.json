@@ -954,7 +954,7 @@
   },
   "home": {
     "title": "A calm home for your everyday.",
-    "subtitle": "Tasks, notes, your calendar and your day at a glance — gathered in one quiet, personal space.",
+    "subtitle": "Tasks, notes, your calendar, travel and your day at a glance, with an AI assistant to help — gathered in one quiet, personal space.",
     "getStarted": "Get started",
     "features": "What's in Nestery",
     "tiles": {
@@ -973,6 +973,14 @@
       "tasks": {
         "title": "Tasks",
         "text": "Lists or a board, with due dates, reminders and tags."
+      },
+      "assistant": {
+        "title": "Assistant",
+        "text": "Ask about your tasks, calendar, notes or the weather. It prepares tasks, events and journeys for you to confirm, with your own API key."
+      },
+      "travel": {
+        "title": "Travel",
+        "text": "Flights and trains with the weather at both ends, time differences and reminders."
       }
     },
     "preview": {
@@ -987,7 +995,15 @@
       "summary": "2 events · 3 tasks due",
       "openTasks": "open tasks",
       "eventsToday": "events today",
-      "tag": "#home"
+      "tag": "#home",
+      "askWeek": "What's left this week?",
+      "answerWeek": "3 tasks, and a call on Thursday. Shall I add the train booking?",
+      "addTask": "Add task",
+      "proposedTask": "Book the train",
+      "add": "Add",
+      "fromCity": "Shanghai",
+      "toCity": "Paris",
+      "seat": "Seat 32K"
     }
   },
   "serverErrors": {
