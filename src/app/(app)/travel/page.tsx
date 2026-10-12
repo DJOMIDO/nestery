@@ -70,8 +70,10 @@ function TravelPageContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [linked, loading, journeys, router, isWide]);
 
-  // Reloaded when a journey's destination or dates change
-  const weatherVersion = journeys.map((j) => `${j.id}:${j.destination}:${j.arrivalDate ?? j.departureDate}`).join();
+  // Reloaded when a journey's places or dates change
+  const weatherVersion = journeys
+    .map((j) => `${j.id}:${j.origin}:${j.destination}:${j.departureDate}:${j.arrivalDate ?? ""}`)
+    .join();
   const weather = useJourneyWeather(weatherVersion, !loading && journeys.length > 0);
 
   const today = toDateKey(new Date());

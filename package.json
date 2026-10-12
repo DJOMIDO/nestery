@@ -11,7 +11,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
-    "travel:data": "node scripts/update-travel-data.mjs"
+    "travel:data": "node scripts/update-travel-data.mjs",
+    "travel:logos": "node scripts/update-carrier-logos.mjs && node scripts/update-rail-logos.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.133.0",
