@@ -23,6 +23,25 @@ export function eventWhen(event: CalendarEvent, format: Formatter, allDay: strin
   return first === last ? `${start} – ${end}` : `${format.day(first)} ${start} – ${format.day(last)} ${end}`;
 }
 
+// How long an event lasts, in the interface language: "1 hr 30 min",
+// "3 days"; null for a single all-day event
+export function useEventDuration() {
+  const t = useTranslations("calendar");
+  return (event: CalendarEvent) => {
+    if (event.allDay) {
+      const { first, last } = eventDays(event);
+      const days = Math.round((Date.parse(last) - Date.parse(first)) / 86_400_000) + 1;
+      return days > 1 ? t("durationDays", { count: days }) : null;
+    }
+    const minutes = Math.round((Date.parse(event.endsAt!) - Date.parse(event.startsAt!)) / 60_000);
+    if (minutes <= 0) return null;
+    const hours = Math.floor(minutes / 60);
+    return [hours && t("durationHours", { count: hours }), minutes % 60 && t("durationMinutes", { count: minutes % 60 })]
+      .filter(Boolean)
+      .join(" ");
+  };
+}
+
 // Short text for a grid chip
 function chipLabel(item: CalendarItem, format: Formatter) {
   switch (item.kind) {

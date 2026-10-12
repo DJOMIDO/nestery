@@ -132,27 +132,31 @@ export function ImportCalendarFile() {
               </ul>
 
               {summary.unsupported > 0 && (
-                <fieldset className="space-y-1.5 rounded-md bg-muted/50 p-3 text-sm">
+                <fieldset className="rounded-md bg-muted/50 p-3 text-sm">
                   <legend className="float-left mb-1.5 w-full">
                     {t("unsupported", { count: summary.unsupported })}
                   </legend>
-                  {(
-                    [
-                      ["first", t("first")],
-                      ["skip", t("skip")],
-                    ] as const
-                  ).map(([value, label]) => (
-                    <label key={value} className="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        name="unsupported"
-                        checked={unsupported === value}
-                        onChange={() => changeUnsupported(value)}
-                        className="accent-leaf"
-                      />
-                      {label}
-                    </label>
-                  ))}
+                  {/* Below the floated legend: on its own, the first option
+                      would sit beside it, squeezed to no width */}
+                  <div className="clear-left space-y-1.5">
+                    {(
+                      [
+                        ["first", t("first")],
+                        ["skip", t("skip")],
+                      ] as const
+                    ).map(([value, label]) => (
+                      <label key={value} className="flex items-center gap-2">
+                        <input
+                          type="radio"
+                          name="unsupported"
+                          checked={unsupported === value}
+                          onChange={() => changeUnsupported(value)}
+                          className="accent-leaf"
+                        />
+                        {label}
+                      </label>
+                    ))}
+                  </div>
                 </fieldset>
               )}
             </>
