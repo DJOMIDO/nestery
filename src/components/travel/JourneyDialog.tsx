@@ -1,54 +1,33 @@
 // src/components/travel/JourneyDialog.tsx
+// Adding a flight or a train journey. Existing journeys open their details
+// (JourneyDetailPanel), which edit in place.
 "use client";
 
 import { useTranslations } from "next-intl";
-import { Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { JourneyForm } from "@/components/travel/JourneyForm";
-import type { Journey, JourneyInput, JourneyKind } from "@/lib/travel";
+import type { JourneyInput, JourneyKind } from "@/lib/travel";
 
 interface JourneyDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   kind: JourneyKind;
-  // Journey being edited; omit to add one
-  journey?: Journey | null;
   onSubmit: (input: JourneyInput) => Promise<unknown>;
-  // Editing only; the list has no delete button on small screens
-  onDelete?: () => void;
 }
 
-export function JourneyDialog({ open, onOpenChange, kind, journey, onSubmit, onDelete }: JourneyDialogProps) {
+export function JourneyDialog({ open, onOpenChange, kind, onSubmit }: JourneyDialogProps) {
   const t = useTranslations("travel");
-  const isFlight = kind === "flight";
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>
-            {journey
-              ? isFlight
-                ? t("editFlight")
-                : t("editTrain")
-              : isFlight
-                ? t("addFlight")
-                : t("addTrain")}
-          </DialogTitle>
+          <DialogTitle>{kind === "flight" ? t("addFlight") : t("addTrain")}</DialogTitle>
         </DialogHeader>
         {/* The content unmounts when closed, so the form resets on each open */}
         <JourneyForm
-          key={journey?.id ?? kind}
+          key={kind}
           kind={kind}
-          journey={journey}
           onCancel={() => onOpenChange(false)}
-          extraActions={
-            journey && onDelete ? (
-              <Button type="button" variant="outline" onClick={onDelete}>
-                <Trash2 className="mr-1 size-4" /> Delete
-              </Button>
-            ) : undefined
-          }
           onSubmit={async (input) => {
             const result = await onSubmit(input);
             if (result) onOpenChange(false);
