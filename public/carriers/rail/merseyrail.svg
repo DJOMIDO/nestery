@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="126.42873mm"
+   height="126.42376mm"
+   viewBox="0 0 126.42873 126.42376"
+   version="1.1"
+   id="svg260"
+   inkscape:version="0.92.3 (2405546, 2018-03-11)"
+   sodipodi:docname="Merseyrail Logo.svg">
+  <defs
+     id="defs254" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.7"
+     inkscape:cx="418.3274"
+     inkscape:cy="160.87985"
+     inkscape:document-units="mm"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     fit-margin-top="1"
+     fit-margin-left="1"
+     fit-margin-bottom="1"
+     fit-margin-right="1"
+     inkscape:window-width="1366"
+     inkscape:window-height="705"
+     inkscape:window-x="-8"
+     inkscape:window-y="306"
+     inkscape:window-maximized="1" />
+  <metadata
+     id="metadata257">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-38.839209,-46.311923)">
+    <g
+       id="g2902"
+       transform="matrix(2.4835577,0,0,-2.4835577,102.05978,171.73568)">
+      <path
+         style="fill:#bdbcbc;fill-opacity:1;fill-rule:evenodd;stroke:none"
+         id="path2904"
+         d="m 0,0 c 13.833,0 25.048,11.216 25.048,25.049 0,13.834 -11.215,25.05 -25.048,25.05 -13.836,0 -25.053,-11.216 -25.053,-25.05 C -25.053,11.216 -13.836,0 0,0"
+         inkscape:connector-curvature="0" />
+    </g>
+    <g
+       id="g2906"
+       transform="matrix(2.4835577,0,0,-2.4835577,111.03536,143.04066)">
+      <path
+         style="fill:#fff200;fill-opacity:1;fill-rule:evenodd;stroke:none"
+         id="path2908"
+         d="m 0,0 3.134,8.797 3.612,-8.918 h 9.398 L 6.267,28.197 H 0 L -3.614,19.28 -7.23,28.197 h -6.267 l -9.88,-28.318 h 9.399 L -10.362,8.797 -7.23,0 H 0"
+         inkscape:connector-curvature="0" />
+    </g>
+  </g>
+</svg>

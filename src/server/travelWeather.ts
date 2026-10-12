@@ -1,9 +1,10 @@
 // src/server/travelWeather.ts
-// The forecast at the destination of the user's coming journeys, on the day
-// they arrive. Flights use the airport's position; trains look up their
-// destination city (or station) by name and are left out if it isn't found.
+// The forecast at both ends of the user's coming journeys: at the
+// destination on the day they arrive, and at the origin on the day they
+// leave. Flights use the airports' positions; trains look up their cities
+// (or stations) by name, and an end that isn't found is left out.
 
-import type { JourneyWeather } from "@/lib/travel";
+import type { JourneyWeather, PlaceWeather } from "@/lib/travel";
 import { addDays } from "@/lib/tasks";
 import type { WeatherPlace } from "@/lib/weather";
 import { findAirport, listJourneys } from "@/server/travel";
@@ -22,8 +23,18 @@ export async function journeyWeather(userId: string, today: string) {
 
 type JourneyStop = Pick<
   Awaited<ReturnType<typeof listJourneys>>[number],
-  "id" | "kind" | "destination" | "destinationCity" | "departureDate" | "arrivalDate"
+  "id" | "kind" | "origin" | "originCity" | "destination" | "destinationCity" | "departureDate" | "arrivalDate"
 >;
+
+// One end of a journey on its day there
+interface End {
+  journeyId: string;
+  departure: boolean;
+  kind: JourneyStop["kind"];
+  code: string;
+  city: string | null;
+  day: string;
+}
 
 // The same for given journeys (separate from the query so it can be tested)
 export async function weatherForJourneys(
@@ -31,21 +42,36 @@ export async function weatherForJourneys(
   today: string
 ): Promise<Record<string, JourneyWeather>> {
   const lastDay = addDays(today, DAYS_AHEAD - 1);
-  const coming = journeys.filter((j) => {
-    const day = j.arrivalDate ?? j.departureDate;
-    return day >= today && day <= lastDay;
-  });
+  const inRange = (day: string) => day >= today && day <= lastDay;
+  const ends: End[] = journeys
+    .filter((j) => inRange(j.arrivalDate ?? j.departureDate))
+    .flatMap((j) => {
+      const arrival: End = {
+        journeyId: j.id,
+        departure: false,
+        kind: j.kind,
+        code: j.destination,
+        city: j.destinationCity,
+        day: j.arrivalDate ?? j.departureDate,
+      };
+      // A departure already past (e.g. an overnight journey) has no forecast
+      if (!inRange(j.departureDate)) return [arrival];
+      return [
+        arrival,
+        { journeyId: j.id, departure: true, kind: j.kind, code: j.origin, city: j.originCity, day: j.departureDate },
+      ];
+    });
 
-  // Where each journey ends; places are looked up once each
+  // Where each end is; places are looked up once each
   const places = new Map<string, Promise<WeatherPlace | null>>();
   const placeOf = (key: string, find: () => Promise<WeatherPlace | null>) => {
     if (!places.has(key)) places.set(key, find().catch(() => null));
     return places.get(key)!;
   };
-  const destinations = await Promise.all(
-    coming.map(async (j) => {
-      if (j.kind === "flight") {
-        const airport = findAirport(j.destination);
+  const located = await Promise.all(
+    ends.map(async (end) => {
+      if (end.kind === "flight") {
+        const airport = findAirport(end.code);
         if (!airport) return null;
         return placeOf(`airport:${airport.iata}`, async () => ({
           name: airport.city ?? airport.name,
@@ -54,19 +80,19 @@ export async function weatherForJourneys(
           longitude: airport.longitude,
         }));
       }
-      const name = j.destinationCity ?? j.destination;
+      const name = end.city ?? end.code;
       return placeOf(`name:${name.toLowerCase()}`, async () => (await searchPlaces(name))[0] ?? null);
     })
   );
 
-  // One forecast per place, long enough for its latest arrival; dates are
-  // the place's own (timezone "auto"), like the arrival dates
+  // One forecast per place, long enough for its latest day; dates are the
+  // place's own (timezone "auto"), like the journeys' dates
   const daysNeeded = new Map<WeatherPlace, number>();
-  coming.forEach((j, i) => {
-    const place = destinations[i];
+  ends.forEach((end, i) => {
+    const place = located[i];
     if (!place) return;
-    // One extra day: the destination's date can be a day ahead of the user's
-    const days = daysBetween(today, j.arrivalDate ?? j.departureDate) + 2;
+    // One extra day: the place's date can be a day ahead of the user's
+    const days = daysBetween(today, end.day) + 2;
     daysNeeded.set(place, Math.max(daysNeeded.get(place) ?? 0, days));
   });
   const forecasts = new Map(
@@ -76,25 +102,32 @@ export async function weatherForJourneys(
     ])
   );
 
-  const result: Record<string, JourneyWeather> = {};
-  await Promise.all(
-    coming.map(async (j, i) => {
-      const place = destinations[i];
-      if (!place) return;
-      const day = j.arrivalDate ?? j.departureDate;
-      const forecast = (await forecasts.get(place))?.find((d) => d.date === day);
-      if (forecast) {
-        result[j.id] = {
-          place: place.name,
-          date: day,
-          code: forecast.code,
-          conditions: forecast.conditions,
-          high: forecast.high,
-          low: forecast.low,
-          precipitation: forecast.precipitation,
-        };
-      }
+  const found = await Promise.all(
+    ends.map(async (end, i): Promise<PlaceWeather | null> => {
+      const place = located[i];
+      if (!place) return null;
+      const forecast = (await forecasts.get(place))?.find((d) => d.date === end.day);
+      if (!forecast) return null;
+      return {
+        place: place.name,
+        date: end.day,
+        code: forecast.code,
+        conditions: forecast.conditions,
+        high: forecast.high,
+        low: forecast.low,
+        precipitation: forecast.precipitation,
+      };
     })
   );
+
+  // Keyed by the arrival's forecast, which lists and the calendar show;
+  // the departure's rides along for the journey's details
+  const result: Record<string, JourneyWeather> = {};
+  ends.forEach((end, i) => {
+    if (!end.departure && found[i]) result[end.journeyId] = { ...found[i] };
+  });
+  ends.forEach((end, i) => {
+    if (end.departure && found[i] && result[end.journeyId]) result[end.journeyId].departure = found[i];
+  });
   return result;
 }

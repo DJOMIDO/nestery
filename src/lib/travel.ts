@@ -4,7 +4,7 @@
 
 import type { CalendarEvent } from "@/lib/calendar";
 // Plain Intl, safe in the browser too
-import { wallTimeToDate } from "@/server/timeZones";
+import { wallTimeIn, wallTimeToDate } from "@/server/timeZones";
 
 export const JOURNEY_KINDS = ["flight", "train"] as const;
 
@@ -72,15 +72,21 @@ export interface Airport {
   timeZone: string;
 }
 
-// The forecast at a journey's destination on its arrival day
-export interface JourneyWeather {
+// A day's forecast at one end of a journey
+export interface PlaceWeather {
   place: string;
-  date: string; // YYYY-MM-DD, local at the destination
+  date: string; // YYYY-MM-DD, local at that place
   code: number; // WMO weather code
   conditions: string;
   high: number;
   low: number;
   precipitation: number | null; // highest chance that day, %
+}
+
+// The forecast at a journey's destination on its arrival day, and at its
+// origin on the departure day when that is known and not yet past
+export interface JourneyWeather extends PlaceWeather {
+  departure?: PlaceWeather;
 }
 
 export interface Airline {
@@ -253,6 +259,29 @@ export function journeyDuration(j: Parameters<typeof journeyTimes>[0]) {
   if (!times) return null;
   const total = Math.round((times.end.getTime() - times.start.getTime()) / 60_000);
   return { hours: Math.floor(total / 60), minutes: total % 60 };
+}
+
+// Minutes a zone's clock is ahead of UTC at a moment
+const zoneOffset = (moment: Date, zone: string) => {
+  const w = wallTimeIn(moment, zone);
+  return Math.round((Date.UTC(w.year, w.month - 1, w.day, w.hour, w.minute, w.second) - moment.getTime()) / 60_000);
+};
+
+// How far the arrival's clock is ahead of the departure's, in minutes
+// (negative when behind); null unless both ends' zones are known
+export function journeyTimeDifference(j: Parameters<typeof journeyTimes>[0]) {
+  if (!j.departureTz || !j.arrivalTz) return null;
+  const times = journeyTimes(j);
+  const start = times?.start ?? new Date(`${j.departureDate}T12:00:00Z`);
+  return zoneOffset(times?.end ?? start, j.arrivalTz) - zoneOffset(start, j.departureTz);
+}
+
+// Days between the departure's date and the arrival's, each local: 1 for
+// "+1" on an overnight flight, -1 across the date line eastwards; 0 when
+// the arrival date isn't known
+export function journeyDayShift(j: Pick<Journey, "departureDate" | "arrivalDate">) {
+  if (!j.arrivalDate) return 0;
+  return Math.round((Date.parse(j.arrivalDate) - Date.parse(j.departureDate)) / 86_400_000);
 }
 
 // When to remind about a journey, or null (no reminder or no departure time)

@@ -1,0 +1,518 @@
+{
+  "adelaide-metro": {
+    "file": "Adelaide Metro logo.svg",
+    "source": "https://en.wikipedia.org/wiki/File:Adelaide_Metro_logo.svg",
+    "license": "Not free: the company's own logo, as shown on Wikipedia",
+    "author": "Adelaide Metro"
+  },
+  "al-boraq": {
+    "file": "Logo for Al Boraq.png",
+    "source": "https://en.wikipedia.org/wiki/File:Logo_for_Al_Boraq.png",
+    "license": "Not free: the company's own logo, as shown on Wikipedia",
+    "author": null
+  },
+  "amtrak": {
+    "file": "Amtrak logo 2.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:Amtrak_logo_2.svg",
+    "license": "Public domain",
+    "author": "Unknown authorUnknown author"
+  },
+  "auckland-transport": {
+    "file": "AT Train Pictogram.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:AT_Train_Pictogram.svg",
+    "license": "Public domain",
+    "author": "Auckland Transport"
+  },
+  "avanti": {
+    "file": "Avanti West Coast Logo.svg",
+    "source": "https://en.wikipedia.org/wiki/File:Avanti_West_Coast_Logo.svg",
+    "license": "Not free: the company's own logo, as shown on Wikipedia",
+    "author": "Avanti West Coast"
+  },
+  "brightline": {
+    "file": "Brightline text logo.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:Brightline_text_logo.svg",
+    "license": "Public domain",
+    "author": "Brightline"
+  },
+  "c2c": {
+    "file": "C2c logo.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:C2c_logo.svg",
+    "license": "Public domain",
+    "author": "c2c"
+  },
+  "caltrain": {
+    "file": "Caltrain roundel.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:Caltrain_roundel.svg",
+    "license": "Public domain",
+    "author": "Peninsula Corridor Joint Powers Board"
+  },
+  "cd": {
+    "file": "Ceske drahy-logo.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:Ceske_drahy-logo.svg",
+    "license": "Public domain",
+    "author": "České dráhy, a.s."
+  },
+  "cfl": {
+    "file": "Logo CFL Luxembourg (2022).svg",
+    "source": "https://commons.wikimedia.org/wiki/File:Logo_CFL_Luxembourg_(2022).svg",
+    "license": "Public domain",
+    "author": "CFL"
+  },
+  "chiltern": {
+    "file": "Logo Chiltern Railways.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:Logo_Chiltern_Railways.svg",
+    "license": "Public domain",
+    "author": "Chiltern Railways"
+  },
+  "china-railway": {
+    "file": "China Railways.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:China_Railways.svg",
+    "license": "Public domain",
+    "author": "Designed by Chen Yuchang (陈玉昶, 1912-1969)"
+  },
+  "cp": {
+    "file": "Logo CP 2.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:Logo_CP_2.svg",
+    "license": "Public domain",
+    "author": "José Santa-Bárbara (logo)\n\n™/®Comboios de Portugal"
+  },
+  "db": {
+    "file": "Deutsche Bahn AG-Logo.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:Deutsche_Bahn_AG-Logo.svg",
+    "license": "Public domain",
+    "author": "™/®Deutsche Bahn AG"
+  },
+  "dsb": {
+    "file": "DSB company logo.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:DSB_company_logo.svg",
+    "license": "Public domain",
+    "author": "DSB"
+  },
+  "elizabeth-line": {
+    "file": "Elizabeth line roundel.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:Elizabeth_line_roundel.svg",
+    "license": "Public domain",
+    "author": "Transport for London"
+  },
+  "emr": {
+    "file": "East Midlands Railway logo.svg",
+    "source": "https://en.wikipedia.org/wiki/File:East_Midlands_Railway_logo.svg",
+    "license": "Not free: the company's own logo, as shown on Wikipedia",
+    "author": "East Midlands Railway"
+  },
+  "eurostar": {
+    "file": "Eurostar icon RDT (2023).svg",
+    "source": "https://commons.wikimedia.org/wiki/File:Eurostar_icon_RDT_(2023).svg",
+    "license": "Public domain",
+    "author": "Bazza 7"
+  },
+  "flixtrain": {
+    "file": "FlixTrain Logo 2020.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:FlixTrain_Logo_2020.svg",
+    "license": "Public domain",
+    "author": "FlixMobility GmbH"
+  },
+  "gatwick-express": {
+    "file": "Gatwick Express logo.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:Gatwick_Express_logo.svg",
+    "license": "Public domain",
+    "author": "Unknown authorUnknown author"
+  },
+  "go": {
+    "file": "GO Transit logo.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:GO_Transit_logo.svg",
+    "license": "Public domain",
+    "author": "Natural_RX"
+  },
+  "grand-central": {
+    "file": "GrandCentral Railway logo.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:GrandCentral_Railway_logo.svg",
+    "license": "Public domain",
+    "author": "GrandCentral Railway"
+  },
+  "gwr": {
+    "file": "Great Western Railway (2015) logo.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:Great_Western_Railway_(2015)_logo.svg",
+    "license": "Public domain",
+    "author": "™/®Great Western Railway/FirstGroup, designed by Pentagram Studio, London"
+  },
+  "hull-trains": {
+    "file": "HullTrainsLogo.svg",
+    "source": "https://en.wikipedia.org/wiki/File:HullTrainsLogo.svg",
+    "license": "Not free: the company's own logo, as shown on Wikipedia",
+    "author": "Hull Trains"
+  },
+  "irish-rail": {
+    "file": "Irish Rail logo.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:Irish_Rail_logo.svg",
+    "license": "Public domain",
+    "author": "Useddenim"
+  },
+  "iryo": {
+    "file": "Iryo 2021 logo.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:Iryo_2021_logo.svg",
+    "license": "Public domain",
+    "author": "ILSA"
+  },
+  "italo": {
+    "file": "Italo Treno Logo.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:Italo_Treno_Logo.svg",
+    "license": "Public domain",
+    "author": "Italo S.p.A."
+  },
+  "jr-central": {
+    "file": "JR logo (central).svg",
+    "source": "https://commons.wikimedia.org/wiki/File:JR_logo_(central).svg",
+    "license": "Public domain",
+    "author": "JR Group, Monaneko"
+  },
+  "jr-east": {
+    "file": "JR logo (east).svg",
+    "source": "https://commons.wikimedia.org/wiki/File:JR_logo_(east).svg",
+    "license": "Public domain",
+    "author": "JR Group, Monaneko"
+  },
+  "jr-hokkaido": {
+    "file": "JR logo (hokkaido).svg",
+    "source": "https://commons.wikimedia.org/wiki/File:JR_logo_(hokkaido).svg",
+    "license": "Public domain",
+    "author": "JR Group, Monaneko"
+  },
+  "jr-kyushu": {
+    "file": "JR logo (kyushu).svg",
+    "source": "https://commons.wikimedia.org/wiki/File:JR_logo_(kyushu).svg",
+    "license": "Public domain",
+    "author": "JR Group, Monaneko"
+  },
+  "jr-shikoku": {
+    "file": "JR logo (shikoku).svg",
+    "source": "https://commons.wikimedia.org/wiki/File:JR_logo_(shikoku).svg",
+    "license": "Public domain",
+    "author": "JR Group, Monaneko"
+  },
+  "jr-west": {
+    "file": "JR logo (west).svg",
+    "source": "https://commons.wikimedia.org/wiki/File:JR_logo_(west).svg",
+    "license": "Public domain",
+    "author": "JR Group, Monaneko"
+  },
+  "keisei": {
+    "file": "Keisei Logo full.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:Keisei_Logo_full.svg",
+    "license": "Public domain",
+    "author": "京成電鉄"
+  },
+  "kintetsu": {
+    "file": "Kintetsu Logo full.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:Kintetsu_Logo_full.svg",
+    "license": "Public domain",
+    "author": "近畿日本鉄道"
+  },
+  "kiwirail": {
+    "file": "KiwiRail logo.svg",
+    "source": "https://en.wikipedia.org/wiki/File:KiwiRail_logo.svg",
+    "license": "Not free: the company's own logo, as shown on Wikipedia",
+    "author": null
+  },
+  "korail": {
+    "file": "Korail logo.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:Korail_logo.svg",
+    "license": "Public domain",
+    "author": "Korea Railroad Corporation"
+  },
+  "leo-express": {
+    "file": "Leo Express.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:Leo_Express.svg",
+    "license": "Public domain",
+    "author": "LEO EXPRESS"
+  },
+  "lirr": {
+    "file": "LIRR logo.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:LIRR_logo.svg",
+    "license": "Public domain",
+    "author": "Metropolitan Transportation Authority"
+  },
+  "lner": {
+    "file": "LNER Logo.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:LNER_Logo.svg",
+    "license": "Public domain",
+    "author": "™/®London North Eastern Railway"
+  },
+  "lnr": {
+    "file": "London Northwestern Railway full logo.svg",
+    "source": "https://en.wikipedia.org/wiki/File:London_Northwestern_Railway_full_logo.svg",
+    "license": "Not free: the company's own logo, as shown on Wikipedia",
+    "author": null
+  },
+  "mav": {
+    "file": "Logo Hungary MÁV.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:Logo_Hungary_M%C3%81V.svg",
+    "license": "Public domain",
+    "author": "Madboy74 at Hungarian Wikipedia"
+  },
+  "meitetsu": {
+    "file": "Meitetsu logo.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:Meitetsu_logo.svg",
+    "license": "Public domain",
+    "author": "名古屋鉄道株式会社"
+  },
+  "merseyrail": {
+    "file": "Merseyrail Icon.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:Merseyrail_Icon.svg",
+    "license": "Public domain",
+    "author": "Merseytravel"
+  },
+  "metlink": {
+    "file": "Metlink-brand.svg",
+    "source": "https://en.wikipedia.org/wiki/File:Metlink-brand.svg",
+    "license": "Not free: the company's own logo, as shown on Wikipedia",
+    "author": null
+  },
+  "metra": {
+    "file": "Metra Logo.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:Metra_Logo.svg",
+    "license": "Public domain",
+    "author": "Metra"
+  },
+  "metro-melbourne": {
+    "file": "Metro Trains Melbourne Logo.svg",
+    "source": "https://en.wikipedia.org/wiki/File:Metro_Trains_Melbourne_Logo.svg",
+    "license": "Not free: the company's own logo, as shown on Wikipedia",
+    "author": null
+  },
+  "metro-north": {
+    "file": "Metro-North logo.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:Metro-North_logo.svg",
+    "license": "Public domain",
+    "author": "Metropolitan Transportation Authority"
+  },
+  "mtr": {
+    "file": "MTR Shenzhen logo.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:MTR_Shenzhen_logo.svg",
+    "license": "Public domain",
+    "author": "港鐵軌道交通（深圳）有限公司="
+  },
+  "nankai": {
+    "file": "Nankai logo 2.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:Nankai_logo_2.svg",
+    "license": "Public domain",
+    "author": "Nankai Electric Railway Co., Ltd."
+  },
+  "national-rail": {
+    "file": "National Rail logo.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:National_Rail_logo.svg",
+    "license": "Public domain",
+    "author": "Gerry Barney of Design Research Unit"
+  },
+  "ni-railways": {
+    "file": "Logomark NI Railways.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:Logomark_NI_Railways.svg",
+    "license": "Public domain",
+    "author": "Unknown"
+  },
+  "nj-transit": {
+    "file": "NJT NJ Symbol.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:NJT_NJ_Symbol.svg",
+    "license": "Public domain",
+    "author": "Mliu92"
+  },
+  "ns": {
+    "file": "Nederlandse Spoorwegen logo.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:Nederlandse_Spoorwegen_logo.svg",
+    "license": "Public domain",
+    "author": "Unknown authorUnknown author"
+  },
+  "nsw-trainlink": {
+    "file": "NSW TrainLink logo.svg",
+    "source": "https://en.wikipedia.org/wiki/File:NSW_TrainLink_logo.svg",
+    "license": "Not free: the company's own logo, as shown on Wikipedia",
+    "author": null
+  },
+  "obb": {
+    "file": "ÖBB Logo Pflatsch neu.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:%C3%96BB_Logo_Pflatsch_neu.svg",
+    "license": "Public domain",
+    "author": "ÖBB Logo Pflatsch.svg: Ray ray ray\nderivative work: Pafnutij"
+  },
+  "odakyu": {
+    "file": "Odakyu logo with its slogan.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:Odakyu_logo_with_its_slogan.svg",
+    "license": "Public domain",
+    "author": "小田急電鉄"
+  },
+  "oncf": {
+    "file": "Logo ONCF.svg",
+    "source": "https://fr.wikipedia.org/wiki/Fichier:Logo_ONCF.svg",
+    "license": "Not free: the company's own logo, as shown on Wikipedia",
+    "author": "inconnu"
+  },
+  "ouigo": {
+    "file": "TGV Ouigo 2013 logo.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:TGV_Ouigo_2013_logo.svg",
+    "license": "Public domain",
+    "author": "Agence Carré noir"
+  },
+  "pkp": {
+    "file": "PKP Intercity logo.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:PKP_Intercity_logo.svg",
+    "license": "Public domain",
+    "author": "Unknown authorUnknown author"
+  },
+  "queensland-rail": {
+    "file": "Queensland Rail logo.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:Queensland_Rail_logo.svg",
+    "license": "Public domain",
+    "author": "Queensland Rail"
+  },
+  "regiojet": {
+    "file": "Regiojet logo.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:Regiojet_logo.svg",
+    "license": "Public domain",
+    "author": "Jürgen Pickl"
+  },
+  "renfe": {
+    "file": "Logotipo de Renfe Operadora (2026).svg",
+    "source": "https://commons.wikimedia.org/wiki/File:Logotipo_de_Renfe_Operadora_(2026).svg",
+    "license": "Not free: the company's own logo, as shown on Wikipedia",
+    "author": "™/®Renfe"
+  },
+  "sbb": {
+    "file": "SBB CFF FFS logo notext.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:SBB_CFF_FFS_logo_notext.svg",
+    "license": "Public domain",
+    "author": "SBB"
+  },
+  "scotrail": {
+    "file": "ScotRail logo.svg",
+    "source": "https://en.wikipedia.org/wiki/File:ScotRail_logo.svg",
+    "license": "Not free: the company's own logo, as shown on Wikipedia",
+    "author": null
+  },
+  "sj": {
+    "file": "SJ (rail operator) logo.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:SJ_(rail_operator)_logo.svg",
+    "license": "Public domain",
+    "author": "SJ AB"
+  },
+  "sncb": {
+    "file": "SNCB logo.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:SNCB_logo.svg",
+    "license": "Public domain",
+    "author": "™/®NMBS/SNCB"
+  },
+  "sncf": {
+    "file": "Logo SNCF (2011).svg",
+    "source": "https://fr.wikipedia.org/wiki/Fichier:Logo_SNCF_(2011).svg",
+    "license": "Not free: the company's own logo, as shown on Wikipedia",
+    "author": "inconnu"
+  },
+  "southeastern": {
+    "file": "Southeastern logo (2006–2014).svg",
+    "source": "https://commons.wikimedia.org/wiki/File:Southeastern_logo_(2006%E2%80%932014).svg",
+    "license": "Public domain",
+    "author": "Govia Limited for London &amp; South Eastern Railway"
+  },
+  "southern": {
+    "file": "Southern toc logo.png",
+    "source": "https://commons.wikimedia.org/wiki/File:Southern_toc_logo.png",
+    "license": "Not free: the company's own logo, as shown on Wikipedia",
+    "author": "Go-Ahead Group"
+  },
+  "srt": {
+    "file": "SRT logo.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:SRT_logo.svg",
+    "license": "Public domain",
+    "author": "Supreme Railways"
+  },
+  "sydney-trains": {
+    "file": "Syd Trains Logo.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:Syd_Trains_Logo.svg",
+    "license": "Public domain",
+    "author": "MDRX"
+  },
+  "taiwan-railway": {
+    "file": "Taiwan Railway alternate logo.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:Taiwan_Railway_alternate_logo.svg",
+    "license": "Public domain",
+    "author": "w:Taiwan Railway Administration"
+  },
+  "ter": {
+    "file": "Logo TER.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:Logo_TER.svg",
+    "license": "Public domain",
+    "author": "SNCF"
+  },
+  "tfw": {
+    "file": "Transport wales logo18.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:Transport_wales_logo18.svg",
+    "license": "Public domain",
+    "author": "Smörgåsbord Studio (Cardiff)"
+  },
+  "tgv-inoui": {
+    "file": "TGV inOui logo RDT.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:TGV_inOui_logo_RDT.svg",
+    "license": "Public domain",
+    "author": "SNCF, uploaded by Jackdude101"
+  },
+  "thameslink": {
+    "file": "ThameslinkSymbol.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:ThameslinkSymbol.svg",
+    "license": "Public domain",
+    "author": "Thameslink and Great Northern"
+  },
+  "tobu": {
+    "file": "Tobu Logo full.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:Tobu_Logo_full.svg",
+    "license": "Public domain",
+    "author": "東武鉄道"
+  },
+  "transperth": {
+    "file": "Transperth icon.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:Transperth_icon.svg",
+    "license": "Public domain",
+    "author": "Public Transport Authority of Western Australia"
+  },
+  "trenitalia": {
+    "file": "Trenitalia logo RDT.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:Trenitalia_logo_RDT.svg",
+    "license": "Public domain",
+    "author": "Trenitalia, uploaded by Jackdude101"
+  },
+  "via": {
+    "file": "VIA Rail Canada simplified.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:VIA_Rail_Canada_simplified.svg",
+    "license": "Public domain",
+    "author": "Useddenim"
+  },
+  "vline": {
+    "file": "VLine logo (2014).svg",
+    "source": "https://en.wikipedia.org/wiki/File:VLine_logo_(2014).svg",
+    "license": "Not free: the company's own logo, as shown on Wikipedia",
+    "author": null
+  },
+  "vr": {
+    "file": "VR logo green.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:VR_logo_green.svg",
+    "license": "Public domain",
+    "author": "VR Matkalla"
+  },
+  "vy": {
+    "file": "Vy logo.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:Vy_logo.svg",
+    "license": "Public domain",
+    "author": "Vy"
+  },
+  "westbahn": {
+    "file": "Westbahn-Logo-2025.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:Westbahn-Logo-2025.svg",
+    "license": "Public domain",
+    "author": "Westbahn Management"
+  },
+  "wmr": {
+    "file": "West Midlands Railway generic symbol.svg",
+    "source": "https://commons.wikimedia.org/wiki/File:West_Midlands_Railway_generic_symbol.svg",
+    "license": "Public domain",
+    "author": "Oldhamtw"
+  }
+}
