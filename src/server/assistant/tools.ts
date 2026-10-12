@@ -195,12 +195,14 @@ const listNotesTool = tool({
   name: "list_notes",
   label: "Looking at your notes",
   description:
-    "List the user's notes, pinned first, then most recently edited, with the start of each. Use it for questions about the notes in general; use search_notes to find specific content.",
+    "List the user's notes, pinned first, then most recently edited, with the start of each and their tags (shared with tasks). Use it for questions about the notes in general or with a tag; use search_notes to find specific content.",
   input: z.object({
     limit: z.number().int().min(1).max(50).optional().describe("How many notes (default 20)"),
+    tag: z.string().optional().describe("Only notes with this tag, without the #"),
   }),
-  async run({ limit = 20 }, { userId, format }) {
-    const notes = await listNotes(userId);
+  async run({ limit = 20, tag }, { userId, format }) {
+    const wanted = tag?.replace(/^#+/, "").trim().toLowerCase();
+    const notes = (await listNotes(userId)).filter((n) => !wanted || n.tags.some((t) => t.toLowerCase() === wanted));
     return {
       total: notes.length,
       notes: notes.slice(0, limit).map((n) => ({
@@ -208,6 +210,7 @@ const listNotesTool = tool({
         link: noteHref(n.id),
         title: n.title || "Untitled",
         pinned: n.pinned || undefined,
+        tags: n.tags.length ? n.tags : undefined,
         updatedText: format.dayWithYear(n.updatedAt),
         start: clip(n.contentText.trim(), 200),
       })),
@@ -219,7 +222,7 @@ const searchNotesTool = tool({
   name: "search_notes",
   label: "Searching your notes",
   description:
-    "Find the user's notes containing all the given words (title or text, any case). Returns excerpts; use read_note for a whole note.",
+    "Find the user's notes containing all the given words (title, text or tags, any case). Returns excerpts; use read_note for a whole note.",
   input: z.object({
     query: z
       .string()
@@ -235,6 +238,7 @@ const searchNotesTool = tool({
         id: n.id,
         link: noteHref(n.id),
         title: n.title || "Untitled",
+        tags: n.tags.length ? n.tags : undefined,
         updatedText: format.dayWithYear(n.updatedAt),
         excerpt: clip(n.contentText.slice(at), 500),
       };
@@ -250,7 +254,12 @@ const readNoteTool = tool({
   async run({ id }, { userId }) {
     const note = await getNote(userId, id);
     if (!note) throw new ToolError("No note with that id");
-    return { title: note.title || "Untitled", link: noteHref(note.id), text: clip(note.contentText, 12_000) ?? "" };
+    return {
+      title: note.title || "Untitled",
+      link: noteHref(note.id),
+      tags: note.tags.length ? note.tags : undefined,
+      text: clip(note.contentText, 12_000) ?? "",
+    };
   },
 });
 

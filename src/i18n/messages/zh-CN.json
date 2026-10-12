@@ -352,7 +352,14 @@
       "loading": "正在加载动态"
     }
   },
+  "tags": {
+    "add": "添加标签",
+    "remove": "移除 #{tag}",
+    "suggestions": "建议的标签"
+  },
   "notes": {
+    "tagFilter": "按标签筛选",
+    "clearTag": "清除标签筛选 #{tag}",
     "title": "笔记",
     "count": "{count} 篇笔记",
     "import": "导入 Markdown 文件",
@@ -369,6 +376,7 @@
     "noText": "没有其他内容",
     "file": "文件",
     "editor": {
+      "addTags": "添加标签…",
       "saved": "已保存",
       "unsaved": "已编辑",
       "saving": "保存中…",

@@ -152,6 +152,8 @@ export const notes = pgTable(
     // Editor document (Tiptap JSON); contentText is its plain text for previews and search
     content: jsonb().$type<NoteContent>().notNull(),
     contentText: text().notNull().default(""),
+    // Shared with tasks' tags (the same names, suggested across both)
+    tags: text().array().notNull().default([]),
     pinned: boolean().notNull().default(false),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp({ withTimezone: true })

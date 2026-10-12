@@ -352,7 +352,14 @@
       "loading": "正在載入動態"
     }
   },
+  "tags": {
+    "add": "新增標籤",
+    "remove": "移除 #{tag}",
+    "suggestions": "建議的標籤"
+  },
   "notes": {
+    "tagFilter": "依標籤篩選",
+    "clearTag": "清除標籤篩選 #{tag}",
     "title": "筆記",
     "count": "{count} 篇筆記",
     "import": "匯入 Markdown 檔案",
@@ -369,6 +376,7 @@
     "noText": "沒有其他內容",
     "file": "檔案",
     "editor": {
+      "addTags": "新增標籤…",
       "saved": "已儲存",
       "unsaved": "已編輯",
       "saving": "儲存中…",

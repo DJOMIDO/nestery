@@ -17,6 +17,8 @@ export interface Note {
   title: string;
   content: NoteContent;
   contentText: string;
+  // Shared with tasks
+  tags: string[];
   pinned: boolean;
   createdAt: string;
   updatedAt: string;
@@ -56,13 +58,28 @@ export function compareNotes(a: Note, b: Note) {
   return b.updatedAt.localeCompare(a.updatedAt);
 }
 
+// In the title, the text or a tag; "#trip" looks at tags only
 export function matchesQuery(note: Note, query: string) {
   const q = query.trim().toLowerCase();
   if (!q) return true;
+  if (q.startsWith("#")) {
+    const tag = q.replace(/^#+/, "");
+    return note.tags.some((t) => t.toLowerCase().includes(tag));
+  }
   return (
     note.title.toLowerCase().includes(q) ||
-    note.contentText.toLowerCase().includes(q)
+    note.contentText.toLowerCase().includes(q) ||
+    note.tags.some((t) => t.toLowerCase().includes(q))
   );
+}
+
+// Number of notes per tag, most used first
+export function noteTagCounts(notes: Pick<Note, "tags">[]) {
+  const counts = new Map<string, number>();
+  for (const note of notes) for (const tag of note.tags) counts.set(tag, (counts.get(tag) ?? 0) + 1);
+  return [...counts]
+    .map(([tag, count]) => ({ tag, count }))
+    .sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag));
 }
 
 export interface NoteActivity {

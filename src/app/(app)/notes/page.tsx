@@ -14,7 +14,8 @@ import { NoteListItem } from "@/components/notes/NoteListItem";
 import { markdownToNote } from "@/components/notes/markdown";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { useNotes } from "@/hooks/useNotes";
-import { compareNotes, matchesQuery, type Note } from "@/lib/notes";
+import { compareNotes, matchesQuery, noteTagCounts, type Note } from "@/lib/notes";
+import { cn } from "@/lib/utils";
 
 // Same limit as a note's content on the server
 const MAX_IMPORT_BYTES = 1_000_000;
@@ -38,6 +39,7 @@ function NotesView() {
   const isWide = useMediaQuery("(min-width: 1024px)");
 
   const [query, setQuery] = useState("");
+  const [tagFilter, setTagFilter] = useState<string | null>(null);
   // ?note=<id> opens a note (links from the dashboard); &new=1 focuses its title
   const [selectedId, setSelectedId] = useState<string | null>(() =>
     searchParams.get("note")
@@ -57,9 +59,10 @@ function NotesView() {
 
   const sorted = useMemo(() => [...notes].sort(compareNotes), [notes]);
   const visible = useMemo(
-    () => sorted.filter((n) => matchesQuery(n, query)),
-    [sorted, query]
+    () => sorted.filter((n) => matchesQuery(n, query) && (!tagFilter || n.tags.includes(tagFilter))),
+    [sorted, query, tagFilter]
   );
+  const tags = useMemo(() => noteTagCounts(notes), [notes]);
 
   // Wide screens always show a note when there is one
   const selected =
@@ -111,6 +114,7 @@ function NotesView() {
             content: note.content,
             contentText: note.contentText,
             pinned: note.pinned,
+            tags: note.tags,
           });
           if (restored) setSelectedId(restored.id);
         },
@@ -171,12 +175,36 @@ function NotesView() {
             />
           </div>
 
+          {/* The notes' tags, most used first; one at a time narrows the list */}
+          {tags.length > 0 && (
+            <div role="group" aria-label={t("tagFilter")} className="-mt-1 flex flex-wrap gap-1.5">
+              {tags.map(({ tag, count }) => {
+                const on = tag === tagFilter;
+                return (
+                  <button
+                    key={tag}
+                    type="button"
+                    onClick={() => setTagFilter(on ? null : tag)}
+                    aria-pressed={on}
+                    aria-label={on ? t("clearTag", { tag }) : undefined}
+                    className={cn(
+                      "rounded px-2 py-0.5 text-xs transition-colors",
+                      on ? "bg-bark text-white" : "bg-bark-soft text-bark hover:brightness-95"
+                    )}
+                  >
+                    #{tag} <span className="opacity-70">{count}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
           {loading ? (
             // Fits the column like the list it stands in for, which scrolls on its own
             <ListSkeleton label={t("loading")} className="flex-1 min-h-0 overflow-hidden" />
           ) : visible.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              {query ? t("noMatch") : t("empty")}
+              {query || tagFilter ? t("noMatch") : t("empty")}
             </p>
           ) : (
             <ul className="flex-1 min-h-0 overflow-y-auto space-y-1 lg:pr-2">

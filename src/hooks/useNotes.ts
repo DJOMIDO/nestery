@@ -7,7 +7,7 @@ import type { Note } from "@/lib/notes";
 
 // Shape accepted by POST /api/notes and PATCH /api/notes/[id]
 export type NoteInput = Partial<
-  Pick<Note, "title" | "content" | "contentText" | "pinned">
+  Pick<Note, "title" | "content" | "contentText" | "pinned" | "tags">
 >;
 
 // Loads the current user's notes and exposes create/update/delete helpers

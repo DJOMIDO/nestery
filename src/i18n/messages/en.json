@@ -352,7 +352,14 @@
       "loading": "Loading activity"
     }
   },
+  "tags": {
+    "add": "Add a tag",
+    "remove": "Remove #{tag}",
+    "suggestions": "Suggested tags"
+  },
   "notes": {
+    "tagFilter": "Filter by tag",
+    "clearTag": "Clear tag filter #{tag}",
     "title": "Notes",
     "count": "{count, plural, one {# note} other {# notes}}",
     "import": "Import Markdown files",
@@ -369,6 +376,7 @@
     "noText": "No additional text",
     "file": "File",
     "editor": {
+      "addTags": "Add tags…",
       "saved": "Saved",
       "unsaved": "Edited",
       "saving": "Saving…",

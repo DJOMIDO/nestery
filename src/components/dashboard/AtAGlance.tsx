@@ -8,7 +8,7 @@ import { CardHeading } from "./CardHeading";
 import { useTranslations } from "next-intl";
 import { useFormat } from "@/components/SettingsProvider";
 import { eventDays, type CalendarEvent } from "@/lib/calendar";
-import type { Note } from "@/lib/notes";
+import { noteTagCounts, type Note } from "@/lib/notes";
 import { addDays, tagCounts, type Task } from "@/lib/tasks";
 import { journeyLabel, type Journey } from "@/lib/travel";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -60,7 +60,8 @@ export function AtAGlance({ tasks, notes, events, journeys, today, loading }: At
     .filter((e) => (e.allDay ? eventDays(e).first >= today : Date.parse(e.startsAt!) > now))
     .sort((a, b) => (a.startsAt ?? `${a.startDate}T00`).localeCompare(b.startsAt ?? `${b.startDate}T00`))[0];
 
-  const tags = tagCounts(open).slice(0, MAX_TAGS);
+  // Shared by tasks (still open) and notes
+  const tags = mergeCounts(tagCounts(open), noteTagCounts(notes)).slice(0, MAX_TAGS);
 
   return (
     <>
@@ -155,4 +156,13 @@ function Stat({ value, label, alert }: { value: number; label: string; alert?: b
       <span className={cn("font-semibold text-foreground", alert && "text-rose-600")}>{value}</span> {label}
     </span>
   );
+}
+
+// Two tag counts as one, most used first
+function mergeCounts(...lists: { tag: string; count: number }[][]) {
+  const counts = new Map<string, number>();
+  for (const list of lists) for (const { tag, count } of list) counts.set(tag, (counts.get(tag) ?? 0) + count);
+  return [...counts]
+    .map(([tag, count]) => ({ tag, count }))
+    .sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag));
 }

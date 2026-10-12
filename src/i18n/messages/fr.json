@@ -352,7 +352,14 @@
       "loading": "Chargement de l’activité"
     }
   },
+  "tags": {
+    "add": "Ajouter une étiquette",
+    "remove": "Retirer #{tag}",
+    "suggestions": "Étiquettes suggérées"
+  },
   "notes": {
+    "tagFilter": "Filtrer par étiquette",
+    "clearTag": "Retirer le filtre #{tag}",
     "title": "Notes",
     "count": "{count, plural, one {# note} other {# notes}}",
     "import": "Importer des fichiers Markdown",
@@ -369,6 +376,7 @@
     "noText": "Pas d’autre texte",
     "file": "Fichier",
     "editor": {
+      "addTags": "Ajouter des étiquettes…",
       "saved": "Enregistrée",
       "unsaved": "Modifiée",
       "saving": "Enregistrement…",

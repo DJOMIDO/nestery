@@ -19,8 +19,8 @@ import {
 } from "@/components/ui/select";
 import type { TaskInput } from "@/hooks/useTasks";
 import { cn } from "@/lib/utils";
+import { TagInput } from "@/components/TagInput";
 import {
-  parseTags,
   TASK_STATUSES,
   type Task,
   type TaskPriority,
@@ -60,7 +60,7 @@ export function TaskForm({
 }: TaskFormProps) {
   const [title, setTitle] = useState(task?.title ?? "");
   const [description, setDescription] = useState(task?.description ?? "");
-  const [tags, setTags] = useState(task?.tags.join(", ") ?? "");
+  const [tags, setTags] = useState<string[]>(task?.tags ?? []);
   const t = useTranslations("tasks");
   const tCommon = useTranslations("common");
   const [status, setStatus] = useState<TaskStatus>(task?.status ?? "todo");
@@ -83,7 +83,7 @@ export function TaskForm({
     await onSubmit({
       title: title.trim(),
       description: description.trim() || null,
-      tags: parseTags(tags),
+      tags,
       status,
       priority,
       dueDate: dueDate || null,
@@ -118,13 +118,8 @@ export function TaskForm({
       </div>
       <div>
         <Label htmlFor={id("tags")}>{t("form.tags")}</Label>
-        <Input
-          id={id("tags")}
-          className="mt-2"
-          value={tags}
-          onChange={(e) => setTags(e.target.value)}
-          placeholder={t("form.tagsPlaceholder")}
-        />
+        {/* Suggests the tags already on tasks and notes */}
+        <TagInput id={id("tags")} className="mt-2" value={tags} onChange={setTags} placeholder={t("form.tagsPlaceholder")} />
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
