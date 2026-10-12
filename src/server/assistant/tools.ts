@@ -396,8 +396,13 @@ const proposeJourneyTool = tool({
     arrivalDate: date.optional().describe("Local date at the destination, if different or known"),
     arrivalTime: z.string().regex(/^\d{2}:\d{2}$/).optional().describe("Local time at the destination, HH:mm"),
     stopover: z.string().optional().describe("Flights with a stop on the same flight number: the airport code"),
-    originCity: z.string().optional().describe("Trains: the city of the origin station"),
-    destinationCity: z.string().optional().describe("Trains: the city of the destination station"),
+    originCity: z
+      .string()
+      .optional()
+      .describe(
+        "Trains: always give the city the origin station is in, even when the ticket names only the station (Paris for Paris Gare de Lyon, 上海 for 上海虹桥站). It places the station for the weather"
+      ),
+    destinationCity: z.string().optional().describe("Trains: always give the destination station's city, like originCity"),
     seat: z.string().optional(),
     coach: z.string().optional().describe("Trains"),
     gate: z.string().optional().describe("Flights"),

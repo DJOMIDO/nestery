@@ -67,7 +67,7 @@ export function TravelOverviewPanel({
           >
             <div className="flex items-center justify-between gap-3">
               <span className="text-sm font-semibold text-leaf">{when}</span>
-              {weather[next.id] && <JourneyWeatherBadge weather={weather[next.id]} />}
+              {weather[next.id]?.arrival && <JourneyWeatherBadge weather={weather[next.id].arrival!} />}
             </div>
             <p className="mt-2 flex items-center gap-2 text-xl font-semibold">
               {next.kind === "flight" ? <Plane className="size-5 text-leaf" /> : <TrainFront className="size-5 text-leaf" />}

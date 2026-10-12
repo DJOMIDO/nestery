@@ -5,10 +5,10 @@
 import { useTranslations } from "next-intl";
 import { WeatherIcon } from "@/components/weather/WeatherIcon";
 import { useWeatherLabel } from "@/components/weather/useWeatherLabel";
-import type { JourneyWeather } from "@/lib/travel";
+import type { PlaceWeather } from "@/lib/travel";
 import { cn } from "@/lib/utils";
 
-export function JourneyWeatherBadge({ weather, className }: { weather: JourneyWeather; className?: string }) {
+export function JourneyWeatherBadge({ weather, className }: { weather: PlaceWeather; className?: string }) {
   const t = useTranslations("travel");
   const weatherLabel = useWeatherLabel();
   const rain =
