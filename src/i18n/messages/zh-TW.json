@@ -373,6 +373,15 @@
     "clearTag": "清除標籤篩選 #{tag}",
     "title": "筆記",
     "count": "{count} 篇筆記",
+    "countFiltered": "{shown} / {count} 篇筆記",
+    "sortAndFilter": "排序和篩選",
+    "sortBy": "排序方式",
+    "order": {
+      "edited": "最近編輯",
+      "created": "建立時間",
+      "title": "標題"
+    },
+    "pinnedOnly": "只看釘選",
     "import": "匯入 Markdown 檔案",
     "importHint": "匯入 Markdown（.md）",
     "imported": "已匯入 {count} 篇筆記",

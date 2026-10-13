@@ -3,18 +3,29 @@
 
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { NotebookPen, Plus, Search, Upload } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { ArrowDownUp, NotebookPen, Plus, Search, Upload } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ListSkeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { NoteEditor } from "@/components/notes/NoteEditor";
 import { NoteListItem } from "@/components/notes/NoteListItem";
 import { markdownToNote } from "@/components/notes/markdown";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { useNotes } from "@/hooks/useNotes";
-import { compareNotes, matchesQuery, noteTagCounts, type Note } from "@/lib/notes";
+import { useStoredChoice } from "@/hooks/useStoredChoice";
+import { matchesQuery, NOTE_ORDERS, noteTagCounts, sortNotes, type Note } from "@/lib/notes";
 import { cn } from "@/lib/utils";
 
 // Same limit as a note's content on the server
@@ -38,8 +49,12 @@ function NotesView() {
   // List and editor side by side on large screens (Tailwind `lg`), one at a time otherwise
   const isWide = useMediaQuery("(min-width: 1024px)");
 
+  const locale = useLocale();
   const [query, setQuery] = useState("");
-  const [tagFilter, setTagFilter] = useState<string | null>(null);
+  // Notes with all of these tags
+  const [tagFilter, setTagFilter] = useState<string[]>([]);
+  const [pinnedOnly, setPinnedOnly] = useState(false);
+  const [order, setOrder] = useStoredChoice("notes-order", NOTE_ORDERS, "edited");
   // ?note=<id> opens a note (links from the dashboard); &new=1 focuses its title
   const [selectedId, setSelectedId] = useState<string | null>(() =>
     searchParams.get("note")
@@ -57,11 +72,18 @@ function NotesView() {
     router.replace("/notes", { scroll: false });
   }, [searchParams, router]);
 
-  const sorted = useMemo(() => [...notes].sort(compareNotes), [notes]);
+  const sorted = useMemo(() => sortNotes(notes, order, locale), [notes, order, locale]);
   const visible = useMemo(
-    () => sorted.filter((n) => matchesQuery(n, query) && (!tagFilter || n.tags.includes(tagFilter))),
-    [sorted, query, tagFilter]
+    () =>
+      sorted.filter(
+        (n) =>
+          matchesQuery(n, query) && tagFilter.every((tag) => n.tags.includes(tag)) && (!pinnedOnly || n.pinned)
+      ),
+    [sorted, query, tagFilter, pinnedOnly]
   );
+  const filtered = !!query || tagFilter.length > 0 || pinnedOnly;
+  const toggleTag = (tag: string) =>
+    setTagFilter((tags) => (tags.includes(tag) ? tags.filter((t) => t !== tag) : [...tags, tag]));
   const tags = useMemo(() => noteTagCounts(notes), [notes]);
 
   // Wide screens always show a note when there is one
@@ -133,7 +155,11 @@ function NotesView() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold">{t("title")}</h1>
-              <p className="text-sm text-muted-foreground">{t("count", { count: notes.length })}</p>
+              <p className="text-sm text-muted-foreground">
+                {filtered && !loading
+                  ? t("countFiltered", { shown: visible.length, count: notes.length })
+                  : t("count", { count: notes.length })}
+              </p>
             </div>
             <div className="flex items-center gap-2">
               <Button
@@ -164,27 +190,57 @@ function NotesView() {
             </div>
           </div>
 
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder={t("search")}
-              aria-label={t("search")}
-              className="pl-9"
-            />
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder={t("search")}
+                aria-label={t("search")}
+                className="pl-9"
+              />
+            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  aria-label={t("sortAndFilter")}
+                  title={t("sortAndFilter")}
+                  // Marked while the list is ordered or narrowed differently than by default
+                  className={cn((order !== "edited" || pinnedOnly) && "border-leaf text-leaf")}
+                >
+                  <ArrowDownUp className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-52">
+                <DropdownMenuLabel>{t("sortBy")}</DropdownMenuLabel>
+                <DropdownMenuRadioGroup value={order} onValueChange={(v) => setOrder(v as typeof order)}>
+                  {NOTE_ORDERS.map((o) => (
+                    <DropdownMenuRadioItem key={o} value={o}>
+                      {t(`order.${o}`)}
+                    </DropdownMenuRadioItem>
+                  ))}
+                </DropdownMenuRadioGroup>
+                <DropdownMenuSeparator />
+                <DropdownMenuCheckboxItem checked={pinnedOnly} onCheckedChange={(on) => setPinnedOnly(on === true)}>
+                  {t("pinnedOnly")}
+                </DropdownMenuCheckboxItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
-          {/* The notes' tags, most used first; one at a time narrows the list */}
+          {/* The notes' tags, most used first; each one chosen narrows the list further */}
           {tags.length > 0 && (
             <div role="group" aria-label={t("tagFilter")} className="-mt-1 flex flex-wrap gap-1.5">
               {tags.map(({ tag, count }) => {
-                const on = tag === tagFilter;
+                const on = tagFilter.includes(tag);
                 return (
                   <button
                     key={tag}
                     type="button"
-                    onClick={() => setTagFilter(on ? null : tag)}
+                    onClick={() => toggleTag(tag)}
                     aria-pressed={on}
                     aria-label={on ? t("clearTag", { tag }) : undefined}
                     className={cn(
@@ -204,7 +260,7 @@ function NotesView() {
             <ListSkeleton label={t("loading")} className="flex-1 min-h-0 overflow-hidden" />
           ) : visible.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              {query || tagFilter ? t("noMatch") : t("empty")}
+              {filtered ? t("noMatch") : t("empty")}
             </p>
           ) : (
             <ul className="flex-1 min-h-0 overflow-y-auto space-y-1 lg:pr-2">
@@ -213,6 +269,7 @@ function NotesView() {
                   key={note.id}
                   note={note}
                   selected={note.id === selected?.id}
+                  date={order === "created" ? note.createdAt : note.updatedAt}
                   onSelect={(n) => setSelectedId(n.id)}
                 />
               ))}

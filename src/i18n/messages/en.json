@@ -373,6 +373,15 @@
     "clearTag": "Clear tag filter #{tag}",
     "title": "Notes",
     "count": "{count, plural, one {# note} other {# notes}}",
+    "countFiltered": "{shown} of {count, plural, one {# note} other {# notes}}",
+    "sortAndFilter": "Sort and filter",
+    "sortBy": "Sort by",
+    "order": {
+      "edited": "Last edited",
+      "created": "Date created",
+      "title": "Title"
+    },
+    "pinnedOnly": "Pinned only",
     "import": "Import Markdown files",
     "importHint": "Import Markdown (.md)",
     "imported": "Imported {count, plural, one {# note} other {# notes}}",

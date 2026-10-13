@@ -11,10 +11,12 @@ import { useFormat } from "@/components/SettingsProvider";
 interface NoteListItemProps {
   note: Note;
   selected: boolean;
+  // Shown on the right: when it was edited, or created when sorted by that
+  date?: string;
   onSelect: (note: Note) => void;
 }
 
-export function NoteListItem({ note, selected, onSelect }: NoteListItemProps) {
+export function NoteListItem({ note, selected, date = note.updatedAt, onSelect }: NoteListItemProps) {
   const t = useTranslations("notes");
   const tCommon = useTranslations("common");
   const format = useFormat();
@@ -37,7 +39,7 @@ export function NoteListItem({ note, selected, onSelect }: NoteListItemProps) {
             {noteTitle(note, t("untitled"))}
           </span>
           <span className="shrink-0 text-xs text-muted-foreground">
-            {format.relative(note.updatedAt)}
+            {format.relative(date)}
           </span>
         </div>
         <NotePreview note={note} className="mt-0.5 text-sm" />
