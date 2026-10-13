@@ -318,7 +318,7 @@
       "events": "{count, plural, one {event} other {events}} in 7 days",
       "trips": "{count, plural, one {trip ahead} other {trips ahead}}",
       "next": "Next:",
-      "tags": "Tags on open tasks"
+      "tags": "Tags"
     },
     "today": {
       "title": "Today",

@@ -318,7 +318,7 @@
       "events": "{count, plural, one {événement} other {événements}} sous 7 jours",
       "trips": "{count, plural, one {voyage à venir} other {voyages à venir}}",
       "next": "Prochain :",
-      "tags": "Étiquettes des tâches ouvertes"
+      "tags": "Étiquettes"
     },
     "today": {
       "title": "Aujourd’hui",
