@@ -416,7 +416,7 @@ export function AssistantPanel({
                   </div>
                 )}
                 {item.text && (
-                  <p className="whitespace-pre-wrap break-words rounded-2xl bg-muted px-3.5 py-2 dark:bg-foreground/10 text-sm text-foreground">
+                  <p className="whitespace-pre-wrap wrap-anywhere rounded-2xl bg-muted px-3.5 py-2 dark:bg-foreground/10 text-sm text-foreground">
                     {item.text}
                   </p>
                 )}
