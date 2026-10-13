@@ -373,6 +373,15 @@
     "clearTag": "清除标签筛选 #{tag}",
     "title": "笔记",
     "count": "{count} 篇笔记",
+    "countFiltered": "{shown} / {count} 篇笔记",
+    "sortAndFilter": "排序和筛选",
+    "sortBy": "排序方式",
+    "order": {
+      "edited": "最近编辑",
+      "created": "创建时间",
+      "title": "标题"
+    },
+    "pinnedOnly": "只看置顶",
     "import": "导入 Markdown 文件",
     "importHint": "导入 Markdown（.md）",
     "imported": "已导入 {count} 篇笔记",

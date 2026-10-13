@@ -58,6 +58,24 @@ export function compareNotes(a: Note, b: Note) {
   return b.updatedAt.localeCompare(a.updatedAt);
 }
 
+// How the notes page orders its list; pinned notes always come first
+export const NOTE_ORDERS = ["edited", "created", "title"] as const;
+export type NoteOrder = (typeof NOTE_ORDERS)[number];
+
+// Titles in the interface language's order, numbers by value ("2-…" before
+// "10-…"); untitled notes last. Dates newest first.
+export function sortNotes(notes: Note[], order: NoteOrder, locale: string) {
+  const collator = new Intl.Collator(locale, { numeric: true, sensitivity: "base" });
+  const byOrder = (a: Note, b: Note) => {
+    if (order === "created") return b.createdAt.localeCompare(a.createdAt);
+    if (order === "edited") return b.updatedAt.localeCompare(a.updatedAt);
+    const [x, y] = [a.title.trim(), b.title.trim()];
+    if (!x !== !y) return x ? -1 : 1;
+    return collator.compare(x, y) || b.updatedAt.localeCompare(a.updatedAt);
+  };
+  return [...notes].sort((a, b) => (a.pinned !== b.pinned ? (a.pinned ? -1 : 1) : byOrder(a, b)));
+}
+
 // In the title, the text or a tag; "#trip" looks at tags only
 export function matchesQuery(note: Note, query: string) {
   const q = query.trim().toLowerCase();
