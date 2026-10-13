@@ -80,6 +80,8 @@ function describeError(err: unknown, baseUrl: string): ProviderError {
     return new ProviderError(`Could not reach ${host}.`);
   }
   if (err instanceof OpenAI.APIError) {
+    // A provider's 5xx can also be its reply to a request it can't handle
+    console.error(`Assistant provider ${host} failed (${err.status})`, err.message);
     return new ProviderError(`${host} is unavailable right now. Try again later.`);
   }
   // Kept in the logs: these are the ones to look into

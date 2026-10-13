@@ -141,7 +141,11 @@
       "propose_task": "Preparing a task",
       "propose_task_update": "Preparing a change",
       "propose_journey": "Preparing a journey",
-      "propose_event": "Preparing an event"
+      "propose_event": "Preparing an event",
+      "preview_note_split": "Looking at how a note splits",
+      "propose_note": "Preparing a note",
+      "propose_note_update": "Preparing a change",
+      "propose_note_split": "Preparing a split"
     },
     "noAnswer": "(The model didn't give an answer. Try again, or choose a larger model in Settings.)"
   },
@@ -241,8 +245,15 @@
     "arrives": " (arrives {date})",
     "seat": "seat {seat}",
     "newEvent": "New event “{title}”, {when}",
+    "newNote": "New note “{title}”",
+    "noteChanges": "Note “{title}”: {changes}",
+    "noteTags": "tags {tags}",
+    "noTags": "remove its tags",
+    "appendText": "add text at the end",
+    "splitNote": "Split “{title}” into {count, plural, one {# new note} other {# new notes}}; it keeps its first part",
     "taskUpdated": "Task updated",
     "addedToTravel": "Added to Travel",
+    "noteSplit": "{count, plural, one {# note created} other {# notes created}}",
     "dismiss": "Dismiss",
     "confirm": "Confirm",
     "dismissed": "Dismissed"
@@ -1136,7 +1147,12 @@
     "maxSubscriptions": "You can subscribe to at most {max} calendars",
     "fileMaxSize": "Files can be at most {size} MB",
     "dateMissing": "That date doesn't exist",
-    "invalidRequest": "Invalid request"
+    "invalidRequest": "Invalid request",
+    "splitEdited": "The note was edited after the split was proposed. Ask the assistant again.",
+    "splitRule": "Give either a heading level or the text that starts each part",
+    "splitOnePart": "The note has only one part, so there is nothing to split",
+    "splitNoPart": "No part of the note starts that way",
+    "splitMax": "Split into at most {max} notes at a time"
   },
   "emails": {
     "linkFallback": "If the button doesn't work, copy this link into your browser:",

@@ -7,7 +7,8 @@ import { z } from "zod";
 import { db } from "@/db";
 import { notes } from "@/db/schema";
 import { EMPTY_NOTE_CONTENT, type NoteContent } from "@/lib/notes";
-import { claimLinkedAttachments, releaseNoteAttachments } from "@/server/attachments";
+import { MAX_SPLIT_PARTS, noteText, splitNoteContent } from "@/lib/noteSplit";
+import { claimLinkedAttachments, moveAttachments, releaseNoteAttachments } from "@/server/attachments";
 import { tagList } from "@/server/tags";
 
 const MAX_CONTENT_BYTES = 1_000_000;
@@ -91,6 +92,65 @@ export async function updateNote(
   if (updated && input.content) await claimLinkedAttachments(userId, id, input.content);
   return updated ?? null;
 }
+
+export const splitNoteInput = z
+  .object({
+    headingLevel: z.number().int().min(1).max(3).optional(),
+    lineStartsWith: z.string().trim().min(1).max(100).optional(),
+    // One per new note, in order
+    titles: z.array(noteFields.title).min(1).max(MAX_SPLIT_PARTS),
+    // The note as it was when the split was proposed; a note edited since
+    // is not split
+    expectedUpdatedAt: z.string().datetime({ offset: true }),
+  })
+  .refine((v) => !!v.headingLevel !== !!v.lineStartsWith, "Give either a heading level or the text that starts each part");
+
+export type SplitNoteInput = z.infer<typeof splitNoteInput>;
+
+// Moves each part of a note after the first into a note of its own, with the
+// original's tags. Returns null when the note does not exist; throws
+// SplitError with a message for the user when it can't be split as asked.
+export async function splitNote(userId: string, id: string, input: SplitNoteInput) {
+  const note = await getNote(userId, id);
+  if (!note) return null;
+  if (note.updatedAt.getTime() !== new Date(input.expectedUpdatedAt).getTime()) {
+    throw new SplitError("The note was edited after the split was proposed. Ask the assistant again.");
+  }
+  let split;
+  try {
+    split = splitNoteContent(note.content, input);
+  } catch (err) {
+    throw new SplitError((err as Error).message);
+  }
+  if (split.parts.length !== input.titles.length) {
+    throw new SplitError("The note was edited after the split was proposed. Ask the assistant again.");
+  }
+
+  const created = await db.transaction(async (tx) => {
+    const rows = await tx
+      .insert(notes)
+      .values(
+        split.parts.map((part, i) => ({
+          userId,
+          title: input.titles[i],
+          content: part.content,
+          contentText: noteText(part.content),
+          tags: note.tags,
+        }))
+      )
+      .returning({ id: notes.id, content: notes.content });
+    await tx
+      .update(notes)
+      .set({ content: split.kept, contentText: noteText(split.kept) })
+      .where(and(eq(notes.id, id), eq(notes.userId, userId)));
+    return rows;
+  });
+  // Files shown in a part now belong to its note
+  for (const row of created) await moveAttachments(userId, id, row.id, row.content);
+  return { created: created.length };
+}
+
+export class SplitError extends Error {}
 
 // Returns false when the note does not exist or belongs to another user
 export async function deleteNote(userId: string, id: string) {

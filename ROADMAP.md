@@ -154,6 +154,13 @@ a packing task for Thursday and list my visa notes".
   events mentioned (in-app deep links), dates in the user's format, in the
   language of the user's latest message. The assistant states what it can
   and can't do, and an empty reply from a small model is retried once.
+- Notes: proposes new notes (written in Markdown, turned into the editor's
+  format on confirming), renaming, retagging or adding text at the end of
+  one, and splitting a long note at its headings or at lines starting with
+  a given text ("File: …"). The split happens on the server, on the editor
+  document itself, so the text and its formatting move unchanged and the
+  model never copies it; the original keeps its first part. An open note
+  changed this way reloads in the editor.
 
 **Planned**
 - Notes RAG: embed notes with pgvector in the same Neon database, answers

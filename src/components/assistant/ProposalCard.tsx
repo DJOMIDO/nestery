@@ -5,13 +5,14 @@
 "use client";
 
 import { useState } from "react";
-import { CalendarPlus, Check, ClipboardList, PencilLine, X } from "lucide-react";
+import { CalendarPlus, Check, ClipboardList, FilePlus2, Files, PencilLine, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { useFormat } from "@/components/SettingsProvider";
 import type { AssistantProposal } from "@/lib/assistant";
+import type { Note } from "@/lib/notes";
 import { request } from "@/lib/api";
 import { notifyDataChanged } from "@/lib/dataChanged";
 import { journeyLabel } from "@/lib/travel";
@@ -70,7 +71,36 @@ export function describeProposal(p: AssistantProposal, format: Formatter, t: Tra
         : `${format.day(e.startsAt)}${t("common.listSeparator")}${format.time(e.startsAt)} – ${format.time(e.endsAt)}`;
       return t("proposal.newEvent", { title: e.title, when });
     }
+    case "create_note":
+      return t("proposal.newNote", { title: p.input.title });
+    case "update_note": {
+      const c = p.changes;
+      const parts = [
+        c.title && t("proposal.rename", { title: c.title }),
+        c.tags && (c.tags.length ? t("proposal.noteTags", { tags: c.tags.map((tag) => `#${tag}`).join(" ") }) : t("proposal.noTags")),
+        c.appendMarkdown && t("proposal.appendText"),
+      ].filter(Boolean);
+      return t("proposal.noteChanges", { title: p.noteTitle, changes: parts.join(t("common.listSeparator")) });
+    }
+    case "split_note":
+      return t("proposal.splitNote", { title: p.noteTitle, count: p.input.titles.length });
   }
+}
+
+// What the one line leaves out: the new notes' titles, or the start of the text
+function ProposalDetails({ proposal: p }: { proposal: AssistantProposal }) {
+  if (p.kind === "split_note") {
+    return (
+      <ol className="mt-2 max-h-40 list-decimal space-y-0.5 overflow-y-auto pl-9 text-xs text-muted-foreground wrap-anywhere">
+        {p.input.titles.map((title, i) => (
+          <li key={i}>{title}</li>
+        ))}
+      </ol>
+    );
+  }
+  const text = p.kind === "create_note" ? p.input.markdown : p.kind === "update_note" ? p.changes.appendMarkdown : null;
+  if (!text?.trim()) return null;
+  return <p className="mt-2 line-clamp-3 whitespace-pre-wrap pl-6 text-xs text-muted-foreground wrap-anywhere">{text.trim()}</p>;
 }
 
 async function save(p: AssistantProposal) {
@@ -91,10 +121,45 @@ async function save(p: AssistantProposal) {
       await request("/api/events", { method: "POST", body: JSON.stringify(p.input) });
       notifyDataChanged("events");
       return;
+    case "create_note": {
+      // Loaded only here: the editor is large
+      const { markdownToContent } = await import("@/components/notes/markdown");
+      const { title, markdown, tags } = p.input;
+      await request("/api/notes", {
+        method: "POST",
+        body: JSON.stringify({ title, tags, ...markdownToContent(markdown) }),
+      });
+      notifyDataChanged("notes");
+      return;
+    }
+    case "update_note": {
+      const { appendMarkdown, ...changes } = p.changes;
+      let body: object = changes;
+      if (appendMarkdown) {
+        // Added to the note as it is now
+        const { markdownToContent } = await import("@/components/notes/markdown");
+        const note = await request<Note>(`/api/notes/${p.noteId}`);
+        body = { ...changes, ...markdownToContent(appendMarkdown, note.content) };
+      }
+      await request(`/api/notes/${p.noteId}`, { method: "PATCH", body: JSON.stringify(body) });
+      notifyDataChanged("notes");
+      return;
+    }
+    case "split_note":
+      await request(`/api/notes/${p.noteId}/split`, { method: "POST", body: JSON.stringify(p.input) });
+      notifyDataChanged("notes");
+      return;
   }
 }
 
-const ICONS = { create_task: ClipboardList, update_task: PencilLine, create_event: CalendarPlus };
+const ICONS = {
+  create_task: ClipboardList,
+  update_task: PencilLine,
+  create_event: CalendarPlus,
+  create_note: FilePlus2,
+  update_note: PencilLine,
+  split_note: Files,
+};
 
 const iconOf = (p: AssistantProposal) =>
   p.kind === "create_journey" ? journeyIcon(p.input.kind) : ICONS[p.kind];
@@ -125,7 +190,9 @@ export function ProposalCard({
           ? t("proposal.taskUpdated")
           : proposal.kind === "create_journey"
             ? t("proposal.addedToTravel")
-            : t("common.saved")
+            : proposal.kind === "split_note"
+              ? t("proposal.noteSplit", { count: proposal.input.titles.length })
+              : t("common.saved")
       );
       onSettled("confirmed", `The user confirmed: ${summary}. It is saved.`);
     } catch (err) {
@@ -142,6 +209,7 @@ export function ProposalCard({
         <Icon className="mt-0.5 size-4 shrink-0 text-leaf" />
         <p className="min-w-0 flex-1 break-words">{summary}</p>
       </div>
+      <ProposalDetails proposal={proposal} />
       {state === "pending" || state === "saving" ? (
         <div className="mt-2 flex justify-end gap-2">
           <Button variant="ghost" size="sm" onClick={dismiss} disabled={state === "saving"}>

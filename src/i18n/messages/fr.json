@@ -141,7 +141,11 @@
       "propose_task": "Je prépare une tâche",
       "propose_task_update": "Je prépare une modification",
       "propose_journey": "Je prépare un trajet",
-      "propose_event": "Je prépare un événement"
+      "propose_event": "Je prépare un événement",
+      "preview_note_split": "Je regarde comment diviser une note",
+      "propose_note": "Je prépare une note",
+      "propose_note_update": "Je prépare une modification",
+      "propose_note_split": "Je prépare une division"
     },
     "noAnswer": "(Le modèle n’a pas répondu. Réessaie, ou choisis un modèle plus grand dans les Paramètres.)"
   },
@@ -241,8 +245,15 @@
     "arrives": " (arrivée le {date})",
     "seat": "place {seat}",
     "newEvent": "Nouvel événement « {title} », {when}",
+    "newNote": "Nouvelle note « {title} »",
+    "noteChanges": "Note « {title} » : {changes}",
+    "noteTags": "étiquettes {tags}",
+    "noTags": "retirer ses étiquettes",
+    "appendText": "ajouter du texte à la fin",
+    "splitNote": "Diviser « {title} » en {count, plural, one {# nouvelle note} other {# nouvelles notes}} ; elle garde sa première partie",
     "taskUpdated": "Tâche mise à jour",
     "addedToTravel": "Ajouté aux voyages",
+    "noteSplit": "{count, plural, one {# note créée} other {# notes créées}}",
     "dismiss": "Ignorer",
     "confirm": "Confirmer",
     "dismissed": "Ignoré"
@@ -1136,7 +1147,12 @@
     "maxSubscriptions": "Tu peux t’abonner à {max} calendriers au maximum",
     "fileMaxSize": "Les fichiers font {size} Mo au maximum",
     "dateMissing": "Cette date n’existe pas",
-    "invalidRequest": "Requête invalide"
+    "invalidRequest": "Requête invalide",
+    "splitEdited": "La note a été modifiée depuis la proposition. Redemande à l’assistant.",
+    "splitRule": "Indique soit un niveau de titre, soit le texte qui commence chaque partie",
+    "splitOnePart": "La note n’a qu’une partie : il n’y a rien à diviser",
+    "splitNoPart": "Aucune partie de la note ne commence ainsi",
+    "splitMax": "Divise en {max} notes au plus à la fois"
   },
   "emails": {
     "linkFallback": "Si le bouton ne fonctionne pas, copie ce lien dans ton navigateur :",
