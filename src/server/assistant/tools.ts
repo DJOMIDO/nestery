@@ -11,6 +11,7 @@ import { expandEvents, type CalendarEvent } from "@/lib/calendar";
 import { addDays, compareTasks, TASK_PRIORITIES, TASK_STATUSES, type Task } from "@/lib/tasks";
 import type { Formatter } from "@/lib/format";
 import { noteHref } from "@/lib/notes";
+import { MAX_SPLIT_PARTS, noteText, splitNoteContent, type NoteSplitRule } from "@/lib/noteSplit";
 import { DEFAULT_REMIND_BEFORE } from "@/lib/travel";
 import type { WeatherPlace } from "@/lib/weather";
 import { createEventInput, listEvents } from "@/server/events";
@@ -512,18 +513,141 @@ const proposeEventTool = tool({
   },
 });
 
+// Notes the assistant writes are Markdown, turned into the editor's format
+// when the user confirms
+const MAX_NOTE_MARKDOWN = 20_000;
+// Lengths are checked here rather than stated in the schema: Gemini fails
+// with a server error on maxLength
+const upTo = (max: number) => z.string().refine((s) => s.length <= max, `At most ${max} characters`);
+const noteTitle = upTo(200).refine((s) => s.trim().length > 0, "The title is empty");
+const noteTags = z.array(upTo(32).refine((s) => s.trim().length > 0, "Tags cannot be empty")).max(10);
+
+const proposeNoteTool = tool({
+  name: "propose_note",
+  label: "Preparing a note",
+  description:
+    "Propose a new note with a body you write in Markdown. The user confirms it before it is created. Not for moving text out of an existing note: use propose_note_split for that.",
+  input: z.object({
+    title: noteTitle,
+    markdown: upTo(MAX_NOTE_MARKDOWN).describe("The body in Markdown, without the title"),
+    tags: noteTags.optional().describe("Without the #"),
+  }),
+  async run({ title, markdown, tags }, { propose }) {
+    propose({ id: randomUUID(), kind: "create_note", input: { title, markdown, tags } });
+    return PROPOSED;
+  },
+});
+
+const proposeNoteUpdateTool = tool({
+  name: "propose_note_update",
+  label: "Preparing a change",
+  description:
+    "Propose changing a note (by id from list_notes or search_notes): rename it, replace its tags, or add Markdown at its end. The rest of its text can't be rewritten. The user confirms before anything changes.",
+  input: z.object({
+    noteId: z.uuid(),
+    title: noteTitle.optional(),
+    tags: noteTags.optional().describe("The note's full new list of tags, without the #"),
+    appendMarkdown: upTo(MAX_NOTE_MARKDOWN).optional().describe("Added after the note's last line"),
+  }),
+  async run({ noteId, ...changes }, { userId, propose }) {
+    const note = await getNote(userId, noteId);
+    if (!note) throw new ToolError("No note with that id");
+    if (!Object.values(changes).some((v) => v !== undefined)) throw new ToolError("Nothing to change");
+    propose({ id: randomUUID(), kind: "update_note", noteId, noteTitle: note.title || "Untitled", changes });
+    return PROPOSED;
+  },
+});
+
+const splitRule = {
+  noteId: z.uuid(),
+  headingLevel: z.number().int().min(1).max(3).optional().describe("Split at each heading of this level (1–3)"),
+  lineStartsWith: upTo(100)
+    .optional()
+    .describe('Or split at each line starting with this text, e.g. "File:" (any case)'),
+};
+
+// The note and how it splits, or a ToolError the model can correct
+async function noteSplit(userId: string, { noteId, headingLevel, lineStartsWith }: { noteId: string } & NoteSplitRule) {
+  const note = await getNote(userId, noteId);
+  if (!note) throw new ToolError("No note with that id");
+  try {
+    return { note, split: splitNoteContent(note.content, { headingLevel, lineStartsWith }) };
+  } catch (err) {
+    throw new ToolError((err as Error).message);
+  }
+}
+
+const previewNoteSplitTool = tool({
+  name: "preview_note_split",
+  label: "Looking at how a note splits",
+  description:
+    "Show how a note would split into several: what stays in it and the parts that would each become a new note (heading line, length, start). Nothing changes. Use it before propose_note_split, also to choose the rule.",
+  input: z.object(splitRule),
+  async run(rule, { userId }) {
+    const { note, split } = await noteSplit(userId, rule);
+    const start = (text: string) => clip(text.trim(), 120);
+    return {
+      note: note.title || "Untitled",
+      stays: { length: noteText(split.kept).length, start: start(noteText(split.kept)) },
+      newNotes: split.parts.map((part, i) => {
+        const text = noteText(part.content);
+        return { n: i + 1, heading: part.heading, length: text.length, start: start(text) };
+      }),
+    };
+  },
+});
+
+const proposeNoteSplitTool = tool({
+  name: "propose_note_split",
+  label: "Preparing a split",
+  description:
+    "Propose splitting a long note: each part after the first moves, unchanged (formatting, code and images included), into a new note with the original's tags; the original keeps the first part. The split is done in the app, so never copy the note's text yourself. Call preview_note_split first. The user confirms before anything changes.",
+  input: z.object({
+    ...splitRule,
+    titles: z
+      .array(noteTitle)
+      .max(MAX_SPLIT_PARTS)
+      .optional()
+      .describe("One title per new note, in order, as many as preview_note_split listed. Without them, each part's heading line is its title"),
+  }),
+  async run({ titles, ...rule }, { userId, propose }) {
+    const { note, split } = await noteSplit(userId, rule);
+    const names = titles ?? split.parts.map((p) => p.heading.slice(0, 200));
+    if (names.length !== split.parts.length) {
+      throw new ToolError(`The note splits into ${split.parts.length} new notes, but ${names.length} titles were given`);
+    }
+    propose({
+      id: randomUUID(),
+      kind: "split_note",
+      noteId: note.id,
+      noteTitle: note.title || "Untitled",
+      input: {
+        headingLevel: rule.headingLevel,
+        lineStartsWith: rule.lineStartsWith,
+        titles: names,
+        expectedUpdatedAt: note.updatedAt.toISOString(),
+      },
+    });
+    return `${PROPOSED} It would create ${names.length} notes.`;
+  },
+});
+
 const TOOLS = [
   listTasksTool,
   listEventsTool,
   searchNotesTool,
   listNotesTool,
   readNoteTool,
+  previewNoteSplitTool,
   weatherTool,
   listJourneysTool,
   proposeTaskTool,
   proposeTaskUpdateTool,
   proposeEventTool,
   proposeJourneyTool,
+  proposeNoteTool,
+  proposeNoteUpdateTool,
+  proposeNoteSplitTool,
 ] as Tool<z.ZodType>[];
 
 export const TOOL_SPECS: ToolSpec[] = TOOLS.map((t) => {

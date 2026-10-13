@@ -36,6 +36,24 @@ export function markdownToNote(markdown: string, fileName: string) {
   }
 }
 
+// A note's body from Markdown (the assistant's notes), after `before` when
+// given: the content and its plain text, as the editor would save them
+export function markdownToContent(markdown: string, before?: NoteContent) {
+  const editor = new Editor({ extensions: noteExtensions(), content: markdown, contentType: "markdown" });
+  try {
+    if (before?.content?.length) {
+      const added = editor.getJSON().content ?? [];
+      editor.commands.setContent({ type: "doc", content: [...before.content, ...added] });
+    }
+    return {
+      content: editor.getJSON() as NoteContent,
+      contentText: editor.getText({ blockSeparator: "\n" }),
+    };
+  } finally {
+    editor.destroy();
+  }
+}
+
 // The note as a Markdown document, with its title as the top heading
 export function noteToMarkdown(title: string, body: string) {
   const heading = title.trim();

@@ -148,6 +148,16 @@ export async function claimLinkedAttachments(userId: string, noteId: string, con
     .where(and(eq(noteAttachments.userId, userId), inArray(noteAttachments.id, ids), isNull(noteAttachments.noteId)));
 }
 
+// After a note is split: files a new note links to move to it from the original
+export async function moveAttachments(userId: string, fromNoteId: string, toNoteId: string, content: unknown) {
+  const ids = attachmentIdsIn(content);
+  if (!ids.length) return;
+  await db
+    .update(noteAttachments)
+    .set({ noteId: toNoteId })
+    .where(and(eq(noteAttachments.userId, userId), inArray(noteAttachments.id, ids), eq(noteAttachments.noteId, fromNoteId)));
+}
+
 // Files without a note for a day, and uploads never finished: removed,
 // unless one of the user's notes still links to the file
 export async function removeOrphans(userId: string) {

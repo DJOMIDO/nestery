@@ -3,6 +3,7 @@
 // file free of server-only imports.
 
 import type { TaskPriority, TaskStatus } from "@/lib/tasks";
+import type { NoteSplitRule } from "@/lib/noteSplit";
 import type { JourneyInput } from "@/lib/travel";
 
 // Model providers a user can bring their own API key for. All but Anthropic
@@ -105,6 +106,27 @@ export type AssistantProposal =
       input:
         | { title: string; notes?: string | null; allDay: true; startDate: string; endDate: string }
         | { title: string; notes?: string | null; allDay: false; startsAt: string; endsAt: string };
+    }
+  | {
+      id: string;
+      kind: "create_note";
+      // The body as Markdown, turned into the editor's format when confirmed
+      input: { title: string; markdown: string; tags?: string[] };
+    }
+  | {
+      id: string;
+      kind: "update_note";
+      noteId: string;
+      noteTitle: string;
+      changes: { title?: string; tags?: string[]; appendMarkdown?: string };
+    }
+  | {
+      id: string;
+      kind: "split_note";
+      noteId: string;
+      noteTitle: string;
+      // As POST /api/notes/[id]/split takes it
+      input: NoteSplitRule & { titles: string[]; expectedUpdatedAt: string };
     };
 
 // Newline-delimited JSON events streamed by POST /api/assistant

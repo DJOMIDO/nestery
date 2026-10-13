@@ -34,7 +34,7 @@ function NotesView() {
   const searchParams = useSearchParams();
   const t = useTranslations("notes");
   const tCommon = useTranslations("common");
-  const { notes, loading, createNote, updateNote, deleteNote } = useNotes();
+  const { notes, versions, loading, createNote, updateNote, deleteNote } = useNotes();
   // List and editor side by side on large screens (Tailwind `lg`), one at a time otherwise
   const isWide = useMediaQuery("(min-width: 1024px)");
 
@@ -226,7 +226,8 @@ function NotesView() {
         // has the screen to itself, so it drops the card's border and padding
         <div className="min-w-0 min-h-0 not-phone:rounded-lg not-phone:border not-phone:bg-card not-phone:p-4">
           <NoteEditor
-            key={selected.id}
+            // A note changed by the assistant opens afresh
+            key={`${selected.id}:${versions[selected.id] ?? 0}`}
             note={selected}
             autoFocusTitle={selected.id === newNoteId}
             onSave={updateNote}

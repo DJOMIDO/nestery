@@ -1,8 +1,9 @@
 // src/hooks/useNotes.ts
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { request } from "@/lib/api";
+import { onDataChanged } from "@/lib/dataChanged";
 import type { Note } from "@/lib/notes";
 
 // Shape accepted by POST /api/notes and PATCH /api/notes/[id]
@@ -29,6 +30,31 @@ export function useNotes() {
   useEffect(() => {
     reload();
   }, [reload]);
+
+  // Notes changed elsewhere (by the assistant): reload, and count a version
+  // for each note whose text changed, so an open editor can start over from it
+  const [versions, setVersions] = useState<Record<string, number>>({});
+  const notesRef = useRef(notes);
+  useEffect(() => {
+    notesRef.current = notes;
+  }, [notes]);
+  useEffect(
+    () =>
+      onDataChanged("notes", async () => {
+        try {
+          const fresh = await request<Note[]>("/api/notes");
+          const before = new Map(notesRef.current.map((n) => [n.id, n.updatedAt]));
+          const changed = fresh.filter((n) => before.has(n.id) && before.get(n.id) !== n.updatedAt);
+          setNotes(fresh);
+          if (changed.length) {
+            setVersions((v) => ({ ...v, ...Object.fromEntries(changed.map((n) => [n.id, (v[n.id] ?? 0) + 1])) }));
+          }
+        } catch (err) {
+          toast.error((err as Error).message);
+        }
+      }),
+    []
+  );
 
   const createNote = useCallback(async (input: NoteInput = {}) => {
     try {
@@ -88,5 +114,5 @@ export function useNotes() {
     }
   }, []);
 
-  return { notes, loading, reload, createNote, updateNote, deleteNote };
+  return { notes, versions, loading, reload, createNote, updateNote, deleteNote };
 }
