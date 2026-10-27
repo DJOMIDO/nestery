@@ -136,7 +136,7 @@ a packing task for Thursday and list my visa notes".
   user's own data: list tasks, list events (including subscribed
   calendars), search and read notes, weather for any place up to 14 days.
   Creating a task or event and changing a task are proposals the user
-  confirms in the panel; nothing is deleted. Conversations are not saved.
+  confirms in the panel; nothing is deleted.
 - Bring your own key: Settings > Assistant takes the user's API key
   (checked, stored encrypted with AES-GCM) and model. The app owner's key
   only serves allow-listed emails, with a daily limit. The agent loop talks
@@ -172,6 +172,13 @@ a packing task for Thursday and list my visa notes".
   event" / "all events") or to any field of a journey, past or future. Each
   is a proposal the user confirms; events from a subscribed calendar stay
   read-only, and nothing is deleted.
+- Saved conversations: finished exchanges are stored per user (the last 50)
+  and restored from a history list in the panel, with their attachments,
+  proposal outcomes and errors; interrupted or failed exchanges are left
+  out, as before. The model's transcript stays on the server — a message
+  only names its conversation — and editing or retrying cuts the saved
+  conversation back to that point before replaying. A conversation made
+  with another provider than the current one is read-only.
 
 **Planned**
 - Notes RAG: embed notes with pgvector in the same Neon database, answers

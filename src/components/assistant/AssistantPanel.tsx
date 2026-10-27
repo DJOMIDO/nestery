@@ -1,7 +1,8 @@
 // src/components/assistant/AssistantPanel.tsx
 // The chat panel that slides in from the right: full screen on phones, a
-// floating card (normal or half the screen wide) on larger screens. The conversation lives here
-// only (not saved); the server streams the reply as JSON lines.
+// floating card (normal or half the screen wide) on larger screens. Finished
+// exchanges are saved on the server as conversations, which the history list
+// restores; the provider's transcript never comes to the browser.
 
 "use client";
 
@@ -11,6 +12,7 @@ import {
   ArrowUp,
   CalendarDays,
   CloudSun,
+  History,
   ListTodo,
   Maximize2,
   Minimize2,
@@ -22,6 +24,7 @@ import {
   RotateCw,
   Sparkles,
   Square,
+  Trash2,
   X,
   type LucideIcon,
 } from "lucide-react";
@@ -29,6 +32,7 @@ import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
+import { useFormat } from "@/components/SettingsProvider";
 import { AssistantMarkdown } from "@/components/assistant/AssistantMarkdown";
 import type { AssistantDraft } from "@/components/assistant/AssistantProvider";
 import { ProposalCard, type ProposalState } from "@/components/assistant/ProposalCard";
@@ -38,6 +42,8 @@ import {
   type AssistantProposal,
   type AssistantStatus,
   type AssistantStreamEvent,
+  type ConversationSummary,
+  type StoredConversation,
 } from "@/lib/assistant";
 import { isAttachableImage, prepareImage } from "@/lib/imageAttachment";
 import { useStoredChoice } from "@/hooks/useStoredChoice";
@@ -46,15 +52,17 @@ import { cn } from "@/lib/utils";
 
 type ChatItem =
   // `images`: what was attached, kept so the message can be edited and sent
-  // again; `historyBefore` / `notesBefore`: the conversation transcript and
-  // the proposal notes as they were when this message was sent, so retrying
-  // or editing can roll the exchange back
+  // again; `historyLength`: the saved transcript's length when this message
+  // was sent, the anchor a retry or an edit rolls back to; `notesBefore`:
+  // the proposal notes that went out with it. `messageId` is the saved
+  // message's id, null while the exchange is still running or went unsaved.
   | {
       role: "user";
       text: string;
       images: { image: AssistantImage; preview: string }[];
-      historyBefore: unknown[];
+      historyLength: number;
       notesBefore: string[];
+      messageId: string | null;
     }
   | {
       role: "assistant";
@@ -64,9 +72,22 @@ type ChatItem =
       proposals: { proposal: AssistantProposal; state: ProposalState }[];
       error: string | null;
       done: boolean;
+      // Whether the exchange reached the saved conversation: unsaved ones
+      // (interrupted, failed) replay without a server-side rollback
+      saved: boolean;
+      messageId: string | null;
       // A tool ran since the last text: the next text starts a new paragraph
       afterTool: boolean;
     };
+
+// The saved conversation being chatted with; null until the first exchange
+// is saved (its "done" event names it)
+interface ConversationState {
+  id: string;
+  provider: string;
+  model: string;
+  transcriptLength: number;
+}
 
 // Models often send blank lines around their text (e.g. after thinking)
 const tidy = (text: string) => text.replace(/^\s+|\s+$/g, "").replace(/\n{3,}/g, "\n\n");
@@ -91,10 +112,11 @@ export function AssistantPanel({
   onClose: () => void;
 }) {
   const t = useTranslations("assistant");
+  const format = useFormat();
   const [status, setStatus] = useState<AssistantStatus | null>(null);
   const [items, setItems] = useState<ChatItem[]>([]);
-  // The provider's transcript, sent back with each message
-  const [history, setHistory] = useState<unknown[]>([]);
+  // The saved conversation the panel is chatting with
+  const [conversation, setConversation] = useState<ConversationState | null>(null);
   // Outcomes of proposals, passed to the assistant with the next message
   const [notes, setNotes] = useState<string[]>([]);
   const [input, setInput] = useState("");
@@ -103,6 +125,9 @@ export function AssistantPanel({
   // Images to send with the next message
   const [attachments, setAttachments] = useState<{ id: number; image: AssistantImage; preview: string }[]>([]);
   const [dragging, setDragging] = useState(false);
+  // The history list, over the message list while open
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [conversations, setConversations] = useState<ConversationSummary[] | null>(null);
   // Remembered per browser; only applies from sm up
   const [width, setWidth] = useStoredChoice("assistant-width", ["normal", "wide"] as const, "normal");
   const wide = width === "wide";
@@ -112,6 +137,10 @@ export function AssistantPanel({
   const abortRef = useRef<AbortController | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  // A loaded conversation whose transcript came from another provider cannot
+  // be continued (the model would reject it); it stays readable
+  const readOnly = !!conversation && !!status?.provider && conversation.provider !== status.provider;
 
   // Focus the message box with the cursor after any text (e.g. a draft)
   const focusInput = useCallback(() => {
@@ -139,14 +168,20 @@ export function AssistantPanel({
 
   useEffect(() => {
     if (!open) return;
-    const onKeyDown = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    // Escape closes the history list before the panel
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      if (historyOpen) setHistoryOpen(false);
+      else onClose();
+    };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [open, onClose]);
+  }, [open, onClose, historyOpen]);
 
   useEffect(() => {
-    listRef.current?.scrollTo({ top: listRef.current.scrollHeight });
-  }, [items]);
+    // The history list starts at the top; the messages stay scrolled to the end
+    listRef.current?.scrollTo({ top: historyOpen ? 0 : listRef.current.scrollHeight })
+  }, [items, historyOpen]);
 
   // A draft from elsewhere in the app (e.g. "Paste booking" in Travel): put
   // it in the message box with the cursor at the end, ready to paste after
@@ -186,8 +221,27 @@ export function AssistantPanel({
         updateLast((item) => ({ proposals: [...item.proposals, { proposal: event.proposal, state: "pending" }] }));
         break;
       case "done":
-        setHistory(event.history);
-        updateLast(() => ({ done: true, status: null }));
+        // The exchange reached the saved conversation; its message ids anchor
+        // later rollbacks and proposal updates
+        setConversation({
+          id: event.conversationId,
+          provider: event.provider,
+          model: event.model,
+          transcriptLength: event.transcriptLength,
+        });
+        setItems((prev) => {
+          // The exchange's own pair is always the last two items
+          const next = [...prev];
+          for (let i = Math.max(0, next.length - 2); i < next.length; i++) {
+            const item = next[i];
+            if (item.role === "assistant" && !item.saved) {
+              next[i] = { ...item, messageId: event.assistantMessageId, done: true, status: null, saved: true };
+            } else if (item.role === "user" && !item.messageId) {
+              next[i] = { ...item, messageId: event.userMessageId };
+            }
+          }
+          return next;
+        });
         break;
       case "error":
         updateLast(() => ({ error: event.message, status: null }));
@@ -220,32 +274,48 @@ export function AssistantPanel({
   const send = async (text: string) => {
     const message = text.trim();
     const sentImages = attachments;
-    if ((!message && sentImages.length === 0) || busy) return;
+    if ((!message && sentImages.length === 0) || busy || readOnly) return;
     setInput("");
     setAttachments([]);
     const sentNotes = notes;
     setNotes([]);
-    await runExchange({ message, images: sentImages, sentNotes, historyBefore: history });
+    await runExchange({
+      message,
+      images: sentImages,
+      sentNotes,
+      historyLength: conversation?.transcriptLength ?? 0,
+    });
   };
 
-  // Appends the exchange to the list and streams the reply into it. Also
-  // used to replay one after rewinding (retry, edit and send again).
+  // Appends the exchange to the list and streams the reply into it; the
+  // server saves it to the conversation once it finished. Also used to
+  // replay one after rewinding (retry, edit and send again).
   const runExchange = async ({
     message,
     images,
     sentNotes,
-    historyBefore,
+    historyLength,
   }: {
     message: string;
     images: { image: AssistantImage; preview: string }[];
     sentNotes: string[];
-    historyBefore: unknown[];
+    historyLength: number;
   }) => {
     setBusy(true);
     setItems((prev) => [
       ...prev,
-      { role: "user", text: message, images, historyBefore, notesBefore: sentNotes },
-      { role: "assistant", text: "", status: t("thinking"), proposals: [], error: null, done: false, afterTool: false },
+      { role: "user", text: message, images, historyLength, notesBefore: sentNotes, messageId: null },
+      {
+        role: "assistant",
+        text: "",
+        status: t("thinking"),
+        proposals: [],
+        error: null,
+        done: false,
+        saved: false,
+        messageId: null,
+        afterTool: false,
+      },
     ]);
 
     const controller = new AbortController();
@@ -256,7 +326,12 @@ export function AssistantPanel({
       const res = await fetch("/api/assistant", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ history: historyBefore, message, images: images.map((a) => a.image), notes: sentNotes }),
+        body: JSON.stringify({
+          conversationId: conversation?.id ?? null,
+          message,
+          images: images.map((a) => a.image),
+          notes: sentNotes,
+        }),
         signal: controller.signal,
       });
       if (!res.ok || !res.body) {
@@ -305,25 +380,40 @@ export function AssistantPanel({
   }, [onClose]);
 
   // Rolls the conversation back to just before one of its messages: the
-  // exchange and everything after it leave the list, and the transcript and
-  // proposal notes return to what they were when that message was sent.
-  // Returns what the replayed exchange needs, or null while busy.
-  const rewind = (index: number, text: string) => {
+  // exchange and everything after it leave the list, the saved conversation
+  // is cut the same way, and the proposal notes return to what they were
+  // when that message was sent. Returns what the replayed exchange needs,
+  // or null while busy or when the server-side rollback failed.
+  const rewind = async (index: number, text: string) => {
     if (busy) return null;
     const target = items[index];
     if (!target || target.role !== "user") return null;
+    const reply = items[index + 1];
+    // An exchange that never reached the saved conversation (interrupted,
+    // failed) has nothing to cut there; replaying just replaces it here
+    if (conversation && target.messageId && reply?.role === "assistant" && reply.saved) {
+      try {
+        await request(`/api/assistant/conversations/${conversation.id}/rollback`, {
+          method: "POST",
+          body: JSON.stringify({ messageIndex: index, historyLength: target.historyLength }),
+        });
+      } catch (err) {
+        toast.error((err as Error).message);
+        return null;
+      }
+      setConversation({ ...conversation, transcriptLength: target.historyLength });
+    }
     setItems((prev) => prev.slice(0, index));
-    setHistory(target.historyBefore);
     // Notes from proposals settled since then go too: their cards are gone,
     // and the replayed exchange sends this message's own notes again
     setNotes(target.notesBefore);
-    return { message: text, images: target.images, sentNotes: target.notesBefore, historyBefore: target.historyBefore };
+    return { message: text, images: target.images, sentNotes: target.notesBefore, historyLength: target.historyLength };
   };
 
   // Sends the same message again, as if the first reply never happened
   const retry = async (index: number) => {
     const target = items[index];
-    const replay = rewind(index, target?.text ?? "");
+    const replay = await rewind(index, target?.text ?? "");
     if (replay) await runExchange(replay);
   };
 
@@ -332,7 +422,7 @@ export function AssistantPanel({
     const message = text.trim();
     if (!message) return;
     setEditing(null);
-    const replay = rewind(index, message);
+    const replay = await rewind(index, message);
     if (replay) await runExchange(replay);
   };
 
@@ -340,22 +430,107 @@ export function AssistantPanel({
     abortRef.current?.abort();
     setInput("");
     setItems([]);
-    setHistory([]);
+    setConversation(null);
     setNotes([]);
     setAttachments([]);
     setEditing(null);
+    setHistoryOpen(false);
   };
 
   const settle = useCallback((index: number, id: string, state: ProposalState, note?: string) => {
+    let messageId: string | null = null;
     setItems((prev) =>
-      prev.map((item, i) =>
-        i === index && item.role === "assistant"
-          ? { ...item, proposals: item.proposals.map((p) => (p.proposal.id === id ? { ...p, state } : p)) }
-          : item
-      )
+      prev.map((item, i) => {
+        if (i !== index || item.role !== "assistant") return item;
+        messageId = item.messageId;
+        return { ...item, proposals: item.proposals.map((p) => (p.proposal.id === id ? { ...p, state } : p)) };
+      })
     );
     if (note) setNotes((prev) => [...prev, note]);
+    // A saved card also settles in the conversation, so a reload shows the
+    // same outcome; "saving" is a moment on the way and stays local
+    if (messageId && state !== "saving") {
+      request(`/api/assistant/messages/${messageId}`, {
+        method: "PATCH",
+        body: JSON.stringify({ proposalId: id, state, ...(note ? { note } : {}) }),
+      }).catch(() => {});
+    }
   }, []);
+
+  // Restores a saved conversation into the panel; whether it can be continued
+  // depends on the provider still matching (see readOnly)
+  const loadConversation = async (summary: ConversationSummary) => {
+    if (busy) return;
+    try {
+      const conv = await request<StoredConversation>(`/api/assistant/conversations/${summary.id}`);
+      abortRef.current?.abort();
+      setItems(
+        conv.messages.flatMap((m): ChatItem[] =>
+          m.role === "user"
+            ? [
+                {
+                  role: "user",
+                  text: m.text,
+                  images: m.images.map((image) => ({ image, preview: `data:${image.mediaType};base64,${image.data}` })),
+                  historyLength: m.historyLength ?? 0,
+                  notesBefore: m.notes,
+                  messageId: m.id,
+                },
+              ]
+            : [
+                {
+                  role: "assistant",
+                  text: m.text,
+                  status: null,
+                  proposals: m.proposals,
+                  error: m.error,
+                  done: true,
+                  saved: true,
+                  messageId: m.id,
+                  afterTool: false,
+                },
+              ]
+        )
+      );
+      setConversation({
+        id: conv.id,
+        provider: conv.provider,
+        model: conv.model,
+        transcriptLength: conv.transcriptLength,
+      });
+      setNotes(conv.pendingNotes);
+      setInput("");
+      setAttachments([]);
+      setEditing(null);
+      setHistoryOpen(false);
+    } catch (err) {
+      toast.error((err as Error).message);
+    }
+  };
+
+  const toggleHistory = () => {
+    const next = !historyOpen;
+    setHistoryOpen(next);
+    if (next) {
+      request<ConversationSummary[]>("/api/assistant/conversations")
+        .then(setConversations)
+        .catch((err) => {
+          toast.error((err as Error).message);
+          setHistoryOpen(false);
+        });
+    }
+  };
+
+  const removeConversation = async (id: string) => {
+    try {
+      await request(`/api/assistant/conversations/${id}`, { method: "DELETE" });
+      setConversations((prev) => prev?.filter((c) => c.id !== id) ?? null);
+      // The conversation on screen goes back to being a new one
+      if (conversation?.id === id) reset();
+    } catch (err) {
+      toast.error((err as Error).message);
+    }
+  };
 
   return (
     <aside
@@ -403,8 +578,19 @@ export function AssistantPanel({
         <Button
           variant="ghost"
           size="icon"
+          onClick={toggleHistory}
+          disabled={busy}
+          title={t("history")}
+          className={cn(historyOpen && "bg-foreground/10 text-foreground")}
+        >
+          <History className="size-4" />
+          <span className="sr-only">{t("history")}</span>
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
           onClick={reset}
-          disabled={items.length === 0 && !input && attachments.length === 0}
+          disabled={busy || (items.length === 0 && !input && attachments.length === 0 && !conversation)}
           title={t("newChat")}
         >
           <RotateCcw className="size-4" />
@@ -427,7 +613,51 @@ export function AssistantPanel({
       </header>
 
       <div ref={listRef} className="flex-1 overflow-y-auto px-4 py-4" aria-live="polite">
-        {status && !status.available ? (
+        {historyOpen ? (
+          // The saved conversations, over the current one
+          <div className="space-y-1">
+            <p className="px-2 pb-1 text-xs font-medium text-muted-foreground">{t("history")}</p>
+            {conversations === null ? (
+              <p className="flex items-center gap-2 px-2 py-2 text-sm text-muted-foreground">
+                <Spinner className="size-3.5" /> {t("loadingHistory")}
+              </p>
+            ) : conversations.length === 0 ? (
+              <p className="px-2 py-2 text-sm text-muted-foreground">{t("noHistory")}</p>
+            ) : (
+              conversations.map((c) => (
+                <div
+                  key={c.id}
+                  className={cn(
+                    "group flex items-center gap-1 rounded-md transition-colors hover:bg-foreground/5",
+                    c.id === conversation?.id && "bg-foreground/5"
+                  )}
+                >
+                  <button
+                    type="button"
+                    onClick={() => loadConversation(c)}
+                    disabled={busy}
+                    className="flex min-w-0 flex-1 flex-col items-start gap-0.5 px-2 py-2 text-left disabled:opacity-50"
+                  >
+                    <span className="w-full truncate text-sm">{c.title ?? t("imageChat")}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {format.relative(c.updatedAt)} · {c.model}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => removeConversation(c.id)}
+                    disabled={busy}
+                    className="mr-1.5 shrink-0 rounded p-1 text-muted-foreground opacity-0 transition-opacity hover:text-destructive focus-visible:opacity-100 group-hover:opacity-100 max-sm:opacity-100"
+                    title={t("deleteChat")}
+                    aria-label={t("deleteChat")}
+                  >
+                    <Trash2 className="size-3.5" />
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+        ) : status && !status.available ? (
           <div className="space-y-2 text-sm text-muted-foreground">
             <p>{t("needsModel")}</p>
             <p>
@@ -511,7 +741,7 @@ export function AssistantPanel({
                     <div className="group flex items-center gap-1">
                       {/* Editing a message replays the chat from there, so the
                           answer and everything after it are replaced */}
-                      {!busy && (
+                      {!busy && !readOnly && (
                         <Button
                           type="button"
                           variant="ghost"
@@ -554,7 +784,7 @@ export function AssistantPanel({
                   </p>
                 )}
                 {/* A failed reply, or the latest one, can be asked for again */}
-                {!busy && (item.error || i === items.length - 1) && (
+                {!busy && !readOnly && (item.error || i === items.length - 1) && (
                   <Button
                     type="button"
                     variant="ghost"
@@ -580,6 +810,9 @@ export function AssistantPanel({
         }}
         className="p-3 max-sm:pb-[calc(0.75rem+var(--safe-bottom))]"
       >
+        {readOnly && (
+          <p className="mb-2 text-xs text-muted-foreground">{t("readOnlyChat")}</p>
+        )}
         {attachments.length > 0 && (
           <div className="mb-2 flex flex-wrap gap-2">
             {attachments.map((a) => (
@@ -616,7 +849,7 @@ export function AssistantPanel({
             size="icon"
             variant="ghost"
             onClick={() => fileRef.current?.click()}
-            disabled={!status?.available || busy || attachments.length >= MAX_IMAGES}
+            disabled={!status?.available || busy || readOnly || attachments.length >= MAX_IMAGES}
             title={t("attachImageHint")}
           >
             <Paperclip className="size-4" />
@@ -645,7 +878,7 @@ export function AssistantPanel({
             maxLength={4000}
             placeholder={t("placeholder")}
             aria-label={t("message")}
-            disabled={!status?.available}
+            disabled={!status?.available || readOnly}
             className="max-h-40 min-h-9 flex-1 resize-none bg-transparent px-2 py-2 text-sm leading-5 outline-none [field-sizing:content] disabled:opacity-50"
           />
           {busy ? (
@@ -657,7 +890,7 @@ export function AssistantPanel({
             <Button
               type="submit"
               size="icon"
-              disabled={(!input.trim() && attachments.length === 0) || !status?.available}
+              disabled={(!input.trim() && attachments.length === 0) || !status?.available || readOnly}
               title={t("sendHint")}
             >
               <ArrowUp className="size-4" />

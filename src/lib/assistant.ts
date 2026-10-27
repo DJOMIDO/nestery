@@ -60,6 +60,7 @@ export interface AssistantStatus {
   available: boolean;
   // "own": the user's key; "server": the app owner's key (allow-listed users)
   source: "own" | "server" | null;
+  provider: AssistantProvider | null;
   model: string | null;
   // Saving keys needs ASSISTANT_ENCRYPTION_KEY on the server
   canSaveKey: boolean;
@@ -184,15 +185,27 @@ export type AssistantProposal =
       input: NoteSplitRule & { titles: string[]; expectedUpdatedAt: string };
     };
 
-// Newline-delimited JSON events streamed by POST /api/assistant
+// Newline-delimited JSON events streamed by POST /api/assistant. The route
+// adds "done" once the exchange is saved.
 export type AssistantStreamEvent =
   | { type: "text"; text: string }
   // A tool started, e.g. "Checking your tasks"
   | { type: "status"; label: string }
   | { type: "proposal"; proposal: AssistantProposal }
-  // The provider's own transcript of the conversation so far, sent back
-  // unchanged with the next message
-  | { type: "done"; history: unknown[] }
+  // The exchange is saved: which conversation it joined (with the provider
+  // and model its transcript belongs to), the ids of the two messages made,
+  // the transcript length the new user message started at (the rollback
+  // anchor) and the length it now has
+  | {
+      type: "done";
+      conversationId: string;
+      provider: AssistantProvider;
+      model: string;
+      userMessageId: string;
+      assistantMessageId: string;
+      historyLength: number;
+      transcriptLength: number;
+    }
   | { type: "error"; message: string };
 
 // An image attached to a message (a ticket, a boarding pass…), already
@@ -202,16 +215,69 @@ export interface AssistantImage {
   data: string;
 }
 
-// Per message. The whole request (history included) must stay under
-// Vercel's 4.5 MB body limit, hence images shrunk to a few hundred KB.
+// What became of a proposal card. "saving" is a moment on the way and is
+// never stored; a saved conversation keeps the other three.
+export type ProposalState = "pending" | "saving" | "confirmed" | "dismissed";
+
+// A proposal with its outcome, as saved on an assistant message
+export interface StoredProposal {
+  proposal: AssistantProposal;
+  state: ProposalState;
+}
+
+// Per message. Images are shrunk in the browser to stay well under Vercel's
+// 4.5 MB request limit; the transcript itself never travels with a request.
 export const MAX_IMAGES = 3;
 export const MAX_IMAGE_BASE64 = 1_500_000;
 
 // Sent to POST /api/assistant
 export interface AssistantRequest {
-  history: unknown[];
+  // The saved conversation to continue; left out for the first message of a
+  // new one, which the server saves and names in the reply's "done" event
+  conversationId?: string | null;
   message: string;
   images?: AssistantImage[];
   // What the user did with earlier proposals, e.g. "Created task “Pack”"
   notes?: string[];
 }
+
+// ---- Saved conversations, as the API shows them ---------------------------
+
+// One entry of GET /api/assistant/conversations
+export interface ConversationSummary {
+  id: string;
+  // null while the first message was only an image
+  title: string | null;
+  provider: AssistantProvider;
+  model: string;
+  updatedAt: string;
+}
+
+// A saved message, as GET /api/assistant/conversations/[id] returns it and
+// the panel restores it. The provider's transcript itself stays on the
+// server; `historyLength` (user messages) is where it stood before that
+// message, which is all a rollback needs.
+export interface StoredMessage {
+  id: string;
+  index: number;
+  role: "user" | "assistant";
+  text: string;
+  images: AssistantImage[];
+  proposals: StoredProposal[];
+  notes: string[];
+  historyLength: number | null;
+  error: string | null;
+}
+
+export interface StoredConversation {
+  id: string;
+  title: string | null;
+  provider: AssistantProvider;
+  model: string;
+  // Proposal outcomes waiting for the next message
+  pendingNotes: string[];
+  // The stored transcript's length, kept so the panel can roll back
+  transcriptLength: number;
+  messages: StoredMessage[];
+}
+
