@@ -166,6 +166,12 @@ a packing task for Thursday and list my visa notes".
   Either rolls the conversation back to that point — the transcript and any
   proposal outcomes return to what they were — and replays from there, so
   the messages after it are replaced rather than piled on.
+- Editing events and journeys: propose a change to one of your own calendar
+  events (its title, its notes, or when it happens — for a repeating event,
+  just one occurrence or the whole series, mirroring the calendar's "this
+  event" / "all events") or to any field of a journey, past or future. Each
+  is a proposal the user confirms; events from a subscribed calendar stay
+  read-only, and nothing is deleted.
 
 **Planned**
 - Notes RAG: embed notes with pgvector in the same Neon database, answers

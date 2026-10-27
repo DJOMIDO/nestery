@@ -5,7 +5,7 @@
 "use client";
 
 import { useState } from "react";
-import { CalendarPlus, Check, ClipboardList, FilePlus2, Files, PencilLine, X } from "lucide-react";
+import { CalendarClock, CalendarPlus, Check, ClipboardList, FilePlus2, Files, PencilLine, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -15,7 +15,7 @@ import type { AssistantProposal } from "@/lib/assistant";
 import type { Note } from "@/lib/notes";
 import { request } from "@/lib/api";
 import { notifyDataChanged } from "@/lib/dataChanged";
-import { journeyLabel } from "@/lib/travel";
+import { journeyLabel, reminderParts, type JourneyInput } from "@/lib/travel";
 import { journeyIcon } from "@/components/travel/journeyIcon";
 import type { Formatter } from "@/lib/format";
 
@@ -23,6 +23,105 @@ export type ProposalState = "pending" | "saving" | "confirmed" | "dismissed";
 
 // The app's translator, from the messages' root
 type Translate = ReturnType<typeof useTranslations<never>>;
+
+// Shown for a field the change clears
+const BLANK = "—";
+
+// The keys that carry an event's timing, to tell a time change from a rename
+const TIMING_KEYS = ["allDay", "startDate", "endDate", "startsAt", "endsAt"];
+
+// "Mon, Oct 19, 9:30 – 10:00 AM", or "Oct 19 – Oct 20" for an all-day event
+function eventWhen(
+  e: { allDay?: boolean; startDate?: string; endDate?: string; startsAt?: string; endsAt?: string },
+  format: Formatter,
+  t: Translate
+) {
+  return e.allDay
+    ? e.endDate && e.endDate !== e.startDate
+      ? `${format.day(e.startDate!)} – ${format.day(e.endDate)}`
+      : format.day(e.startDate!)
+    : `${format.day(e.startsAt!)}${t("common.listSeparator")}${format.time(e.startsAt!)} – ${format.time(e.endsAt!)}`;
+}
+
+// The journey fields, in the order the card lists their changes
+const JOURNEY_FIELD_ORDER: (keyof JourneyInput)[] = [
+  "kind", "carrier", "number", "origin", "destination", "stopover",
+  "originCity", "destinationCity", "departureDate", "departureTime",
+  "arrivalDate", "arrivalTime", "seat", "gate", "coach", "vehicle",
+  "aircraftReg", "price", "currency", "bookingRef", "notes", "remindBefore",
+];
+
+// A journey field's label; a few read differently for a flight and a train.
+// Typed as the exact keys so the translator accepts them.
+function journeyFieldLabel(key: keyof JourneyInput, flight: boolean) {
+  switch (key) {
+    case "kind": return "proposal.kind" as const;
+    case "carrier": return flight ? ("travel.field.airline" as const) : ("travel.field.company" as const);
+    case "number": return flight ? ("travel.field.flight" as const) : ("travel.field.train" as const);
+    case "origin": return "travel.form.from" as const;
+    case "destination": return "travel.form.to" as const;
+    case "stopover": return "travel.field.stopover" as const;
+    case "originCity": return "travel.form.fromCity" as const;
+    case "destinationCity": return "travel.form.toCity" as const;
+    case "departureDate": return "travel.form.departure" as const;
+    case "departureTime": return "travel.form.departureTime" as const;
+    case "arrivalDate": return "travel.form.arrival" as const;
+    case "arrivalTime": return "travel.form.arrivalTime" as const;
+    case "seat": return "travel.field.seat" as const;
+    case "gate": return "travel.field.gate" as const;
+    case "coach": return "travel.field.coach" as const;
+    case "vehicle": return flight ? ("travel.field.aircraft" as const) : ("travel.field.trainType" as const);
+    case "aircraftReg": return "travel.field.registration" as const;
+    case "price": return "travel.field.price" as const;
+    case "currency": return "travel.form.currency" as const;
+    case "bookingRef": return "travel.form.bookingRef" as const;
+    case "notes": return "travel.form.notes" as const;
+    case "remindBefore": return "travel.field.reminder" as const;
+  }
+}
+
+// The changed journey fields as label / new-value rows, in a fixed order
+function journeyChangeRows(
+  p: Extract<AssistantProposal, { kind: "update_journey" }>,
+  format: Formatter,
+  t: Translate
+) {
+  const flight = p.input.kind === "flight";
+  const clock = (v: string | null) => {
+    if (!v) return null;
+    const [h, m] = v.split(":").map(Number);
+    return format.time(new Date(2000, 0, 1, h, m));
+  };
+  const rows: { label: string; value: string }[] = [];
+  for (const key of JOURNEY_FIELD_ORDER) {
+    if (!(key in p.changes)) continue;
+    const raw = p.changes[key] as string | number | null | undefined;
+    let value: string;
+    switch (key) {
+      case "kind":
+        value = flight ? t("travel.flight") : t("travel.train");
+        break;
+      case "departureDate":
+      case "arrivalDate":
+        value = raw ? format.day(String(raw)) : BLANK;
+        break;
+      case "departureTime":
+      case "arrivalTime":
+        value = clock(raw == null ? null : String(raw)) ?? BLANK;
+        break;
+      case "price":
+        value = raw == null || raw === "" ? BLANK : `${raw}${p.input.currency ? ` ${p.input.currency}` : ""}`;
+        break;
+      case "remindBefore":
+        value = raw == null ? t("travel.form.noReminder") : t("travel.remind.before", reminderParts(Number(raw)));
+        break;
+      default:
+        value = raw == null || raw === "" ? BLANK : String(raw);
+    }
+    rows.push({ label: t(journeyFieldLabel(key, flight)), value });
+  }
+  return rows;
+}
 
 // One line describing the change, in the interface language; also what the
 // assistant is told afterwards
@@ -62,14 +161,27 @@ export function describeProposal(p: AssistantProposal, format: Formatter, t: Tra
         .filter(Boolean)
         .join(" · ");
     }
-    case "create_event": {
-      const e = p.input;
-      const when = e.allDay
-        ? e.endDate !== e.startDate
-          ? `${format.day(e.startDate)} – ${format.day(e.endDate)}`
-          : format.day(e.startDate)
-        : `${format.day(e.startsAt)}${t("common.listSeparator")}${format.time(e.startsAt)} – ${format.time(e.endsAt)}`;
-      return t("proposal.newEvent", { title: e.title, when });
+    case "update_journey": {
+      const labels = journeyChangeRows(p, format, t).map((r) => r.label);
+      return t("proposal.journeyChanges", {
+        name: journeyLabel(p.input),
+        changes: labels.join(t("common.listSeparator")),
+      });
+    }
+    case "create_event":
+      return t("proposal.newEvent", { title: p.input.title, when: eventWhen(p.input, format, t) });
+    case "update_event": {
+      const c = p.changes;
+      const parts = [
+        c.title && t("proposal.rename", { title: c.title }),
+        c.notes !== undefined && t(c.notes ? "proposal.eventNotes" : "proposal.eventNotesCleared"),
+        TIMING_KEYS.some((k) => k in c) && t("proposal.moveTo", { when: eventWhen(c, format, t) }),
+      ].filter(Boolean);
+      return t("proposal.eventChanges", {
+        title: p.eventTitle,
+        scope: p.repeats ? p.scope : "",
+        changes: parts.join(t("common.listSeparator")),
+      });
     }
     case "create_note":
       return t("proposal.newNote", { title: p.input.title });
@@ -87,8 +199,11 @@ export function describeProposal(p: AssistantProposal, format: Formatter, t: Tra
   }
 }
 
-// What the one line leaves out: the new notes' titles, or the start of the text
+// What the one line leaves out: the new notes' titles, a journey's new field
+// values, or the start of some text
 function ProposalDetails({ proposal: p }: { proposal: AssistantProposal }) {
+  const format = useFormat();
+  const t = useTranslations();
   if (p.kind === "split_note") {
     return (
       <ol className="mt-2 max-h-40 list-decimal space-y-0.5 overflow-y-auto pl-9 text-xs text-muted-foreground wrap-anywhere">
@@ -98,7 +213,28 @@ function ProposalDetails({ proposal: p }: { proposal: AssistantProposal }) {
       </ol>
     );
   }
-  const text = p.kind === "create_note" ? p.input.markdown : p.kind === "update_note" ? p.changes.appendMarkdown : null;
+  if (p.kind === "update_journey") {
+    const rows = journeyChangeRows(p, format, t);
+    if (!rows.length) return null;
+    return (
+      <dl className="mt-2 space-y-0.5 pl-6 text-xs text-muted-foreground">
+        {rows.map((r) => (
+          <div key={r.label} className="flex gap-1">
+            <dt className="shrink-0">{r.label}:</dt>
+            <dd className="min-w-0 break-words">{r.value}</dd>
+          </div>
+        ))}
+      </dl>
+    );
+  }
+  const text =
+    p.kind === "create_note"
+      ? p.input.markdown
+      : p.kind === "update_note"
+        ? p.changes.appendMarkdown
+        : p.kind === "update_event" && typeof p.changes.notes === "string"
+          ? p.changes.notes
+          : null;
   if (!text?.trim()) return null;
   return <p className="mt-2 line-clamp-3 whitespace-pre-wrap pl-6 text-xs text-muted-foreground wrap-anywhere">{text.trim()}</p>;
 }
@@ -117,8 +253,27 @@ async function save(p: AssistantProposal) {
       await request("/api/journeys", { method: "POST", body: JSON.stringify(p.input) });
       notifyDataChanged("journeys");
       return;
+    case "update_journey":
+      // PUT replaces the whole journey; the change is already merged into input
+      await request(`/api/journeys/${p.journeyId}`, { method: "PUT", body: JSON.stringify(p.input) });
+      notifyDataChanged("journeys");
+      return;
     case "create_event":
       await request("/api/events", { method: "POST", body: JSON.stringify(p.input) });
+      notifyDataChanged("events");
+      return;
+    case "update_event":
+      if (p.detach) {
+        // “This occurrence”: create the standalone event, then drop that day
+        // from the series, exactly as the calendar does
+        await request("/api/events", { method: "POST", body: JSON.stringify(p.detach.create) });
+        await request(`/api/events/${p.detach.seriesId}`, {
+          method: "PATCH",
+          body: JSON.stringify({ exdates: p.detach.seriesExdates }),
+        });
+      } else {
+        await request(`/api/events/${p.eventId}`, { method: "PATCH", body: JSON.stringify(p.changes) });
+      }
       notifyDataChanged("events");
       return;
     case "create_note": {
@@ -156,13 +311,34 @@ const ICONS = {
   create_task: ClipboardList,
   update_task: PencilLine,
   create_event: CalendarPlus,
+  update_event: CalendarClock,
   create_note: FilePlus2,
   update_note: PencilLine,
   split_note: Files,
 };
 
 const iconOf = (p: AssistantProposal) =>
-  p.kind === "create_journey" ? journeyIcon(p.input.kind) : ICONS[p.kind];
+  p.kind === "create_journey" || p.kind === "update_journey"
+    ? journeyIcon(p.input.kind)
+    : ICONS[p.kind];
+
+// The toast shown once a proposal is saved
+function successToast(p: AssistantProposal, t: Translate) {
+  switch (p.kind) {
+    case "update_task":
+      return t("proposal.taskUpdated");
+    case "create_journey":
+      return t("proposal.addedToTravel");
+    case "update_journey":
+      return t("proposal.journeyUpdated");
+    case "update_event":
+      return t("proposal.eventUpdated");
+    case "split_note":
+      return t("proposal.noteSplit", { count: p.input.titles.length });
+    default:
+      return t("common.saved");
+  }
+}
 
 export function ProposalCard({
   proposal,
@@ -185,15 +361,7 @@ export function ProposalCard({
     onSettled("saving");
     try {
       await save(proposal);
-      toast.success(
-        proposal.kind === "update_task"
-          ? t("proposal.taskUpdated")
-          : proposal.kind === "create_journey"
-            ? t("proposal.addedToTravel")
-            : proposal.kind === "split_note"
-              ? t("proposal.noteSplit", { count: proposal.input.titles.length })
-              : t("common.saved")
-      );
+      toast.success(successToast(proposal, t));
       onSettled("confirmed", `The user confirmed: ${summary}. It is saved.`);
     } catch (err) {
       setError((err as Error).message);

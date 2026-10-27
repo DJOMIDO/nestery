@@ -102,10 +102,65 @@ export type AssistantProposal =
     }
   | {
       id: string;
+      kind: "update_journey";
+      journeyId: string;
+      // The whole journey as it will be saved: PUT /api/journeys/[id]
+      // replaces the row, so the change is already merged onto the current one
+      input: JourneyInput;
+      // Only the fields that differ, for the card's summary
+      changes: Partial<JourneyInput>;
+    }
+  | {
+      id: string;
       kind: "create_event";
       input:
         | { title: string; notes?: string | null; allDay: true; startDate: string; endDate: string }
         | { title: string; notes?: string | null; allDay: false; startsAt: string; endsAt: string };
+    }
+  | {
+      id: string;
+      kind: "update_event";
+      // The row to PATCH (the series itself when scope is "all")
+      eventId: string;
+      eventTitle: string;
+      // "one" changes a single occurrence of a repeating event, "all" the
+      // whole series (or a plain event, which has no series)
+      scope: "all" | "one";
+      // Whether the event repeats, to word the card correctly
+      repeats: boolean;
+      // As PATCH /api/events/[id] takes it; timing is present only when it
+      // changes, and then as a full all-day or timed pair
+      changes: {
+        title?: string;
+        notes?: string | null;
+        exdates?: string[];
+        allDay?: boolean;
+        startDate?: string;
+        endDate?: string;
+        startsAt?: string;
+        endsAt?: string;
+      };
+      // scope "one" only: create a standalone event for the occurrence and
+      // drop that day from the series, exactly as the calendar's "This event"
+      detach?: {
+        seriesId: string;
+        occurrenceDate: string;
+        // As POST /api/events takes it: a standalone event for the occurrence,
+        // linked to the series it left (rrule null, seriesId the series)
+        create: {
+          title: string;
+          notes?: string | null;
+          rrule?: string | null;
+          seriesId?: string | null;
+          allDay: boolean;
+          startDate?: string;
+          endDate?: string;
+          startsAt?: string;
+          endsAt?: string;
+        };
+        // The series' exdates once this occurrence is removed from it
+        seriesExdates: string[];
+      };
     }
   | {
       id: string;
