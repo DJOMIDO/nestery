@@ -159,6 +159,12 @@ export async function recentEvents(userId: string, limit = 10) {
     .limit(limit);
 }
 
+// One of the user's events by id (a series, or a plain event), or null
+export async function getEvent(userId: string, id: string) {
+  const [row] = await db.select().from(events).where(and(eq(events.id, id), eq(events.userId, userId)));
+  return row ?? null;
+}
+
 // Returns null when `seriesId` is not one of the user's events
 export async function createEvent(userId: string, input: CreateEventInput) {
   if (input.seriesId) {

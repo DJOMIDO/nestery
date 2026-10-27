@@ -7,18 +7,18 @@
 import { randomUUID } from "node:crypto";
 import * as z from "zod/v4";
 import type { AssistantProposal } from "@/lib/assistant";
-import { expandEvents, type CalendarEvent } from "@/lib/calendar";
+import { expandEvents, seriesTimingFrom, type CalendarEvent } from "@/lib/calendar";
 import { addDays, compareTasks, TASK_PRIORITIES, TASK_STATUSES, type Task } from "@/lib/tasks";
 import type { Formatter } from "@/lib/format";
 import { noteHref } from "@/lib/notes";
 import { MAX_SPLIT_PARTS, noteText, splitNoteContent, type NoteSplitRule } from "@/lib/noteSplit";
-import { DEFAULT_REMIND_BEFORE } from "@/lib/travel";
+import { DEFAULT_REMIND_BEFORE, type JourneyInput } from "@/lib/travel";
 import type { WeatherPlace } from "@/lib/weather";
-import { createEventInput, listEvents } from "@/server/events";
+import { createEventInput, getEvent, listEvents, updateEventInput } from "@/server/events";
 import { getNote, listNotes, searchNotes } from "@/server/notes";
 import { subscriptionEvents } from "@/server/subscriptions";
 import { createTaskInput, getTask, listTasks, updateTaskInput } from "@/server/tasks";
-import { journeyInput, listJourneys } from "@/server/travel";
+import { getJourney, journeyInput, listJourneys } from "@/server/travel";
 import { dailyForecast, searchPlaces } from "@/server/weather";
 import type { ToolSpec } from "@/server/assistant/providers/types";
 
@@ -155,7 +155,7 @@ const listEventsTool = tool({
   name: "list_events",
   label: "Looking at your calendar",
   description:
-    "List calendar events between two dates (inclusive, at most 31 days apart), including repeating events and subscribed calendars such as a class timetable. Times are in the user's time zone.",
+    "List calendar events between two dates (inclusive, at most 31 days apart), including repeating events and subscribed calendars such as a class timetable. Times are in the user's time zone. Each of the user's own events has an id (and, for one occurrence of a repeating event, an occurrenceDate) to change it with propose_event_update; events from a subscribed calendar are read-only.",
   input: z.object({ from: date, to: date }),
   async run({ from, to }, { userId, timeZone, format }) {
     if (to < from) throw new ToolError("`to` is before `from`");
@@ -185,6 +185,9 @@ const listEventsTool = tool({
               end: end.date === start.date ? end.time : `${end.date} ${end.time}`,
             }),
         repeating: e.rrule ? true : undefined,
+        // Own events can be edited: give the id and, for one occurrence of a
+        // repeating event, its date. A subscribed calendar's are read-only.
+        ...(e.source ? { readOnly: true } : { id: e.id, editable: true, ...(e.occurrenceDate && { occurrenceDate: e.occurrenceDate }) }),
         calendar: e.source?.name,
         location: e.source?.location ?? undefined,
         notes: clip(e.notes, 200),
@@ -325,6 +328,7 @@ const listJourneysTool = tool({
     return {
       total: journeys.length,
       journeys: journeys.slice(0, 30).map((j) => ({
+        id: j.id,
         kind: j.kind,
         link: `/travel?journey=${j.id}`,
         name: `${j.carrier} ${j.number}`,
@@ -632,6 +636,205 @@ const proposeNoteSplitTool = tool({
   },
 });
 
+// An event's timing as the API takes it: an all-day pair of dates, or a timed
+// pair of ISO timestamps. Loose (not a discriminated union) so it spreads into
+// a proposal's changes cleanly.
+interface EventTiming {
+  allDay: boolean;
+  startDate?: string;
+  endDate?: string;
+  startsAt?: string;
+  endsAt?: string;
+}
+
+// The model gives local wall-clock times; turn them into the API's timing, or
+// null when it isn't changing when the event happens. Mirrors propose_event.
+function eventTiming(
+  input: { allDay?: boolean; date?: string; endDate?: string; start?: string; end?: string },
+  timeZone: string
+): EventTiming | null {
+  if (input.allDay === undefined) return null;
+  if (input.allDay) {
+    if (!input.date) throw new ToolError("All-day events need `date`");
+    return { allDay: true, startDate: input.date, endDate: input.endDate ?? input.date };
+  }
+  if (!input.start || !input.end) throw new ToolError("Timed events need `start` and `end`");
+  return { allDay: false, startsAt: wallClockToIso(input.start, timeZone), endsAt: wallClockToIso(input.end, timeZone) };
+}
+
+// The one occurrence of a series on a given local date, or null
+function occurrenceOn(series: CalendarEvent, occurrenceDate: string) {
+  return (
+    expandEvents([series], occurrenceDate, occurrenceDate).find((e) => e.occurrenceDate === occurrenceDate) ?? null
+  );
+}
+
+const proposeEventUpdateTool = tool({
+  name: "propose_event_update",
+  label: "Preparing a change",
+  description:
+    "Propose changing one of the user's own calendar events (by an editable id from list_events): its title, its notes, or when it happens. For a repeating event, `scope` decides: \"one\" changes just the occurrence on `occurrenceDate` (the others keep repeating as before), \"all\" changes every occurrence. Events from a subscribed calendar are read-only and can't be changed. The user confirms before anything changes.",
+  input: z.object({
+    eventId: z.uuid(),
+    occurrenceDate: date
+      .optional()
+      .describe("For a repeating event: which occurrence, YYYY-MM-DD, as listed. Required for scope \"one\""),
+    scope: z
+      .enum(["all", "one"])
+      .optional()
+      .describe('Repeating events only: "all" (default) changes the whole series, "one" just that occurrence'),
+    title: z.string().trim().min(1).max(200).optional(),
+    notes: z.string().max(10_000).nullish().describe("New notes; null clears them"),
+    allDay: z.boolean().optional().describe("Send this with the matching pair below to change when it happens"),
+    date: date.optional().describe("All-day events: the new first day"),
+    endDate: date.optional().describe("All-day events: the new last day, if more than one"),
+    start: localDateTime.optional().describe("Timed events: the new start, e.g. 2026-10-16T09:30"),
+    end: localDateTime.optional().describe("Timed events: the new end"),
+  }),
+  async run(input, { userId, timeZone, propose }) {
+    const row = await getEvent(userId, input.eventId);
+    if (!row) throw new ToolError("No editable event with that id (events from a subscribed calendar can't be changed)");
+    // Dates as strings and timestamps as ISO, the way list_events sees them
+    const event = JSON.parse(JSON.stringify(row)) as CalendarEvent;
+
+    const changes: {
+      title?: string;
+      notes?: string | null;
+      exdates?: string[];
+      allDay?: boolean;
+      startDate?: string;
+      endDate?: string;
+      startsAt?: string;
+      endsAt?: string;
+    } = {};
+    if (input.title !== undefined && input.title !== event.title) changes.title = input.title;
+    if (input.notes !== undefined && (input.notes ?? null) !== event.notes) changes.notes = input.notes ?? null;
+    const newTiming = eventTiming(input, timeZone);
+    const repeats = !!event.rrule;
+    const scope = input.scope ?? "all";
+
+    // One occurrence of a repeating event: it becomes its own event and leaves
+    // the series, exactly as the calendar's "This event" does
+    if (repeats && scope === "one") {
+      if (!input.occurrenceDate) throw new ToolError("Say which occurrence to change with occurrenceDate (YYYY-MM-DD)");
+      const occurrence = occurrenceOn(event, input.occurrenceDate);
+      if (!occurrence) throw new ToolError(`The series has no occurrence on ${input.occurrenceDate}`);
+      if (Object.keys(changes).length === 0 && !newTiming) throw new ToolError("Nothing to change");
+      // The detached event keeps the occurrence's timing unless a new one is given
+      const timing: EventTiming =
+        newTiming ??
+        (occurrence.allDay
+          ? { allDay: true, startDate: occurrence.startDate!, endDate: occurrence.endDate! }
+          : { allDay: false, startsAt: occurrence.startsAt!, endsAt: occurrence.endsAt! });
+      const parsedCreate = createEventInput.safeParse({
+        title: input.title ?? event.title,
+        notes: input.notes !== undefined ? input.notes ?? null : event.notes,
+        rrule: null,
+        seriesId: event.id,
+        ...timing,
+      });
+      if (!parsedCreate.success) throw new ToolError(parsedCreate.error.issues[0]?.message ?? "Invalid event");
+      propose({
+        id: randomUUID(),
+        kind: "update_event",
+        eventId: event.id,
+        eventTitle: event.title,
+        scope: "one",
+        repeats: true,
+        // For the card: the title/notes and, only when it was given, the new
+        // time (the detached event keeps the occurrence's own timing otherwise)
+        changes: { ...changes, ...(newTiming ?? {}) },
+        detach: {
+          seriesId: event.id,
+          occurrenceDate: input.occurrenceDate,
+          create: parsedCreate.data,
+          seriesExdates: [...new Set([...event.exdates, input.occurrenceDate])].sort(),
+        },
+      });
+      return PROPOSED;
+    }
+
+    // The whole series, or a plain event: the change lands on the event itself
+    if (newTiming) {
+      const occurrence = repeats && input.occurrenceDate ? occurrenceOn(event, input.occurrenceDate) : null;
+      if (repeats && input.occurrenceDate && !occurrence) {
+        throw new ToolError(`The series has no occurrence on ${input.occurrenceDate}`);
+      }
+      // Pointed at one occurrence but changing all: shift the series so that
+      // occurrence lands on the new day and time, and move removed days along
+      Object.assign(changes, occurrence ? seriesTimingFrom(event, occurrence, newTiming) : newTiming);
+    }
+    if (Object.keys(changes).length === 0) throw new ToolError("Nothing to change");
+    const parsed = updateEventInput.safeParse(changes);
+    if (!parsed.success) throw new ToolError(parsed.error.issues[0]?.message ?? "Invalid change");
+    propose({
+      id: randomUUID(),
+      kind: "update_event",
+      eventId: event.id,
+      eventTitle: event.title,
+      scope: "all",
+      repeats,
+      changes: parsed.data,
+    });
+    return PROPOSED;
+  },
+});
+
+const proposeJourneyUpdateTool = tool({
+  name: "propose_journey_update",
+  label: "Preparing a change",
+  description:
+    "Propose changing one of the user's journeys (by id from list_journeys), past or future. Send only the fields to change, e.g. a new departure time, gate, seat or flight number; the rest is left as it is. The user confirms before anything changes.",
+  input: z.object({
+    journeyId: z.uuid(),
+    kind: z.enum(["flight", "train"]).optional(),
+    carrier: z.string().trim().min(1).max(100).optional(),
+    number: z.string().trim().max(20).optional(),
+    origin: z.string().trim().min(1).max(100).optional(),
+    destination: z.string().trim().min(1).max(100).optional(),
+    stopover: z.string().trim().max(100).nullish(),
+    originCity: z.string().trim().max(100).nullish(),
+    destinationCity: z.string().trim().max(100).nullish(),
+    departureDate: date.optional(),
+    departureTime: z.string().regex(/^\d{2}:\d{2}$/).nullish(),
+    arrivalDate: date.nullish(),
+    arrivalTime: z.string().regex(/^\d{2}:\d{2}$/).nullish(),
+    seat: z.string().trim().max(20).nullish(),
+    gate: z.string().trim().max(20).nullish(),
+    coach: z.string().trim().max(20).nullish(),
+    vehicle: z.string().trim().max(100).nullish(),
+    aircraftReg: z.string().trim().max(20).nullish(),
+    price: z.number().nonnegative().nullish(),
+    currency: z.string().regex(/^[A-Za-z]{3}$/).nullish(),
+    bookingRef: z.string().trim().max(50).nullish(),
+    notes: z.string().trim().max(5000).nullish(),
+    remindBefore: z.number().int().min(0).max(7 * 24 * 60).nullish().describe("Minutes before departure; null for none"),
+  }),
+  async run({ journeyId, ...changes }, { userId, propose }) {
+    const current = await getJourney(userId, journeyId);
+    if (!current) throw new ToolError("No journey with that id");
+    const patch = Object.fromEntries(Object.entries(changes).filter(([, v]) => v !== undefined));
+    if (Object.keys(patch).length === 0) throw new ToolError("Nothing to change");
+    // PUT replaces the whole journey, so the change is merged onto the current
+    // one and checked exactly like the Travel form checks it
+    const parsed = journeyInput.safeParse({ ...current, ...patch });
+    if (!parsed.success) {
+      const issue = parsed.error.issues[0];
+      throw new ToolError(`${issue?.path.join(".") || "input"}: ${issue?.message ?? "invalid journey"}`);
+    }
+    // Drop the time zones the API recomputes, leaving the body PUT takes
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { departureTz, arrivalTz, ...journey } = parsed.data;
+    // Only what really differs from the stored journey, for the card
+    const diff = Object.fromEntries(
+      Object.entries(journey).filter(([key, value]) => (current as Record<string, unknown>)[key] !== value)
+    ) as Partial<JourneyInput>;
+    if (Object.keys(diff).length === 0) throw new ToolError("Nothing to change");
+    propose({ id: randomUUID(), kind: "update_journey", journeyId, input: journey, changes: diff });
+    return PROPOSED;
+  },
+});
+
 const TOOLS = [
   listTasksTool,
   listEventsTool,
@@ -644,7 +847,9 @@ const TOOLS = [
   proposeTaskTool,
   proposeTaskUpdateTool,
   proposeEventTool,
+  proposeEventUpdateTool,
   proposeJourneyTool,
+  proposeJourneyUpdateTool,
   proposeNoteTool,
   proposeNoteUpdateTool,
   proposeNoteSplitTool,

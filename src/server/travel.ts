@@ -273,6 +273,13 @@ export async function listJourneys(userId: string, locale?: Locale) {
   return rows.map((row) => withNames(row, language));
 }
 
+// One of the user's journeys by id, with its names, or null
+export async function getJourney(userId: string, id: string, locale?: Locale) {
+  const language = locale ?? (await currentLocale());
+  const [row] = await db.select().from(journeys).where(and(eq(journeys.id, id), eq(journeys.userId, userId)));
+  return row ? withNames(row, language) : null;
+}
+
 export async function createJourney(userId: string, input: JourneyInput) {
   try {
     const [row] = await db.insert(journeys).values({ userId, ...input }).returning();
