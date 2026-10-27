@@ -161,6 +161,11 @@ a packing task for Thursday and list my visa notes".
   document itself, so the text and its formatting move unchanged and the
   model never copies it; the original keeps its first part. An open note
   changed this way reloads in the editor.
+- Edit and retry: a sent message can be edited in place and sent again, and
+  a reply can be asked for again (any reply that failed, or the latest one).
+  Either rolls the conversation back to that point — the transcript and any
+  proposal outcomes return to what they were — and replays from there, so
+  the messages after it are replaced rather than piled on.
 
 **Planned**
 - Notes RAG: embed notes with pgvector in the same Neon database, answers
