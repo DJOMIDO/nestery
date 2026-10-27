@@ -16,8 +16,10 @@ import {
   Minimize2,
   NotebookPen,
   Paperclip,
+  Pencil,
   Plane,
   RotateCcw,
+  RotateCw,
   Sparkles,
   Square,
   X,
@@ -43,8 +45,17 @@ import { request } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 type ChatItem =
-  // `images`: previews (data URLs) of what was attached
-  | { role: "user"; text: string; images: string[] }
+  // `images`: what was attached, kept so the message can be edited and sent
+  // again; `historyBefore` / `notesBefore`: the conversation transcript and
+  // the proposal notes as they were when this message was sent, so retrying
+  // or editing can roll the exchange back
+  | {
+      role: "user";
+      text: string;
+      images: { image: AssistantImage; preview: string }[];
+      historyBefore: unknown[];
+      notesBefore: string[];
+    }
   | {
       role: "assistant";
       text: string;
@@ -87,6 +98,8 @@ export function AssistantPanel({
   // Outcomes of proposals, passed to the assistant with the next message
   const [notes, setNotes] = useState<string[]>([]);
   const [input, setInput] = useState("");
+  // The user message being edited in place, and its new text
+  const [editing, setEditing] = useState<{ index: number; text: string } | null>(null);
   // Images to send with the next message
   const [attachments, setAttachments] = useState<{ id: number; image: AssistantImage; preview: string }[]>([]);
   const [dragging, setDragging] = useState(false);
@@ -210,12 +223,28 @@ export function AssistantPanel({
     if ((!message && sentImages.length === 0) || busy) return;
     setInput("");
     setAttachments([]);
-    setBusy(true);
     const sentNotes = notes;
     setNotes([]);
+    await runExchange({ message, images: sentImages, sentNotes, historyBefore: history });
+  };
+
+  // Appends the exchange to the list and streams the reply into it. Also
+  // used to replay one after rewinding (retry, edit and send again).
+  const runExchange = async ({
+    message,
+    images,
+    sentNotes,
+    historyBefore,
+  }: {
+    message: string;
+    images: { image: AssistantImage; preview: string }[];
+    sentNotes: string[];
+    historyBefore: unknown[];
+  }) => {
+    setBusy(true);
     setItems((prev) => [
       ...prev,
-      { role: "user", text: message, images: sentImages.map((a) => a.preview) },
+      { role: "user", text: message, images, historyBefore, notesBefore: sentNotes },
       { role: "assistant", text: "", status: t("thinking"), proposals: [], error: null, done: false, afterTool: false },
     ]);
 
@@ -227,7 +256,7 @@ export function AssistantPanel({
       const res = await fetch("/api/assistant", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ history, message, images: sentImages.map((a) => a.image), notes: sentNotes }),
+        body: JSON.stringify({ history: historyBefore, message, images: images.map((a) => a.image), notes: sentNotes }),
         signal: controller.signal,
       });
       if (!res.ok || !res.body) {
@@ -275,6 +304,38 @@ export function AssistantPanel({
     if (!window.matchMedia("(min-width: 640px)").matches) onClose();
   }, [onClose]);
 
+  // Rolls the conversation back to just before one of its messages: the
+  // exchange and everything after it leave the list, and the transcript and
+  // proposal notes return to what they were when that message was sent.
+  // Returns what the replayed exchange needs, or null while busy.
+  const rewind = (index: number, text: string) => {
+    if (busy) return null;
+    const target = items[index];
+    if (!target || target.role !== "user") return null;
+    setItems((prev) => prev.slice(0, index));
+    setHistory(target.historyBefore);
+    // Notes from proposals settled since then go too: their cards are gone,
+    // and the replayed exchange sends this message's own notes again
+    setNotes(target.notesBefore);
+    return { message: text, images: target.images, sentNotes: target.notesBefore, historyBefore: target.historyBefore };
+  };
+
+  // Sends the same message again, as if the first reply never happened
+  const retry = async (index: number) => {
+    const target = items[index];
+    const replay = rewind(index, target?.text ?? "");
+    if (replay) await runExchange(replay);
+  };
+
+  // Replaces a sent message's text and sends it again from that point
+  const resend = async (index: number, text: string) => {
+    const message = text.trim();
+    if (!message) return;
+    setEditing(null);
+    const replay = rewind(index, message);
+    if (replay) await runExchange(replay);
+  };
+
   const reset = () => {
     abortRef.current?.abort();
     setInput("");
@@ -282,6 +343,7 @@ export function AssistantPanel({
     setHistory([]);
     setNotes([]);
     setAttachments([]);
+    setEditing(null);
   };
 
   const settle = useCallback((index: number, id: string, state: ProposalState, note?: string) => {
@@ -409,16 +471,64 @@ export function AssistantPanel({
               <div key={i} className="ml-auto mt-6 flex w-fit max-w-[85%] flex-col items-end gap-1.5 first:mt-0">
                 {item.images.length > 0 && (
                   <div className="flex flex-wrap justify-end gap-1.5">
-                    {item.images.map((src, n) => (
+                    {item.images.map((img, n) => (
                       // eslint-disable-next-line @next/next/no-img-element -- a local data URL
-                      <img key={n} src={src} alt={t("attachedImage")} className="h-20 max-w-40 rounded-md border object-cover" />
+                      <img key={n} src={img.preview} alt={t("attachedImage")} className="h-20 max-w-40 rounded-md border object-cover" />
                     ))}
                   </div>
                 )}
-                {item.text && (
-                  <p className="whitespace-pre-wrap wrap-anywhere rounded-2xl bg-muted px-3.5 py-2 dark:bg-foreground/10 text-sm text-foreground">
-                    {item.text}
-                  </p>
+                {editing?.index === i ? (
+                  // The bubble becomes a box again; sending replays from here
+                  <div className="w-full min-w-64 rounded-2xl border bg-muted p-2 dark:bg-foreground/10">
+                    <textarea
+                      value={editing.text}
+                      onChange={(e) => setEditing({ index: i, text: e.target.value })}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+                          e.preventDefault();
+                          resend(i, editing.text);
+                        }
+                        if (e.key === "Escape") setEditing(null);
+                      }}
+                      rows={2}
+                      maxLength={4000}
+                      autoFocus
+                      aria-label={t("message")}
+                      className="max-h-40 w-full resize-none bg-transparent px-1.5 py-1 text-sm leading-5 outline-none [field-sizing:content]"
+                    />
+                    <div className="mt-1 flex justify-end gap-1.5">
+                      <Button type="button" size="sm" variant="ghost" onClick={() => setEditing(null)}>
+                        {t("cancel")}
+                      </Button>
+                      <Button type="button" size="sm" disabled={!editing.text.trim()} onClick={() => resend(i, editing.text)}>
+                        <ArrowUp className="size-3.5" />
+                        {t("send")}
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  item.text && (
+                    <div className="group flex items-center gap-1">
+                      {/* Editing a message replays the chat from there, so the
+                          answer and everything after it are replaced */}
+                      {!busy && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="size-7 shrink-0 text-muted-foreground opacity-0 transition-opacity focus-visible:opacity-100 group-hover:opacity-100 max-sm:opacity-100"
+                          onClick={() => setEditing({ index: i, text: item.text })}
+                          title={t("editHint")}
+                        >
+                          <Pencil className="size-3.5" />
+                          <span className="sr-only">{t("edit")}</span>
+                        </Button>
+                      )}
+                      <p className="whitespace-pre-wrap wrap-anywhere rounded-2xl bg-muted px-3.5 py-2 dark:bg-foreground/10 text-sm text-foreground">
+                        {item.text}
+                      </p>
+                    </div>
+                  )
                 )}
               </div>
             ) : (
@@ -442,6 +552,20 @@ export function AssistantPanel({
                   <p role="alert" className="text-xs text-destructive">
                     {item.error}
                   </p>
+                )}
+                {/* A failed reply, or the latest one, can be asked for again */}
+                {!busy && (item.error || i === items.length - 1) && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="-ml-2 h-7 gap-1.5 px-2 text-xs text-muted-foreground"
+                    onClick={() => retry(i - 1)}
+                    title={t("retryHint")}
+                  >
+                    <RotateCw className="size-3.5" />
+                    {t("retry")}
+                  </Button>
                 )}
               </div>
             )
