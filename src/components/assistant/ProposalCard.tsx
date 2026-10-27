@@ -11,7 +11,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { useFormat } from "@/components/SettingsProvider";
-import type { AssistantProposal } from "@/lib/assistant";
+import type { AssistantProposal, ProposalState } from "@/lib/assistant";
 import type { Note } from "@/lib/notes";
 import { request } from "@/lib/api";
 import { notifyDataChanged } from "@/lib/dataChanged";
@@ -19,7 +19,9 @@ import { journeyLabel, reminderParts, type JourneyInput } from "@/lib/travel";
 import { journeyIcon } from "@/components/travel/journeyIcon";
 import type { Formatter } from "@/lib/format";
 
-export type ProposalState = "pending" | "saving" | "confirmed" | "dismissed";
+// Re-exported for the panel; the type lives with the other assistant types
+// because saved conversations store each card's outcome
+export type { ProposalState };
 
 // The app's translator, from the messages' root
 type Translate = ReturnType<typeof useTranslations<never>>;

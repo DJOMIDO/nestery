@@ -296,6 +296,66 @@ export const assistantUsage = pgTable(
   (t) => [uniqueIndex("assistant_usage_user_day_idx").on(t.userId, t.day)]
 );
 
+// Saved assistant conversations. The provider's own transcript lives on the
+// conversation and never leaves the server: the browser sends a
+// conversationId with each message and gets the exchange back as it streams.
+// Rolling a conversation back (edit and send again, retry) truncates the
+// transcript to the length it had before a message, recorded on that message.
+export const assistantConversations = pgTable(
+  "assistant_conversations",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    userId: text()
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    // From the first message; null while it is only an image
+    title: text(),
+    // The provider and model the transcript came from: another one's
+    // transcript would be rejected, so such a conversation stays read-only
+    provider: text().notNull(),
+    model: text().notNull(),
+    // The provider's native messages, sent to the model with each new one
+    transcript: jsonb().$type<unknown[]>().notNull().default(sql`'[]'::jsonb`),
+    // Outcomes of settled proposals, told to the assistant with the next
+    // message (and restored when rolling back to before one)
+    pendingNotes: jsonb().$type<string[]>().notNull().default(sql`'[]'::jsonb`),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp({ withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [index("assistant_conversations_user_id_idx").on(t.userId)]
+);
+
+// The messages of a saved conversation, as the panel shows them: text,
+// attachments, proposal cards with their outcome, errors.
+export const assistantMessages = pgTable(
+  "assistant_messages",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    conversationId: uuid()
+      .notNull()
+      .references(() => assistantConversations.id, { onDelete: "cascade" }),
+    // Position in the conversation; a rollback deletes from one on
+    index: integer().notNull(),
+    // "user" | "assistant"
+    role: text().notNull(),
+    text: text().notNull().default(""),
+    // AssistantImage[] on a user message
+    images: jsonb().$type<unknown[]>().notNull().default(sql`'[]'::jsonb`),
+    // { proposal: AssistantProposal; state: ProposalState }[] on a reply
+    proposals: jsonb().$type<unknown[]>().notNull().default(sql`'[]'::jsonb`),
+    // User messages only: the proposal outcomes sent with it, and the
+    // transcript length before it, to roll back to that point
+    notes: jsonb().$type<string[]>().notNull().default(sql`'[]'::jsonb`),
+    historyLength: integer(),
+    error: text(),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("assistant_messages_conversation_id_idx").on(t.conversationId)]
+);
+
 export const journeyKind = pgEnum("journey_kind", JOURNEY_KINDS);
 
 // Flights and train journeys (Travel). Departure and arrival are local

@@ -2,7 +2,7 @@
 // The agent loop: ask the model, run the tools it calls, give it the results,
 // and repeat until it answers. Provider-neutral; see providers/types.ts.
 
-import type { AssistantImage, AssistantStreamEvent } from "@/lib/assistant";
+import type { AssistantImage, AssistantProposal, AssistantStreamEvent } from "@/lib/assistant";
 import type { Locale } from "@/i18n/config";
 import { createFormatter, type DateTimePrefs } from "@/lib/format";
 import { addDays, startOfWeek } from "@/lib/tasks";
@@ -65,11 +65,23 @@ export interface AssistantRun {
   images: AssistantImage[];
   // What the user did with earlier proposals
   notes: string[];
-  emit: (event: AssistantStreamEvent) => void;
+  // "done" is the route's to emit, once the exchange is saved
+  emit: (event: Exclude<AssistantStreamEvent, { type: "done" }>) => void;
   signal?: AbortSignal;
 }
 
-export async function runAssistant(run: AssistantRun) {
+// What the route saves with the exchange once the run finished
+export interface AssistantRunResult {
+  // The provider's transcript: the history read, everything appended
+  transcript: unknown[];
+  // The proposals made along the way, saved as pending cards
+  proposals: AssistantProposal[];
+  // The reply as the user read it (streamed text and notices joined), saved
+  // on the assistant message
+  replyText: string;
+}
+
+export async function runAssistant(run: AssistantRun): Promise<AssistantRunResult> {
   const { provider, emit } = run;
   // What the user sees of the run (status lines), in the interface language
   const t = await translatorFor(run.locale);
@@ -78,46 +90,57 @@ export async function runAssistant(run: AssistantRun) {
   const text = run.notes.length ? `${run.notes.map((n) => `(${n})`).join("\n")}\n\n${message}` : message;
   const messages = [...run.history, provider.userMessage(text, run.images)];
   const system = systemPrompt(run.today, run.timeZone, run.dateTime);
+  const proposals: AssistantProposal[] = [];
+  // Everything the user reads of the reply, joined as the panel shows it:
+  // text following a tool call starts a new paragraph
+  let replyText = "";
+  let afterTool = false;
+  const say = (text: string) => {
+    replyText += (afterTool && replyText.trim() ? "\n\n" : "") + text;
+    afterTool = false;
+    emit({ type: "text", text });
+  };
   const ctx: ToolContext = {
     userId: run.userId,
     timeZone: run.timeZone,
     today: run.today,
     place: run.place,
     format: createFormatter(run.dateTime, run.locale),
-    propose: (proposal) => emit({ type: "proposal", proposal }),
+    propose: (proposal) => {
+      proposals.push(proposal);
+      emit({ type: "proposal", proposal });
+    },
   };
 
   let nudged = false;
   for (let step = 0; ; step++) {
     if (step === MAX_STEPS) {
-      emit({ type: "text", text: "\n\n(I stopped here: that took too many steps. Try a narrower question.)" });
+      say("\n\n(I stopped here: that took too many steps. Try a narrower question.)");
       break;
     }
-    let replyText = "";
+    let turnText = "";
     const turn = await provider.step({
       system,
       tools: TOOL_SPECS,
       messages,
       onText: (delta) => {
-        replyText += delta;
-        emit({ type: "text", text: delta });
+        turnText += delta;
+        say(delta);
       },
       signal: run.signal,
     });
     // A refused or cut-off reply may end in an unfinished tool call, which the
     // provider would reject next time: leave it out of the conversation
     if (turn.stop === "refused" || turn.stop === "truncated") {
-      emit({
-        type: "text",
-        text:
-          turn.stop === "refused"
-            ? "\n\n(The model declined to answer this.)"
-            : "\n\n(The answer was cut off. Try asking for less at once.)",
-      });
+      say(
+        turn.stop === "refused"
+          ? "\n\n(The model declined to answer this.)"
+          : "\n\n(The answer was cut off. Try asking for less at once.)"
+      );
       break;
     }
     messages.push(turn.message);
-    if (turn.stop === "done" && !replyText.trim()) {
+    if (turn.stop === "done" && !turnText.trim()) {
       if (process.env.NODE_ENV !== "production") {
         console.warn("Assistant: empty reply", JSON.stringify(turn.message).slice(0, 500));
       }
@@ -126,7 +149,7 @@ export async function runAssistant(run: AssistantRun) {
         messages.push(provider.userMessage(EMPTY_REPLY_NUDGE));
         continue;
       }
-      emit({ type: "text", text: t("assistant.noAnswer") });
+      say(t("assistant.noAnswer"));
       break;
     }
     if (turn.stop === "done") break;
@@ -137,11 +160,12 @@ export async function runAssistant(run: AssistantRun) {
       const key = `assistant.tools.${name}` as "assistant.tools.list_tasks";
       emit({ type: "status", label: t.has(key) ? t(key) : toolLabel(name) });
     }
+    afterTool = true;
     const results = await Promise.all(
       turn.toolCalls.map(async (call) => ({ id: call.id, ...(await runTool(call.name, call.input, ctx)) }))
     );
     messages.push(...provider.toolResults(results));
   }
 
-  emit({ type: "done", history: messages });
+  return { transcript: messages, proposals, replyText };
 }

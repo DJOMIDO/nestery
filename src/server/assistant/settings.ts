@@ -167,6 +167,7 @@ export async function resolveAssistant(user: { id: string; email: string }) {
   if (row && (ownKey || keyOptional(row.provider as AssistantProvider))) {
     return {
       source: "own" as const,
+      providerName: row.provider as AssistantProvider,
       model: row.model,
       provider: providerFor(row.provider as AssistantProvider, ownKey, row.model, row.baseUrl),
     };
@@ -176,6 +177,7 @@ export async function resolveAssistant(user: { id: string; email: string }) {
     const model = row?.provider === "anthropic" ? row.model : DEFAULT_MODEL;
     return {
       source: "server" as const,
+      providerName: "anthropic" as AssistantProvider,
       model,
       provider: anthropicProvider({ apiKey: process.env.ANTHROPIC_API_KEY!, model }),
     };
@@ -196,6 +198,9 @@ export async function assistantStatus(user: { id: string; email: string }, day: 
   return {
     available: !!resolved,
     source: resolved?.source ?? null,
+    // Lets the panel tell a saved conversation that can't be continued
+    // (another provider's transcript) from one that can
+    provider: resolved?.providerName ?? null,
     model: resolved?.model ?? null,
     canSaveKey: secretsEnabled(),
     dailyLimit: DAILY_LIMIT,
