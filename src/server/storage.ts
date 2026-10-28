@@ -95,6 +95,13 @@ export async function storedSize(key: string) {
   }
 }
 
+// The bytes of a stored file, read on the server (e.g. for the assistant to
+// extract a document's text or to be shown an image)
+export async function readStored(key: string) {
+  const object = await s3().send(new GetObjectCommand({ Bucket: Bucket(), Key: key }));
+  return object.Body ? await object.Body.transformToByteArray() : new Uint8Array();
+}
+
 export async function deleteStored(key: string) {
   await s3().send(new DeleteObjectCommand({ Bucket: Bucket(), Key: key }));
 }

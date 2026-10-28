@@ -147,6 +147,7 @@
       "list_notes": "Je regarde tes notes",
       "search_notes": "Je cherche dans tes notes",
       "read_note": "Je lis une note",
+      "read_note_attachment": "Je lis une pièce jointe",
       "get_weather": "Je regarde la météo",
       "list_journeys": "Je regarde tes voyages",
       "propose_task": "Je prépare une tâche",
