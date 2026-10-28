@@ -23,6 +23,9 @@ export interface ToolCall {
 export interface ToolResult {
   id: string;
   content: string;
+  // Images the tool read (e.g. a picture attached to a note), sent to the
+  // model with the text so it can describe them
+  images?: AssistantImage[];
   isError?: boolean;
 }
 

@@ -445,6 +445,10 @@ export const noteAttachments = pgTable(
     size: integer().notNull(),
     // False until the browser's upload is checked
     uploaded: boolean().notNull().default(false),
+    // Text the assistant extracted from a PDF or text file, cached here so it
+    // is read once (and later reusable for search). Null until first read; ""
+    // means the file was read but has no text (e.g. a scanned PDF).
+    extractedText: text(),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
     // When the file was left without a note; removed a day later unless a
     // note (e.g. one restored with Undo) still shows it

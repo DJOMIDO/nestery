@@ -1,0 +1,1 @@
+ALTER TABLE "note_attachments" ADD COLUMN "extracted_text" text;

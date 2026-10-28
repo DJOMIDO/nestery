@@ -12,9 +12,30 @@ import { z } from "zod";
 import { db } from "@/db";
 import { noteAttachments, notes } from "@/db/schema";
 import { attachmentIdsIn, MAX_ATTACHMENT_BYTES, MAX_USER_STORAGE_BYTES, opensInline } from "@/lib/attachments";
-import { deleteStored, deleteStoredPrefix, downloadUrl, storedSize, uploadUrl } from "@/server/storage";
+import { deleteStored, deleteStoredPrefix, downloadUrl, readStored, storedSize, uploadUrl } from "@/server/storage";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
+
+// The assistant reads these as text (a browser often leaves contentType empty
+// or generic, so the name's extension is checked too)
+const TEXT_EXTENSION = /\.(md|markdown|txt|csv|tsv|json|xml|log|ya?ml)$/i;
+const isTextLike = (contentType: string, fileName: string) =>
+  contentType.startsWith("text/") ||
+  contentType === "application/json" ||
+  contentType === "application/xml" ||
+  TEXT_EXTENSION.test(fileName);
+
+// Images the assistant can be shown (converted to a JPEG first, so GIF and
+// WebP are fine; AVIF and others are left out as the models may not take them)
+const READABLE_IMAGE = /^image\/(jpeg|png|webp|gif)$/;
+export const isReadableImage = (contentType: string) => READABLE_IMAGE.test(contentType);
+
+// Whether read_note_attachment can read this file at all
+export const isReadableAttachment = (contentType: string, fileName: string) =>
+  contentType === "application/pdf" || isTextLike(contentType, fileName) || isReadableImage(contentType);
+
+// Longest extracted text kept on the row and handed to the model
+const MAX_EXTRACTED_CHARS = 100_000;
 
 export class AttachmentError extends Error {
   constructor(
@@ -109,6 +130,43 @@ export async function attachmentLink(userId: string, id: string) {
     .where(and(eq(noteAttachments.id, id), eq(noteAttachments.userId, userId), eq(noteAttachments.uploaded, true)));
   if (!row) return null;
   return downloadUrl(row.storageKey);
+}
+
+// An attachment's full row (its storage key included), owner-checked and only
+// once its upload finished; for the assistant to read the file. Null when there
+// is no such file of the user's.
+export async function getAttachment(userId: string, id: string) {
+  const [row] = await db
+    .select()
+    .from(noteAttachments)
+    .where(and(eq(noteAttachments.id, id), eq(noteAttachments.userId, userId), eq(noteAttachments.uploaded, true)));
+  return row ?? null;
+}
+
+// The text of a PDF or text-file attachment, extracted once and cached on the
+// row, so a later read (or search) reuses it. "" means the file was read but
+// holds no text (e.g. a scanned PDF); null means it isn't a type read as text.
+export async function attachmentText(userId: string, id: string) {
+  const row = await getAttachment(userId, id);
+  if (!row) return null;
+  if (row.extractedText !== null) return row.extractedText;
+
+  const isPdf = row.contentType === "application/pdf";
+  if (!isPdf && !isTextLike(row.contentType, row.fileName)) return null;
+
+  const bytes = await readStored(row.storageKey);
+  let text: string;
+  if (isPdf) {
+    // Loaded here so the PDF worker stays out of the server bundle until needed
+    const { extractText } = await import("unpdf");
+    const parsed = await extractText(bytes, { mergePages: true });
+    text = parsed.text.trim();
+  } else {
+    text = new TextDecoder().decode(bytes).trim();
+  }
+  text = text.slice(0, MAX_EXTRACTED_CHARS);
+  await db.update(noteAttachments).set({ extractedText: text }).where(eq(noteAttachments.id, id));
+  return text;
 }
 
 export async function listNoteAttachments(userId: string, noteId: string) {

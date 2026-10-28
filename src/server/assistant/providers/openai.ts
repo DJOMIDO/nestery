@@ -125,13 +125,30 @@ export function openaiProvider({
           }
         : { role: "user", content: text },
 
-    // One message per result, as the API expects
-    toolResults: (results): Message[] =>
-      results.map((r) => ({
+    // One tool message per result, as the API expects. The Chat Completions API
+    // takes no images inside a tool result, so a result that carries them is
+    // followed by a user message holding the pictures.
+    toolResults: (results): Message[] => {
+      const messages: Message[] = results.map((r) => ({
         role: "tool",
         tool_call_id: r.id,
         content: r.isError ? `Error: ${r.content}` : r.content,
-      })),
+      }));
+      for (const r of results) {
+        if (!r.images?.length) continue;
+        messages.push({
+          role: "user",
+          content: [
+            { type: "text", text: r.content },
+            ...r.images.map((image) => ({
+              type: "image_url" as const,
+              image_url: { url: `data:${image.mediaType};base64,${image.data}` },
+            })),
+          ],
+        });
+      }
+      return messages;
+    },
 
     isHistory: (history) =>
       history.every(

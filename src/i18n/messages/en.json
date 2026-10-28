@@ -147,6 +147,7 @@
       "list_notes": "Looking at your notes",
       "search_notes": "Searching your notes",
       "read_note": "Reading a note",
+      "read_note_attachment": "Reading an attachment",
       "get_weather": "Checking the weather",
       "list_journeys": "Checking your trips",
       "propose_task": "Preparing a task",

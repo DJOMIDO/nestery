@@ -61,14 +61,23 @@ export function anthropicProvider({ apiKey, model }: { apiKey: string; model: st
       ],
     }),
 
-    // All results in one message, as the API expects
+    // All results in one message, as the API expects. A result that carries
+    // images inlines them in its tool_result block, images before the text.
     toolResults: (results): MessageParam[] => [
       {
         role: "user",
         content: results.map((r) => ({
-          type: "tool_result",
+          type: "tool_result" as const,
           tool_use_id: r.id,
-          content: r.content,
+          content: r.images?.length
+            ? [
+                ...r.images.map((image) => ({
+                  type: "image" as const,
+                  source: { type: "base64" as const, media_type: image.mediaType, data: image.data },
+                })),
+                { type: "text" as const, text: r.content },
+              ]
+            : r.content,
           ...(r.isError && { is_error: true }),
         })),
       },

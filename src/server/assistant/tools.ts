@@ -6,7 +6,9 @@
 
 import { randomUUID } from "node:crypto";
 import * as z from "zod/v4";
-import type { AssistantProposal } from "@/lib/assistant";
+import sharp from "sharp";
+import type { AssistantImage, AssistantProposal } from "@/lib/assistant";
+import { formatBytes } from "@/lib/attachments";
 import { expandEvents, seriesTimingFrom, type CalendarEvent } from "@/lib/calendar";
 import { addDays, compareTasks, TASK_PRIORITIES, TASK_STATUSES, type Task } from "@/lib/tasks";
 import type { Formatter } from "@/lib/format";
@@ -14,8 +16,10 @@ import { noteHref } from "@/lib/notes";
 import { MAX_SPLIT_PARTS, noteText, splitNoteContent, type NoteSplitRule } from "@/lib/noteSplit";
 import { DEFAULT_REMIND_BEFORE, type JourneyInput } from "@/lib/travel";
 import type { WeatherPlace } from "@/lib/weather";
+import { attachmentText, getAttachment, isReadableAttachment, isReadableImage, listNoteAttachments } from "@/server/attachments";
 import { createEventInput, getEvent, listEvents, updateEventInput } from "@/server/events";
 import { getNote, listNotes, searchNotes } from "@/server/notes";
+import { readStored } from "@/server/storage";
 import { subscriptionEvents } from "@/server/subscriptions";
 import { createTaskInput, getTask, listTasks, updateTaskInput } from "@/server/tasks";
 import { getJourney, journeyInput, listJourneys } from "@/server/travel";
@@ -46,6 +50,16 @@ const tool = <S extends z.ZodType>(t: Tool<S>) => t;
 
 // A result the model should read as a failure it can correct
 class ToolError extends Error {}
+
+// A result that carries images next to its text (a picture read from a note
+// attachment). runTool lifts the images onto the tool result so the provider
+// sends them to the model; `text` becomes the result's content.
+class ToolImages {
+  constructor(
+    public text: string,
+    public images: AssistantImage[]
+  ) {}
+}
 
 const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD");
 const localDateTime = z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/, "Use YYYY-MM-DDTHH:mm");
@@ -253,17 +267,66 @@ const searchNotesTool = tool({
 const readNoteTool = tool({
   name: "read_note",
   label: "Reading a note",
-  description: "Read one of the user's notes in full (plain text), by an id from list_notes or search_notes.",
+  description:
+    "Read one of the user's notes in full (plain text), by an id from list_notes or search_notes. Also lists the note's attachments (files attached to it), each with an id and whether it is readable, so read_note_attachment can open one.",
   input: z.object({ id: z.uuid() }),
   async run({ id }, { userId }) {
     const note = await getNote(userId, id);
     if (!note) throw new ToolError("No note with that id");
+    const files = await listNoteAttachments(userId, id);
     return {
       title: note.title || "Untitled",
       link: noteHref(note.id),
       tags: note.tags.length ? note.tags : undefined,
       text: clip(note.contentText, 12_000) ?? "",
+      ...(files.length > 0 && {
+        attachments: files.map((f) => ({
+          id: f.id,
+          fileName: f.fileName,
+          contentType: f.contentType,
+          sizeText: formatBytes(f.size),
+          readable: isReadableAttachment(f.contentType, f.fileName),
+        })),
+      }),
     };
+  },
+});
+
+const readNoteAttachmentTool = tool({
+  name: "read_note_attachment",
+  label: "Reading an attachment",
+  description:
+    "Read a file attached to one of the user's notes, by an attachment id from read_note. A PDF or text file comes back as text; a supported image (JPEG, PNG, WebP or GIF) is shown to you to describe. Word, Excel, PowerPoint and other binary files can't be read: say so and suggest the user paste the contents or send a screenshot.",
+  input: z.object({ id: z.uuid() }),
+  async run({ id }, { userId }) {
+    const att = await getAttachment(userId, id);
+    if (!att) throw new ToolError("No attachment with that id");
+
+    // A picture: shrunk to a JPEG the models accept, then shown to them
+    if (isReadableImage(att.contentType)) {
+      const jpeg = await sharp(Buffer.from(await readStored(att.storageKey)))
+        .rotate()
+        .resize({ width: 1024, height: 1024, fit: "inside", withoutEnlargement: true })
+        .jpeg({ quality: 75 })
+        .toBuffer();
+      return new ToolImages(`Image attachment “${att.fileName}”:`, [
+        { mediaType: "image/jpeg", data: jpeg.toString("base64") },
+      ]);
+    }
+
+    const text = await attachmentText(userId, id);
+    if (text === null) {
+      throw new ToolError(
+        `“${att.fileName}” is a ${att.contentType} file, which I can't read. Ask the user to paste its contents or send a screenshot.`
+      );
+    }
+    if (text === "") {
+      return {
+        fileName: att.fileName,
+        note: "This file has no text I can extract (it may be a scanned PDF). Ask the user for a screenshot of the relevant page, or to paste the text.",
+      };
+    }
+    return { fileName: att.fileName, text: clip(text, 12_000) ?? "" };
   },
 });
 
@@ -841,6 +904,7 @@ const TOOLS = [
   searchNotesTool,
   listNotesTool,
   readNoteTool,
+  readNoteAttachmentTool,
   previewNoteSplitTool,
   weatherTool,
   listJourneysTool,
@@ -873,6 +937,7 @@ export async function runTool(name: string, input: unknown, ctx: ToolContext) {
   }
   try {
     const result = await t.run(parsed.data, ctx);
+    if (result instanceof ToolImages) return { content: result.text, images: result.images };
     return { content: typeof result === "string" ? result : JSON.stringify(result) };
   } catch (err) {
     if (err instanceof ToolError) return { content: err.message, isError: true };
